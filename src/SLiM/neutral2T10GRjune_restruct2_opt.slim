@@ -13,20 +13,40 @@
 
 // New genome structure: 10 genomic regions, each of 100 QTL loci: these loci can be synonymous (m1), or nonsynonymous (m3, m4, m5), being either pleiotropic (m3), or randomly chosen from the non-pleiotropic mutations (m4, m5). Perhaps I should change this: so we have QTL loci for each trait.
 
+// Further changes to genome: each bp is treated as an individual locus/gene now - as to be consistent with the definition of our mutations being QTLs. This means mutation rate/recombination rate is actually chance of mutation/recombination per locus per generation. This means these rates will need to be changed to be normalised to this: perhaps average number of base pairs per gene, add those probabilities to get to the per gene rate.
+
+// Genome size:
+
+// Genome size taken as an average of the number of protein-coding genes in a variety of eukaryotes - ten taken from each group of metazoans (non-vertebrate), plants, protists, vertebrates and fungi, and averaged to the genome size 19869. All data taken from Ensembl.
+// ALTERNATIVE - Elliott and Gregory 2015, found averages for many more species: average 9953 for Fungi, 18943 for animals, 35577 for plants: grand average of 21491 genes in a theoretical eukaryote
+// Hou and Lin 2009 had their own table of gene counts across species of eukaryotes, but the data is a bit dated -  contains animals, plants, fungi; averages to 13264.22 protein-coding genes - I think exclude this
+// What about regulatory regions - assumed they are grouped in with the protein-coding gene, they must be somewhere controlling it, so think of a mutation in the model not necessarily being a mutation on th locus itself, but a mutation at any place in a genome that affects that locus's function (at least in the case of QTL or deleterious mutations; neutral would be the same but without affecting function)
+
+// Average my data with that of Elliott and Gregory for a combined estimate: 20680
+
+
+// Recombination rate now is recombination between genes, so a more direct look at distance between loci
+// I think set it for one genomic region now, and rregion/recombination between will be the recombination rate to the right of each QTL locus - simulating how close/far away they are from each other on an actual genome
+// rwide, correct for size of each locus, on average 1346bp (0.001346 Mbp) length for eukaryotic coding sequences, highly conserved (Xu et al. 2006)
+// rwide should therefore be whatever the value is * 1346
+// mutation rate is the same - 1.29e-8 * 1346
+
 
 
 initialize() {
 	setCfgParam("seed", asInteger(round(runif(1, 1, 2^62 - 1))));	// random seed
 	setSeed(asInteger(seed));			// sets the seed from either a command line input, -d seed=i, or from the above CfgParam
-	setCfgParam("mu", 1.29e-8); // Genome-wide mutation rate, Tian et al. 2019, human GW-mu, identity by descent (improve this estimate? - maybe vary it by 95% CI)
+	catn("Actual seed: " + asInteger(seed));
+	setCfgParam("mu", 1.29e-8*1346); // Genome-wide mutation rate, Tian et al. 2019, human GW-mu, identity by descent (improve this estimate? - maybe vary it by 95% CI)
 	setCfgParam("Ne", 10000); // Population size
 	setCfgParam("pleiorate", 0.44); // Proportion of QTL mutations that should be pleiotropic - given by Chesmore et al. 2017, based on human disease GWAS studies!
 	setCfgParam("del_mean", -0.03); // Mean used for the gamma distribution that deleterious mutations are pulled function
 	setCfgParam("del_shape", 0.2); // Shape parameter for gamma distribution used for deleterious mutations
 	setCfgParam("delmu", 0.0); // Proportion of deleterious mutations compared to others (relative to others, 0.1 compared to 1 of neutral)
-	setCfgParam("rregion", 1e-8); // Recombination rate between genomic regions
-	setCfgParam("rwide", 1e-8); // Recombination rate across the whole genome (aside from the between genomic regions rate)
-	setCfgParam("ploci", 0.01); // Percentage of the chromosome to be QTL positions - where QTL mutations can appear, sampled from sample()
+	setCfgParam("rregion", 1e-3); // Recombination rate between genomic regions
+	setCfgParam("rwide", 1e-8*1346); // Recombination rate across the whole genome (aside from the between genomic regions rate)
+	setCfgParam("nloci", 100); // Number of QTL positions along the chromosome - where QTL mutations can appear, sampled from sample()
+	setCfgParam("genomelength", 20680); // Taken from my own analysis from Ensembl, and from Elliott and Gregory 2015 
 	
 	setCfgParam("outname", 'out_2T100L_means.csv'); // Output filename/path for the trait means/variance
 	setCfgParam("outnamemuts", 'out_2T100L_muts.csv'); //Output filename/path for the mutation information
@@ -72,20 +92,10 @@ initialize() {
 	
 	
 	// Chromosome set up with 10 genomic regions, where there are 200 potential QTL sites, the rest are neutral sites (m1, m2)
-	initializeGenomicElement(g1, 0, 9999);
-	initializeGenomicElement(g1, 10000, 19999);
-	initializeGenomicElement(g1, 20000, 29999);
-	initializeGenomicElement(g1, 30000, 39999);
-	initializeGenomicElement(g1, 40000, 49999);
-	initializeGenomicElement(g1, 50000, 59999);
-	initializeGenomicElement(g1, 60000, 69999);
-	initializeGenomicElement(g1, 70000, 79999);
-	initializeGenomicElement(g1, 80000, 89999);
-	initializeGenomicElement(g1, 90000, 99999);
+	initializeGenomicElement(g1, 0, genomelength - 1);
+
 	
-	rates = c(rwide, rregion, rwide, rregion, rwide, rregion, rwide, rregion, rwide, rregion, rwide, rregion, rwide, rregion, rwide, rregion, rwide, rregion, rwide, rregion);
-	ends =  c(9999, 10000, 19999, 20000, 29999, 30000, 39999, 40000, 49999, 50000, 59999, 60000, 69999, 70000, 79999, 80000, 89999, 90000, 99999, 100000);
-	initializeRecombinationRate(rates, ends);
+	initializeRecombinationRate(0.0);
 	
 	
 	// QTL constants
@@ -115,11 +125,77 @@ function (void) setCfgParam (s$ name, ifls value) // setup function for automati
 // create a population of Ne individuals
 1 {
 	sim.addSubpop("p1", Ne);
-	percent = asInteger(round(ploci * (sim.chromosome.lastPosition)));
-	chr_QTL = sample(1:(sim.chromosome.lastPosition-1), percent);
+	chr_QTL = sort(sample(1:(sim.chromosome.lastPosition-1), nloci));
 	//	chr_QTL = NULL;
 	//	for (chr in sim.chromosome.genomicElements) { chr_QTL = c(chr_QTL, rdunif(ploci, chr.startPosition, chr.endPosition)); } // for each genomic element, get 100 random positions from a discrete uniform distribution and store them as QTL positions
-	sim.setValue("chr_QTL", sort(chr_QTL)); //store these positions in a sim value
+	sim.setValue("chr_QTL", chr_QTL); //store these positions in a sim value
+	
+	// Set linkage between loci	via recombination
+	ends = c(chr_QTL + 1);
+	ends =  sort( c( chr_QTL, ( chr_QTL + 1 ), sim.chromosome.lastPosition )); // recombination rates for genome wide (rwide) occur until each QTL, then for that QTL a between rate is given, followed by more rwide
+	
+//	while (length(unique(ends)) != length(ends)) {
+//		for (end in ends[(length(ends) - 2)]) {
+//			if (ends[match(end, ends)] == ends[(match(end, ends) + 1)])
+//			{
+//				end = end + 1;
+//			}		
+//	}
+//}
+//	indexcheck = seq(0, length(ends) - 1);
+//	check = setDifference(indexcheck, match(ends, ends));
+//	if (length(check) > 0) {
+//
+//	for (end in ends[(length(ends) - 2)]) {
+//		if (ends[match(end, ends)] == ends[match(end, ends) + 1]) {
+//			count = 0;
+//			for (i in ends[match(end, ends):(length(ends) - 2)]) {
+//				count = count + asInteger(ends[match(i, ends)] == ends[(match(i, ends)+1)]);
+//			}		
+//		ends[match(end, ends)] = end + count;
+//		}
+//	}
+//	}
+//	
+
+
+
+	
+
+//	ends = unique(ends); // Need to detect where a duplicate end value is and 
+	
+	rbtwnQTL = c(rep(rregion, length(ends)));
+	rgenome = c(rep(rwide, length(ends))); 
+	rates = c(rbind(rgenome, rbtwnQTL), rwide);
+	rates = rates[0:(length(ends) - 1)];
+	
+
+	
+	if (ends[length(ends) - 1] > sim.chromosome.lastPosition) 		// Check we aren't trying to set the recombination rate outside our chromosome's length if we get a QTL pop up at the last position
+	{
+		ends = ends[0:length(ends) - 2];	
+		rates = rates[0:length(rates) - 2];	
+	}
+	
+		
+		for ( i in 0:(length(ends) - 2) ) 
+	{
+			if (ends[i] == ends[i+1]) {
+				ends[i] = -1;
+			}
+		}
+		
+		rates[ends == -1] = rwide;	
+	
+	rates = rates[ends != -1];
+	ends = ends[ends != -1];
+
+	
+	
+	catn(paste(rates, sep = ", ")); // ascending order error: occurs if two end positions are the same, which occurs if two QTL are next to each other (because chr_QTL[x] + 1 = chr_QTL[y]
+	catn(paste(ends, sep = ", "));
+	
+	sim.chromosome.setRecombinationRate(rates, ends);
 }
 
 // Set fitness of m4 and m5 to be neutral
@@ -223,7 +299,7 @@ mutation(m2) {
 	phenocor = cor(inds.getValue("phenotype0"), inds.getValue("phenotype1"));
 	
 	// Stick those values in the output, along with predictors
-	meanline = paste0(c(sim.generation, ", ", getSeed(), ", ", modelindex, ", ", rregion, ", ", rwide, ", ", delmu, ", ", QTL_cov, ", ", Ne, ", ", ploci, ", ", pheno0mean, ", ", pheno0var, ", ", pheno1mean, ", ", pheno1var, ", ", phenocov, ", ", phenocor, ""));
+	meanline = paste0(c(sim.generation, ", ", getSeed(), ", ", modelindex, ", ", rregion, ", ", rwide, ", ", delmu, ", ", QTL_cov, ", ", Ne, ", ", nloci, ", ", pheno0mean, ", ", pheno0var, ", ", pheno1mean, ", ", pheno1var, ", ", phenocov, ", ", phenocor, ""));
 	file = paste(meanline, "");
 	
 	// Write the file
