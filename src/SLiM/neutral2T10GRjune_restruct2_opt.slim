@@ -31,20 +31,31 @@
 // rwide should therefore be whatever the value is * 1346
 // mutation rate is the same - 1.29e-8 * 1346
 
+// genome-wide mutation rate: should now be mutations per locus, so we need a better estimate: 2.2x10-9*1346 from Kumar and Subramanian 2002; 6.3x10-6 from Schug et al. 1997; 2.4e-4 Thuillet et al. 2002; 1.246e-3 Zhang et al. 2018; 4.6e-9*1346 Smeds et al. 2016; 
+// Averages to 2.943e-4
+
+// genome-wide recombination rate: Sidhu and Gill 2005: in wheat, varies from 2e-9 to 7e-8; Lynch 2005, humans: 5e-4
+
+// Stacking policy: both mutations should simultaneously be there, as this signifies multiple mutations within a locus, each with a separate effect
+
+
+// New idea: old genome size, modelling base pairs again. QTL mutations can arise in several regions in the genome, these regions are the nloci. They may be 1346 bases wide or something similar - probably scale this to the genome size I use (which will have to be an average of some description).
+// Similar code for getting the recombination rates/ends - but we need to add 1345 to each base position - may result in some loci overlapping, may need to detect if they are too close? Also a third recombination rate for within genic regions - so we'll have rwide (outside regions), rbetween(at region ends) and rgenic
+
 
 
 initialize() {
 	setCfgParam("seed", asInteger(round(runif(1, 1, 2^62 - 1))));	// random seed
 	setSeed(asInteger(seed));			// sets the seed from either a command line input, -d seed=i, or from the above CfgParam
 	catn("Actual seed: " + asInteger(seed));
-	setCfgParam("mu", 1.29e-8*1346); // Genome-wide mutation rate, Tian et al. 2019, human GW-mu, identity by descent (improve this estimate? - maybe vary it by 95% CI)
+	setCfgParam("mu", 6.3e-6); // Genome-wide mutation rate per locus, Schug et al. 1996, as above
 	setCfgParam("Ne", 10000); // Population size
 	setCfgParam("pleiorate", 0.44); // Proportion of QTL mutations that should be pleiotropic - given by Chesmore et al. 2017, based on human disease GWAS studies!
 	setCfgParam("del_mean", -0.03); // Mean used for the gamma distribution that deleterious mutations are pulled function
 	setCfgParam("del_shape", 0.2); // Shape parameter for gamma distribution used for deleterious mutations
 	setCfgParam("delmu", 0.0); // Proportion of deleterious mutations compared to others (relative to others, 0.1 compared to 1 of neutral)
-	setCfgParam("rregion", 1e-3); // Recombination rate between genomic regions
-	setCfgParam("rwide", 1e-8*1346); // Recombination rate across the whole genome (aside from the between genomic regions rate)
+	setCfgParam("rregion", 1.346e-5); // Recombination rate between genomic regions
+	setCfgParam("rwide", 1.346e-5); // Recombination rate across the whole genome (aside from the between genomic regions rate)
 	setCfgParam("nloci", 100); // Number of QTL positions along the chromosome - where QTL mutations can appear, sampled from sample()
 	setCfgParam("genomelength", 20680); // Taken from my own analysis from Ensembl, and from Elliott and Gregory 2015 
 	
@@ -95,7 +106,7 @@ initialize() {
 	initializeGenomicElement(g1, 0, genomelength - 1);
 
 	
-	initializeRecombinationRate(0.0);
+	initializeRecombinationRate(0.0); // We set this later, when we get the positions of QTLs
 	
 	
 	// QTL constants
@@ -130,46 +141,18 @@ function (void) setCfgParam (s$ name, ifls value) // setup function for automati
 	//	for (chr in sim.chromosome.genomicElements) { chr_QTL = c(chr_QTL, rdunif(ploci, chr.startPosition, chr.endPosition)); } // for each genomic element, get 100 random positions from a discrete uniform distribution and store them as QTL positions
 	sim.setValue("chr_QTL", chr_QTL); //store these positions in a sim value
 	
+	endsamples = sample(chr_QTL, asInteger(round(0.1*length(chr_QTL))) );
+	
 	// Set linkage between loci	via recombination
-	ends = c(chr_QTL + 1);
-	ends =  sort( c( chr_QTL, ( chr_QTL + 1 ), sim.chromosome.lastPosition )); // recombination rates for genome wide (rwide) occur until each QTL, then for that QTL a between rate is given, followed by more rwide
+	ends = c(endsamples + 1);
+	ends =  sort( c( endsamples, ( endsamples + 1 ), sim.chromosome.lastPosition )); // recombination rates for genome wide (rwide) occur until each QTL, then for that QTL a between rate is given, followed by more rwide
 	
-//	while (length(unique(ends)) != length(ends)) {
-//		for (end in ends[(length(ends) - 2)]) {
-//			if (ends[match(end, ends)] == ends[(match(end, ends) + 1)])
-//			{
-//				end = end + 1;
-//			}		
-//	}
-//}
-//	indexcheck = seq(0, length(ends) - 1);
-//	check = setDifference(indexcheck, match(ends, ends));
-//	if (length(check) > 0) {
-//
-//	for (end in ends[(length(ends) - 2)]) {
-//		if (ends[match(end, ends)] == ends[match(end, ends) + 1]) {
-//			count = 0;
-//			for (i in ends[match(end, ends):(length(ends) - 2)]) {
-//				count = count + asInteger(ends[match(i, ends)] == ends[(match(i, ends)+1)]);
-//			}		
-//		ends[match(end, ends)] = end + count;
-//		}
-//	}
-//	}
-//	
-
-
-
-	
-
-//	ends = unique(ends); // Need to detect where a duplicate end value is and 
 	
 	rbtwnQTL = c(rep(rregion, length(ends)));
 	rgenome = c(rep(rwide, length(ends))); 
 	rates = c(rbind(rgenome, rbtwnQTL), rwide);
 	rates = rates[0:(length(ends) - 1)];
 	
-
 	
 	if (ends[length(ends) - 1] > sim.chromosome.lastPosition) 		// Check we aren't trying to set the recombination rate outside our chromosome's length if we get a QTL pop up at the last position
 	{
@@ -180,22 +163,22 @@ function (void) setCfgParam (s$ name, ifls value) // setup function for automati
 		
 		for ( i in 0:(length(ends) - 2) ) 
 	{
-			if (ends[i] == ends[i+1]) {
+			if (ends[i] == ends[i+1]) { 				// Check if any two ends are right next to each other, if there are set the first one to -1
 				ends[i] = -1;
 			}
 		}
 		
-		rates[ends == -1] = rwide;	
+		rates[ends == -1] = rwide;					// For any rates where ends = -1, set the value to rwide so we can swap over to the normal behaviour and don't get a bunch of rregion across the genome
 	
-	rates = rates[ends != -1];
+	rates = rates[ends != -1];					// Excise the -1s
 	ends = ends[ends != -1];
 
 	
 	
-	catn(paste(rates, sep = ", ")); // ascending order error: occurs if two end positions are the same, which occurs if two QTL are next to each other (because chr_QTL[x] + 1 = chr_QTL[y]
-	catn(paste(ends, sep = ", "));
+//	catn(paste(rates, sep = ", ")); // ascending order error: occurs if two end positions are the same, which occurs if two QTL are next to each other (because chr_QTL[x] + 1 = chr_QTL[y]
+//	catn(paste(ends, sep = ", "));
 	
-	sim.chromosome.setRecombinationRate(rates, ends);
+	sim.chromosome.setRecombinationRate(rates, ends);				// Set the recombination rates across the genome
 }
 
 // Set fitness of m4 and m5 to be neutral
@@ -299,7 +282,7 @@ mutation(m2) {
 	phenocor = cor(inds.getValue("phenotype0"), inds.getValue("phenotype1"));
 	
 	// Stick those values in the output, along with predictors
-	meanline = paste0(c(sim.generation, ", ", getSeed(), ", ", modelindex, ", ", rregion, ", ", rwide, ", ", delmu, ", ", QTL_cov, ", ", Ne, ", ", nloci, ", ", pheno0mean, ", ", pheno0var, ", ", pheno1mean, ", ", pheno1var, ", ", phenocov, ", ", phenocor, ""));
+	meanline = paste0(c(sim.generation, ", ", asString(getSeed()), ", ", modelindex, ", ", rregion, ", ", rwide, ", ", delmu, ", ", QTL_cov, ", ", Ne, ", ", nloci, ", ", pheno0mean, ", ", pheno0var, ", ", pheno1mean, ", ", pheno1var, ", ", phenocov, ", ", phenocor, ""));
 	file = paste(meanline, "");
 	
 	// Write the file
@@ -341,9 +324,9 @@ mutation(m2) {
 			mutFreq = mean(sim.subpopulations.genomes.containsMutations(mut));
 			mutType = mut.mutationType.id;
 			if (mut != revmuts[0]) // Quality hack
-				mutsLine = paste(c(sim.generation, ", ", getSeed(), ", ", modelindex, ", ", rregion, ", ", rwide, ", ", delmu, ", ", QTL_cov, ", ", Ne, ", ", mutType, ", ", mut.id, ", ", mut.position, ", ", mut.originGeneration, ", ", mut.getValue("e0"), ", ", mut.getValue("e1"), ", ", mut.getValue("fe"), ", ", mutFreq, ", ", "N/A", "\n"), "");
+				mutsLine = paste(c(sim.generation, ", ", asString(getSeed()), ", ", modelindex, ", ", rregion, ", ", rwide, ", ", delmu, ", ", QTL_cov, ", ", Ne, ", ", mutType, ", ", mut.id, ", ", mut.position, ", ", mut.originGeneration, ", ", mut.getValue("e0"), ", ", mut.getValue("e1"), ", ", mut.getValue("fe"), ", ", mutFreq, ", ", "N/A", "\n"), "");
 			else
-				mutsLine = paste(c(sim.generation, ", ", getSeed(), ", ", modelindex, ", ", rregion, ", ", rwide, ", ", delmu, ", ", QTL_cov, ", ", Ne, ", ", mutType, ", ", mut.id, ", ", mut.position, ", ", mut.originGeneration, ", ", mut.getValue("e0"), ", ", mut.getValue("e1"), ", ", mut.getValue("fe"), ", ", mutFreq, ", ", "N/A", ""), "");
+				mutsLine = paste(c(sim.generation, ", ", asString(getSeed()), ", ", modelindex, ", ", rregion, ", ", rwide, ", ", delmu, ", ", QTL_cov, ", ", Ne, ", ", mutType, ", ", mut.id, ", ", mut.position, ", ", mut.originGeneration, ", ", mut.getValue("e0"), ", ", mut.getValue("e1"), ", ", mut.getValue("fe"), ", ", mutFreq, ", ", "N/A", ""), "");
 			mutsLines = c(mutsLines, mutsLine);
 		}
 	
@@ -354,9 +337,9 @@ mutation(m2) {
 		subType = sub.mutationType.id;
 		
 		if (sub != revsubs[0]) // THIS IS THE HACK THAT I MUST RESORT TO THANKS TO NO \b OR REPLACE() 	GOSH BLESS EIDOS
-			subLine = paste(c(sim.generation, ", ", getSeed(), ", ", modelindex, ", ", rregion, ", ", rwide, ", ", delmu, ", ", QTL_cov, ", ", Ne, ", ", subType, ", ", sub.id, ", ", sub.position, ", ", sub.originGeneration, ", ", sub.getValue("e0"), ", ", sub.getValue("e1"), ", ", sub.getValue("fe"), ", ", subFreq, ", ", sub.fixationGeneration, "\n"), "");
+			subLine = paste(c(sim.generation, ", ", asString(getSeed()), ", ", modelindex, ", ", rregion, ", ", rwide, ", ", delmu, ", ", QTL_cov, ", ", Ne, ", ", subType, ", ", sub.id, ", ", sub.position, ", ", sub.originGeneration, ", ", sub.getValue("e0"), ", ", sub.getValue("e1"), ", ", sub.getValue("fe"), ", ", subFreq, ", ", sub.fixationGeneration, "\n"), "");
 		else
-			subLine = paste(c(sim.generation, ", ", getSeed(), ", ", modelindex, ", ", rregion, ", ", rwide, ", ", delmu, ", ", QTL_cov, ", ", Ne, ", ", subType, ", ", sub.id, ", ", sub.position, ", ", sub.originGeneration, ", ", sub.getValue("e0"), ", ", sub.getValue("e1"), ", ", sub.getValue("fe"), ", ", subFreq, ", ", sub.fixationGeneration, ""), "");
+			subLine = paste(c(sim.generation, ", ", asString(getSeed()), ", ", modelindex, ", ", rregion, ", ", rwide, ", ", delmu, ", ", QTL_cov, ", ", Ne, ", ", subType, ", ", sub.id, ", ", sub.position, ", ", sub.originGeneration, ", ", sub.getValue("e0"), ", ", sub.getValue("e1"), ", ", sub.getValue("fe"), ", ", subFreq, ", ", sub.fixationGeneration, ""), "");
 		
 		mutsLines = c(mutsLines, subLine); // Add substitutions to mutation output
 	
@@ -377,15 +360,6 @@ mutation(m2) {
 //	if (sim.generation % 1000 != 0)
 //		return;
 //	
-//	for (ind in inds) {
-//		// Stick those values in the output, along with predictors
-//		phenoline = paste0(c(sim.generation, ", ", getSeed(), ", ", modelindex, ", ", rregion, ", ", rwide, ", ", delmu, ", ", QTL_cov, ", ", Ne, ", ", ind.index, ", ", ind.getValue("phenotype0"), ", ", ind.getValue("phenotype1"), "\n"));
-//		phenofile = paste(phenoline, "");
-//	
-//	}
-	// Write the file
-//	writeFile(phenooutname, phenofile, append = T);
-
 
 }
 

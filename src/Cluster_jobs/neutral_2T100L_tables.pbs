@@ -1,0 +1,22 @@
+#!/bin/bash -l
+#PBS -q workq
+#PBS -A UQ-SCI-BiolSci
+#PBS -N slim_latinsquare2T
+#PBS -l walltime=110:00:00
+#PBS -l select=8:ncpus=24:mem=96G
+
+cd $TMPDIR
+
+mkdir -p matrices/model{1..100}
+
+module load R/3.5.0
+
+
+R --file=/home/$USER/SLiM/Scripts/2traits_junerestruct_unix.R
+
+zip -r 30days/$USER/matrices.zip /$TMPDIR/matrices
+
+
+cat /$TMPDIR/out_2T100L_means.csv > /30days/$USER/out_2T100L_means.csv
+
+cat /$TMPDIR/out_2T100L_muts.csv > /30days/$USER/out_2T100L_muts.csv
