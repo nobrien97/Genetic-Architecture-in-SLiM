@@ -39,8 +39,8 @@
 // Stacking policy: both mutations should simultaneously be there, as this signifies multiple mutations within a locus, each with a separate effect
 
 
-// New idea: old genome size, modelling base pairs again. QTL mutations can arise in several regions in the genome, these regions are the nloci. They may be 1346 bases wide or something similar - probably scale this to the genome size I use (which will have to be an average of some description).
-// Similar code for getting the recombination rates/ends - but we need to add 1345 to each base position - may result in some loci overlapping, may need to detect if they are too close? Also a third recombination rate for within genic regions - so we'll have rwide (outside regions), rbetween(at region ends) and rgenic
+// AIM 1: Null model: rregion should be FIXED - independent assortment isn't a treatment for here.
+// AIM 2: Effects of recombination - rregion locations according to positions of QTLs - can vary this parameter to not only have effects of crossing over (via rate), but also independent assortment (WHERE in the genome breakpoints are more likely to be)
 
 
 
