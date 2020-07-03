@@ -393,9 +393,9 @@ mutation(m2) {
 		
 		}
 	}
-	writeFile(asString(paste0(c("~/matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, "trait1.csv"))), segsitesfile, append = T); // append is true so we can stick outputs from different model/seed runs into the same file
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, "trait1.csv"))), segsitesfile, append = T); // append is true so we can stick outputs from different model/seed runs into the same file
 //	// This is ~/model{modelindex}/seed_segsitesoutname_trait1.csv
-	writeFile(asString(paste0(c("~/matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, "trait1.csv"))), sizefxfile, append = T);
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, "trait1.csv"))), sizefxfile, append = T);
 	
 
 	
@@ -446,7 +446,7 @@ mutation(m2) {
 		
 		}
 	}
-	writeFile(asString(paste0(c("~/matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, "trait1.csv"))), zygosfile, append = T);
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, "trait1.csv"))), zygosfile, append = T);
 	
 	
 
@@ -506,9 +506,9 @@ mutation(m2) {
 		
 		}
 	}
-	writeFile(asString(paste0(c("~/matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, "trait2.csv"))), segsitesfile); 
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, "trait2.csv"))), segsitesfile); 
 
-	writeFile(asString(paste0(c("~/matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, "_trait2.csv"))), sizefxfile);
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, "_trait2.csv"))), sizefxfile);
 	
 	
 	
@@ -558,7 +558,7 @@ mutation(m2) {
 		
 		}
 	}
-	writeFile(asString(paste0(c("~/matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, "trait2.csv"))), zygosfile);
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, "trait2.csv"))), zygosfile);
 	
 
 }
