@@ -40,7 +40,7 @@
 
 
 // AIM 1: Null model: rregion should be FIXED - independent assortment isn't a treatment for here.
-// AIM 2: Effects of recombination - rregion locations according to positions of QTLs - can vary this parameter to not only have effects of crossing over (via rate), but also independent assortment (WHERE in the genome breakpoints are more likely to be)
+
 
 
 
@@ -54,7 +54,7 @@ initialize() {
 	setCfgParam("del_mean", -0.03); // Mean used for the gamma distribution that deleterious mutations are pulled function
 	setCfgParam("del_shape", 0.2); // Shape parameter for gamma distribution used for deleterious mutations
 	setCfgParam("delmu", 0.0); // Proportion of deleterious mutations compared to others (relative to others, 0.1 compared to 1 of neutral)
-	setCfgParam("rregion", 1.346e-5); // Recombination rate between genomic regions
+	setCfgParam("rregion", 0.5); // Recombination rate between genomic regions
 	setCfgParam("rwide", 1.346e-5); // Recombination rate across the whole genome (aside from the between genomic regions rate)
 	setCfgParam("nloci", 100); // Number of QTL positions along the chromosome - where QTL mutations can appear, sampled from sample()
 	setCfgParam("genomelength", 20680); // Taken from my own analysis from Ensembl, and from Elliott and Gregory 2015 
@@ -104,9 +104,16 @@ initialize() {
 	
 	// Chromosome set up with 10 genomic regions, where there are 200 potential QTL sites, the rest are neutral sites (m1, m2)
 	initializeGenomicElement(g1, 0, genomelength - 1);
-
 	
-	initializeRecombinationRate(0.0); // We set this later, when we get the positions of QTLs
+	recomseq = seq(0, genomelength - 1, by = 0.1*genomelength);
+	ends = asInteger(round(recomseq[1:9])); 	// Convert to int from float
+	ends = c(sort(c(ends, ends+1)), genomelength);
+	rbtwnQTL = c(rep(rregion, length(ends)));
+	rgenome = c(rep(rwide, length(ends))); 
+	rates = c(rbind(rgenome, rbtwnQTL), rwide);
+	rates = rates[0:(length(ends) - 1)];
+	
+	initializeRecombinationRate(rates, ends); // We set this later, when we get the positions of QTLs
 	
 	
 	// QTL constants
@@ -141,44 +148,6 @@ function (void) setCfgParam (s$ name, ifls value) // setup function for automati
 	//	for (chr in sim.chromosome.genomicElements) { chr_QTL = c(chr_QTL, rdunif(ploci, chr.startPosition, chr.endPosition)); } // for each genomic element, get 100 random positions from a discrete uniform distribution and store them as QTL positions
 	sim.setValue("chr_QTL", chr_QTL); //store these positions in a sim value
 	
-	endsamples = sample(chr_QTL, asInteger(round(0.1*length(chr_QTL))) );
-	
-	// Set linkage between loci	via recombination
-	ends = c(endsamples + 1);
-	ends =  sort( c( endsamples, ( endsamples + 1 ), sim.chromosome.lastPosition )); // recombination rates for genome wide (rwide) occur until each QTL, then for that QTL a between rate is given, followed by more rwide
-	
-	
-	rbtwnQTL = c(rep(rregion, length(ends)));
-	rgenome = c(rep(rwide, length(ends))); 
-	rates = c(rbind(rgenome, rbtwnQTL), rwide);
-	rates = rates[0:(length(ends) - 1)];
-	
-	
-	if (ends[length(ends) - 1] > sim.chromosome.lastPosition) 		// Check we aren't trying to set the recombination rate outside our chromosome's length if we get a QTL pop up at the last position
-	{
-		ends = ends[0:length(ends) - 2];	
-		rates = rates[0:length(rates) - 2];	
-	}
-	
-		
-		for ( i in 0:(length(ends) - 2) ) 
-	{
-			if (ends[i] == ends[i+1]) { 				// Check if any two ends are right next to each other, if there are set the first one to -1
-				ends[i] = -1;
-			}
-		}
-		
-		rates[ends == -1] = rwide;					// For any rates where ends = -1, set the value to rwide so we can swap over to the normal behaviour and don't get a bunch of rregion across the genome
-	
-	rates = rates[ends != -1];					// Excise the -1s
-	ends = ends[ends != -1];
-
-	
-	
-//	catn(paste(rates, sep = ", ")); // ascending order error: occurs if two end positions are the same, which occurs if two QTL are next to each other (because chr_QTL[x] + 1 = chr_QTL[y]
-//	catn(paste(ends, sep = ", "));
-	
-	sim.chromosome.setRecombinationRate(rates, ends);				// Set the recombination rates across the genome
 }
 
 // Set fitness of m4 and m5 to be neutral
@@ -424,9 +393,9 @@ mutation(m2) {
 		
 		}
 	}
-	writeFile(asString(paste0(c("~/matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, "trait1.csv"))), segsitesfile, append = T); // append is true so we can stick outputs from different model/seed runs into the same file
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, "trait1.csv"))), segsitesfile, append = T); // append is true so we can stick outputs from different model/seed runs into the same file
 //	// This is ~/model{modelindex}/seed_segsitesoutname_trait1.csv
-	writeFile(asString(paste0(c("~/matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, "trait1.csv"))), sizefxfile, append = T);
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, "trait1.csv"))), sizefxfile, append = T);
 	
 
 	
@@ -477,7 +446,7 @@ mutation(m2) {
 		
 		}
 	}
-	writeFile(asString(paste0(c("~/matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, "trait1.csv"))), zygosfile, append = T);
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, "trait1.csv"))), zygosfile, append = T);
 	
 	
 
@@ -537,9 +506,9 @@ mutation(m2) {
 		
 		}
 	}
-	writeFile(asString(paste0(c("~/matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, "trait2.csv"))), segsitesfile); 
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, "trait2.csv"))), segsitesfile); 
 
-	writeFile(asString(paste0(c("~/matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, "_trait2.csv"))), sizefxfile);
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, "_trait2.csv"))), sizefxfile);
 	
 	
 	
@@ -589,7 +558,7 @@ mutation(m2) {
 		
 		}
 	}
-	writeFile(asString(paste0(c("~/matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, "trait2.csv"))), zygosfile);
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, "trait2.csv"))), zygosfile);
 	
 
 }

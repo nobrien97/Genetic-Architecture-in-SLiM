@@ -40,8 +40,6 @@
 
 
 // AIM 1: Null model: rregion should be FIXED - independent assortment isn't a treatment for here.
-// AIM 2: Effects of recombination - rregion locations according to positions of QTLs - can vary this parameter to not only have effects of crossing over (via rate), but also independent assortment (WHERE in the genome breakpoints are more likely to be)
-
 
 
 initialize() {
@@ -54,14 +52,13 @@ initialize() {
 	setCfgParam("del_mean", -0.03); // Mean used for the gamma distribution that deleterious mutations are pulled function
 	setCfgParam("del_shape", 0.2); // Shape parameter for gamma distribution used for deleterious mutations
 	setCfgParam("delmu", 0.0); // Proportion of deleterious mutations compared to others (relative to others, 0.1 compared to 1 of neutral)
-	setCfgParam("rregion", 1.346e-5); // Recombination rate between genomic regions
+	setCfgParam("rregion", 0.0); // Recombination rate between genomic regions
 	setCfgParam("rwide", 1.346e-5); // Recombination rate across the whole genome (aside from the between genomic regions rate)
 	setCfgParam("nloci", 100); // Number of QTL positions along the chromosome - where QTL mutations can appear, sampled from sample()
 	setCfgParam("genomelength", 20680); // Taken from my own analysis from Ensembl, and from Elliott and Gregory 2015 
 	
 	setCfgParam("outname", 'out_2T100L_means.csv'); // Output filename/path for the trait means/variance
 	setCfgParam("outnamemuts", 'out_2T100L_muts.csv'); //Output filename/path for the mutation information
-//	setCfgParam("phenooutname", 'out_2T100L_pheno.csv'); // Output filename/path for the final phenotypes of all individuals
 	setCfgParam("segsitesoutname", 'out_2T100L_segsites'); // Output filename for genomes - the 0s and 1s for whether a mutation is present at a certain position
 	setCfgParam("zygosoutname", 'out_2T100L_zygosity'); // Output filename for zygosity of mutations for each individual for each locus position	
 	setCfgParam("sizefxoutname", 'out_2T100L_sizefx'); // Output filename for size effects table of mutations and substitutions
@@ -104,9 +101,16 @@ initialize() {
 	
 	// Chromosome set up with 10 genomic regions, where there are 200 potential QTL sites, the rest are neutral sites (m1, m2)
 	initializeGenomicElement(g1, 0, genomelength - 1);
-
 	
-	initializeRecombinationRate(0.0); // We set this later, when we get the positions of QTLs
+	recomseq = seq(0, genomelength - 1, by = 0.1*genomelength);
+	ends = asInteger(round(recomseq[1:9])); 	// Convert to int from float
+	ends = c(sort(c(ends, ends+1)), genomelength);
+	rbtwnQTL = c(rep(rregion, length(ends)));
+	rgenome = c(rep(rwide, length(ends))); 
+	rates = c(rbind(rgenome, rbtwnQTL), rwide);
+	rates = rates[0:(length(ends) - 1)];
+	
+	initializeRecombinationRate(rates, ends); // We set this later, when we get the positions of QTLs
 	
 	
 	// QTL constants
@@ -141,44 +145,6 @@ function (void) setCfgParam (s$ name, ifls value) // setup function for automati
 	//	for (chr in sim.chromosome.genomicElements) { chr_QTL = c(chr_QTL, rdunif(ploci, chr.startPosition, chr.endPosition)); } // for each genomic element, get 100 random positions from a discrete uniform distribution and store them as QTL positions
 	sim.setValue("chr_QTL", chr_QTL); //store these positions in a sim value
 	
-	endsamples = sample(chr_QTL, asInteger(round(0.1*length(chr_QTL))) );
-	
-	// Set linkage between loci	via recombination
-	ends = c(endsamples + 1);
-	ends =  sort( c( endsamples, ( endsamples + 1 ), sim.chromosome.lastPosition )); // recombination rates for genome wide (rwide) occur until each QTL, then for that QTL a between rate is given, followed by more rwide
-	
-	
-	rbtwnQTL = c(rep(rregion, length(ends)));
-	rgenome = c(rep(rwide, length(ends))); 
-	rates = c(rbind(rgenome, rbtwnQTL), rwide);
-	rates = rates[0:(length(ends) - 1)];
-	
-	
-	if (ends[length(ends) - 1] > sim.chromosome.lastPosition) 		// Check we aren't trying to set the recombination rate outside our chromosome's length if we get a QTL pop up at the last position
-	{
-		ends = ends[0:length(ends) - 2];	
-		rates = rates[0:length(rates) - 2];	
-	}
-	
-		
-		for ( i in 0:(length(ends) - 2) ) 
-	{
-			if (ends[i] == ends[i+1]) { 				// Check if any two ends are right next to each other, if there are set the first one to -1
-				ends[i] = -1;
-			}
-		}
-		
-		rates[ends == -1] = rwide;					// For any rates where ends = -1, set the value to rwide so we can swap over to the normal behaviour and don't get a bunch of rregion across the genome
-	
-	rates = rates[ends != -1];					// Excise the -1s
-	ends = ends[ends != -1];
-
-	
-	
-//	catn(paste(rates, sep = ", ")); // ascending order error: occurs if two end positions are the same, which occurs if two QTL are next to each other (because chr_QTL[x] + 1 = chr_QTL[y]
-//	catn(paste(ends, sep = ", "));
-	
-	sim.chromosome.setRecombinationRate(rates, ends);				// Set the recombination rates across the genome
 }
 
 // Set fitness of m4 and m5 to be neutral
@@ -383,6 +349,7 @@ mutation(m2) {
 	subs = sim.substitutions[sim.substitutions.mutationType == m3 | sim.substitutions.mutationType == m4];
 	positions = sim.getValue("chr_QTL");
 	segsitesfile = NULL;
+	segsiteslines = NULL;
 	sizefxfile = NULL;
 	
 	if (length(subs) == 0 & length(c(genomes.positionsOfMutationsOfType(m3), genomes.positionsOfMutationsOfType(m4))) == 0) {		// Skip the loop if there are no mutations to put in
@@ -392,48 +359,45 @@ mutation(m2) {
 		sizefxfile = segsitesfile;
 	}
 	
-	else {
+	else { 
+	
+	// Looks horrible, but this is a vectorised version of what I was doing before, which is much faster. Here's what the code looks like spread out so it's more readable:
+
+//		segsiteslines = sapply(genomes, 
+//			"segsitesline = rep(0, sim.chromosome.lastPosition); 		// initialise the line with some 0s
+//			muts = applyValue.mutations[applyValue.mutations.mutationType == m3 | applyValue.mutations.mutationType == m4]; // get the appropriate mutations
+//			segsitesline[muts.position] = 1; // fill in positions in the line where a mutation/substitution is with a 1
+//			segsitesline[subs.position] = 1; 
+//			segsitesline = (applyValue != genomes[genomes.size() - 1] ? c((segsitesline[positions] + ','),'\\n') else (segsitesline[positions] + ',') ); // check if the current genome in the apply loop is the last one or not - if it isn't, add a new line, otherwise don't; also, add commas between the positions for csv
+//			segsitesline;"); 
+//		
+//		segsitesfile = paste0(segsiteslines); // paste the complete vector into a string for output
 		
-		// For each genome in the seqence, get a list of all the positions where QTL mutations occur, assign a 1 if that position matches a mutation's position 	
-		for (genome in genomes) {
-		//Table 1: Segregating sites
-			segsitesline = rep(0, (sim.chromosome.lastPosition));
-			muts = genome.mutations[genome.mutations.mutationType == m3 | genome.mutations.mutationType == m4];
-			segsitesline[muts.position] = 1;
-			segsitesline[subs.position] = 1;
-			segsitesline = segsitesline[positions];
-		//Table 2: Size effects
-			sizefxline = rep(0.0, sim.chromosome.lastPosition);
-			if (muts.size() > 0) { // Double check to make sure we can get those values
-			sizefxline[muts.position] = muts.getValue("e0");	// Fill the appropriate vector element in for a given mutation with its selection coef
-				}			
-			if (subs.size() > 0) {							
-			sizefxline[subs.position] = subs.getValue("e0");			
-				}
-			sizefxline = sizefxline[positions];
+		
+		segsiteslines = sapply(genomes, 
+			"segsitesline = rep(0, sim.chromosome.lastPosition); muts = applyValue.mutations[applyValue.mutations.mutationType == m3 | applyValue.mutations.mutationType == m4]; segsitesline[muts.position] = 1; segsitesline[subs.position] = 1; segsitesline = (applyValue != genomes[genomes.size() - 1] ? c((segsitesline[positions] + ','),'\\n') else (segsitesline[positions] + ',') ); segsitesline;"); 
+		
+		segsitesfile = paste0(segsiteslines);
+		
+		sizefxlines = sapply(genomes,
+	"sizefxline = rep(0.0, sim.chromosome.lastPosition); muts = applyValue.mutations[applyValue.mutations.mutationType == m3 | applyValue.mutations.mutationType == m4]; if (muts.size() > 0) { sizefxline[muts.position] = muts.getValue('e0'); } if (subs.size() > 0) {sizefxline[subs.position] = subs.getValue('e0'); } sizefxline = (applyValue != genomes[genomes.size() - 1] ? c((sizefxline[positions] + ','),'\\n') else (sizefxline[positions] + ',') ); sizefxline;"); 
 			
-			if (genome != genomes[genomes.size() - 1]) { // Check if the genome is the last in the list or not: we shouldn't add a new line for the last genome
-				segsitesfile = paste0(c(segsitesfile, paste(segsitesline, ", "), "\n"));
-				sizefxfile = paste0(c(sizefxfile, paste(sizefxline, ", "), "\n"));
-			}
-			
-			else {
-				segsitesfile = paste0(c(segsitesfile, paste(segsitesline, ", ")));
-				sizefxfile = paste0(c(sizefxfile, paste(sizefxline, ", ")));
-			}
+		sizefxfile = paste0(sizefxlines);
 		
 		}
-	}
-	writeFile(asString(paste0(c("~/matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, "trait1.csv"))), segsitesfile, append = T); // append is true so we can stick outputs from different model/seed runs into the same file
-//	// This is ~/model{modelindex}/seed_segsitesoutname_trait1.csv
-	writeFile(asString(paste0(c("~/matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, "trait1.csv"))), sizefxfile, append = T);
-	
+		
 
-	
-	
-	// Genome output 3: per individual homo/heterozygosity or absence: 0, 1, 2 - the genotype table
-	// Using subs and positions from genome output 1 declarations
-	
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, "trait1.csv"))), segsitesfile, append = T); // append is true so we can stick outputs from different model/seed runs into the same file
+
+//	// This is ~/model{modelindex}/seed_segsitesoutname_trait1.csv
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, "trait1.csv"))), sizefxfile, append = T);
+
+
+
+
+//	// Genome output 3: per individual homo/heterozygosity or absence: 0, 1, 2 - the genotype table
+//	// Using subs and positions from genome output 1 declarations
+//	
 	inds = sim.subpopulations.individuals;
 	zygosout = NULL;
 	zygosfile = NULL;
@@ -444,47 +408,17 @@ mutation(m2) {
 	}
 	
 	else {
-		
-		// For each individual in the seqence, get a list of all the positions where QTL mutations occur, assign a 1 or 2 if that position matches a mutation's position 	
-		for (ind in inds) {
-			zygosline = rep(0, (sim.chromosome.lastPosition));
-				
-			muts0 = ind.genome1.mutations[ind.genome1.mutations.mutationType == m3 | ind.genome1.mutations.mutationType == m4];
-			muts1 = ind.genome2.mutations[ind.genome2.mutations.mutationType == m3 | ind.genome2.mutations.mutationType == m4];
-			
-			// Count the shared mutations (homozygous - appear in both genomes)
-			shared = sort(c(setIntersection(muts0, muts1).position, subs.position));
-			
-			// Then the heterozygous mutations - exist in either genome but not both
-			unshared = sort(setSymmetricDifference(muts0, muts1).position);
-			
-			
-			if ( size(shared) > 0 ) {  // For all the mutations that exist in both genomes of the individual, return 2; and 1 for those in only 1 genome
-				zygosline[shared] = 2;
-			}
-			if ( size(unshared) > 0 ) {
-				zygosline[unshared] = 1;
-			}
-		
-		zygosline = zygosline[positions];			
-			
-			if (ind != inds[inds.size() - 1]) { // Check if the individual is the last in the list or not: we shouldn't add a new line for the last individual
-				zygosfile = paste0(c(zygosfile, paste(zygosline, ", "), "\n"));
-			}
-			else {
-				zygosfile = paste0(c(zygosfile, paste(zygosline, ", ")));
-			}
-		
-		}
-	}
-	writeFile(asString(paste0(c("~/matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, "trait1.csv"))), zygosfile, append = T);
 	
 	
-
+	zygoslines = sapply(inds, "zygosline = rep(0, sim.chromosome.lastPosition); muts0 = applyValue.genome1.mutations[applyValue.genome1.mutations.mutationType == m3 | applyValue.genome1.mutations.mutationType == m4]; muts1 = applyValue.genome2.mutations[applyValue.genome2.mutations.mutationType == m3 | applyValue.genome2.mutations.mutationType == m4]; shared = sort(c(setIntersection(muts0, muts1).position, subs.position)); unshared = sort(setSymmetricDifference(muts0, muts1).position); if ( size(shared) > 0 ) { zygosline[shared] = 2; } if (size(unshared) > 0 ) { zygosline[unshared] = 1; } zygosline = zygosline[positions];zygosline = (applyValue != inds[inds.size() - 1] ? c((zygosline + ','),'\\n') else (zygosline + ',') ); zygosline;"); 
+		
+	zygosfile = paste0(zygoslines);
 	
-
-
-
+		
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, "trait1.csv"))), zygosfile, append = T);
+	
+	
+	}	
 }
 
 
@@ -507,39 +441,21 @@ mutation(m2) {
 	
 	else {
 		
-		// For each genome in the seqence, get a list of all the positions where QTL mutations occur, assign a 1 if that position matches a mutation's position 	
-		for (genome in genomes) {
-		//Table 1: Segregating sites
-			segsitesline = rep(0, (sim.chromosome.lastPosition));
-			muts = genome.mutations[genome.mutations.mutationType == m3 | genome.mutations.mutationType == m5];
-			segsitesline[muts.position] = 1;
-			segsitesline[subs.position] = 1;
-			segsitesline = segsitesline[positions];
-		//Table 2: Size effects
-			sizefxline = rep(0.0, sim.chromosome.lastPosition);
-			if (muts.size() > 0) { // Double check to make sure we can get those values
-			sizefxline[muts.position] = muts.getValue("e1");	// Fill the appropriate vector element in for a given mutation with its selection coef
-				}			
-			if (subs.size() > 0) {							
-			sizefxline[subs.position] = subs.getValue("e1");			
-				}
-			sizefxline = sizefxline[positions];
+		segsiteslines = sapply(genomes, 
+			"segsitesline = rep(0, sim.chromosome.lastPosition); muts = applyValue.mutations[applyValue.mutations.mutationType == m3 | applyValue.mutations.mutationType == m5]; segsitesline[muts.position] = 1; segsitesline[subs.position] = 1; segsitesline = (applyValue != genomes[genomes.size() - 1] ? c((segsitesline[positions] + ','),'\\n') else (segsitesline[positions] + ',') ); segsitesline;"); 
+		
+		segsitesfile = paste0(segsiteslines);
+		
+		sizefxlines = sapply(genomes,
+	"sizefxline = rep(0.0, sim.chromosome.lastPosition); muts = applyValue.mutations[applyValue.mutations.mutationType == m3 | applyValue.mutations.mutationType == m5]; if (muts.size() > 0) { sizefxline[muts.position] = muts.getValue('e1'); } if (subs.size() > 0) {sizefxline[subs.position] = subs.getValue('e1'); } sizefxline = (applyValue != genomes[genomes.size() - 1] ? c((sizefxline[positions] + ','),'\\n') else (sizefxline[positions] + ',') ); sizefxline;"); 
 			
-			if (genome != genomes[genomes.size() - 1]) { // Check if the genome is the last in the list or not: we shouldn't add a new line for the last genome
-				segsitesfile = paste0(c(segsitesfile, paste(segsitesline, ", "), "\n"));
-				sizefxfile = paste0(c(sizefxfile, paste(sizefxline, ", "), "\n"));
-			}
-			
-			else {
-				segsitesfile = paste0(c(segsitesfile, paste(segsitesline, ", ")));
-				sizefxfile = paste0(c(sizefxfile, paste(sizefxline, ", ")));
-			}
+		sizefxfile = paste0(sizefxlines);
 		
 		}
-	}
-	writeFile(asString(paste0(c("~/matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, "trait2.csv"))), segsitesfile); 
+		
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, "trait2.csv"))), segsitesfile); 
 
-	writeFile(asString(paste0(c("~/matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, "_trait2.csv"))), sizefxfile);
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, "_trait2.csv"))), sizefxfile);
 	
 	
 	
@@ -558,40 +474,13 @@ mutation(m2) {
 	else {
 		
 		// For each individual in the seqence, get a list of all the positions where QTL mutations occur, assign a 1 or 2 if that position matches a mutation's position 	
-		for (ind in inds) {
-			zygosline = rep(0, (sim.chromosome.lastPosition));
-				
-			muts0 = ind.genome1.mutations[ind.genome1.mutations.mutationType == m3 | ind.genome1.mutations.mutationType == m5];
-			muts1 = ind.genome2.mutations[ind.genome2.mutations.mutationType == m3 | ind.genome2.mutations.mutationType == m5];
-			
-			// Count the shared mutations (homozygous - appear in both genomes)
-			shared = sort(c(setIntersection(muts0, muts1).position, subs.position));
-			
-			// Then the heterozygous mutations - exist in either genome but not both
-			unshared = sort(setSymmetricDifference(muts0, muts1).position);
-			
-			
-			if ( size(shared) > 0 ) {  // For all the mutations that exist in both genomes of the individual, return 2; and 1 for those in only 1 genome
-				zygosline[shared] = 2;
-			}
-			if ( size(unshared) > 0 ) {
-				zygosline[unshared] = 1;
-			}
+	zygoslines = sapply(inds, "zygosline = rep(0, sim.chromosome.lastPosition); muts0 = applyValue.genome1.mutations[applyValue.genome1.mutations.mutationType == m3 | applyValue.genome1.mutations.mutationType == m5]; muts1 = applyValue.genome2.mutations[applyValue.genome2.mutations.mutationType == m3 | applyValue.genome2.mutations.mutationType == m5]; shared = sort(c(setIntersection(muts0, muts1).position, subs.position)); unshared = sort(setSymmetricDifference(muts0, muts1).position); if ( size(shared) > 0 ) { zygosline[shared] = 2; } if (size(unshared) > 0 ) { zygosline[unshared] = 1; } zygosline = zygosline[positions];zygosline = (applyValue != inds[inds.size() - 1] ? c((zygosline + ','),'\\n') else (zygosline + ',') ); zygosline;"); 
 		
-		zygosline = zygosline[positions];			
-			
-			if (ind != inds[inds.size() - 1]) { // Check if the individual is the last in the list or not: we shouldn't add a new line for the last individual
-				zygosfile = paste0(c(zygosfile, paste(zygosline, ", "), "\n"));
-			}
-			else {
-				zygosfile = paste0(c(zygosfile, paste(zygosline, ", ")));
-			}
-		
-		}
-	}
-	writeFile(asString(paste0(c("~/matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, "trait2.csv"))), zygosfile);
+	zygosfile = paste0(zygoslines);
 	
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, "trait2.csv"))), zygosfile);
 
+	}
 }
 
 
