@@ -1,0 +1,89 @@
+---
+title: "Determinism in SLiM"
+author: "Nick O'Brien"
+date: "18/05/2020"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+I've been noticing some strange behaviour with my output when modelling two traits: certain values keep cropping up for the same seed, which indicates the deterministic nature of SLiM and the effect that each parameter has on affecting that determinism. In particular, the same pleiotropy values (which are the covariance values used in the variance-covariance matrix sigma used when pulling values for phenotypes 0 and 1 from a multivariate normal) result in the same phenotypes for trait 0. Below are some examples of this.
+
+```{r delmu0, eval = FALSE}
+> slim_out[slim_out$mean0 == 0.030587500, ]
+     gen     mean0      var0       mean1      var1         cov      pear      seed     r delmu pleio
+1    100 0.0305875 0.0564421 -0.01489140 0.0281072 -0.02748320 -0.690012 929413209 1e-08     0 0.000
+2    100 0.0305875 0.0564421 -0.01489140 0.0281072 -0.02748320 -0.690012 929413209 0e+00     0 0.000
+1335 100 0.0305875 0.0564421 -0.01095120 0.0217330 -0.02021240 -0.577105 929413209 0e+00     0 0.125
+1617 100 0.0305875 0.0564421 -0.01095120 0.0217330 -0.02021240 -0.577105 929413209 1e-08     0 0.125
+3208 100 0.0305875 0.0564421 -0.00677167 0.0165729 -0.01249990 -0.408702 929413209 0e+00     0 0.250
+3459 100 0.0305875 0.0564421 -0.00677167 0.0165729 -0.01249990 -0.408702 929413209 1e-08     0 0.250
+5053 100 0.0305875 0.0564421  0.00239741 0.0113898  0.00441993  0.174323 929413209 0e+00     0 0.500
+5303 100 0.0305875 0.0564421  0.00239741 0.0113898  0.00441993  0.174323 929413209 1e-08     0 0.500
+
+```
+What this says to me is that linkage between gene regions (r) from 0 to 1e-08 doesn't have any appreciable effect on the simulation to affect the determinism of the simulation at a certain seed, but 0.5 (which is my third level for linkage) does. Deleterious mutation has an effect on determinism when they are included (shown by all of the values listed here having the same delmu value). Interesting that mean0 remains the same for all of them, whereas mean1 changes between runs with different levels of pleiotropy. This could be related to how SLiM processes pulls from multivariate normal distributions somehow? The pulls may be sequential, with the second (from which mean1 is calculated) being dependent on the first. This would explain the result, as the pleiotropic effect which is affecting mean1's constituents (the individual mutation effects) but not mean0's is pulled after mean0 (or rather, the constituent effects of mean0) is already stored. I think this means that there's no reason to include 1e-08 as a treatment level, it should be replaced with a higher recombination rate, something like 1e-05? Will have to test. 
+What is annoying about this is that for each level of r and deleterious mutations (which do affect mean0 at a given seed), they will have an identical mean0 for each level of pleio (which doesn't affect it!).  
+
+We'll look at another example for r = 0.5:
+
+
+```{r r0.5, eval=FALSE}
+> slim_out[slim_out$mean0 == -0.000966824, ]
+     gen        mean0        var0      mean1      var1         cov pear      seed   r delmu pleio
+39   100 -0.000966824 0.000233219 0.00814330 0.0165451 -0.00196434   -1 929413209 0.5     0 0.000
+1885 100 -0.000966824 0.000233219 0.00795858 0.0158030 -0.00191978   -1 929413209 0.5     0 0.125
+3735 100 -0.000966824 0.000233219 0.00764301 0.0145747 -0.00184366   -1 929413209 0.5     0 0.250
+5582 100 -0.000966824 0.000233219 0.00656890 0.0107660 -0.00158456   -1 929413209 0.5     0 0.500
+```
+
+Because this r value (0.5) results in a different mean0 than the other levels for the same generation and seed, clearly it does have an effect on the determinism of the simulation. This particular mean0 value appears 4 times, one for each level of pleiotropy, indicating the same thing as before: each level of pleiotropy has an effect on the determinism of mean1 but not mean0.
+
+We'll look at a different deleterious mutation rate and see what happens: 
+
+``` {r delmu0.1, eval=FALSE}
+> slim_out[slim_out$mean0 == 0.005640700, ]
+     gen     mean0     var0       mean1      var1       cov     pear      seed     r delmu pleio
+516  100 0.0056407 0.013333 -0.00706205 0.0263014 0.0111262 0.594147 929413209 1e-08   0.1 0.000
+2208 100 0.0056407 0.013333 -0.00630157 0.0288585 0.0127055 0.647729 929413209 0e+00   0.1 0.125
+2451 100 0.0056407 0.013333 -0.00630157 0.0288585 0.0127055 0.647729 929413209 1e-08   0.1 0.125
+3796 100 0.0056407 0.013333 -0.00542762 0.0308773 0.0141061 0.695224 929413209 0e+00   0.1 0.250
+4057 100 0.0056407 0.013333 -0.00542762 0.0308773 0.0141061 0.695224 929413209 1e-08   0.1 0.250
+5583 100 0.0056407 0.013333 -0.00329556 0.0326949 0.0163020 0.780799 929413209 0e+00   0.1 0.500
+5838 100 0.0056407 0.013333 -0.00329556 0.0326949 0.0163020 0.780799 929413209 1e-08   0.1 0.500
+```
+
+Only 7 values here: for whatever reason, with 0 pleiotropy, no linkage (r) does have an effect on determinism of mean1 compared to 1e-08 linkage. The rest is pretty much the same as before though - same seed, same generation, same mean0 with mean1 differing between pleiotropy values. 
+
+
+Now lets confirm this with a different seed:
+
+
+``` {r seed, eval=FALSE}
+> slim_out[slim_out$mean0 == -0.052997300, ]
+      gen      mean0     var0        mean1       var1         cov      pear      seed     r delmu pleio
+21763 100 -0.0529973 0.053311  0.005995120 0.01165690 -0.01222490 -0.490394 676365814 0e+00   0.1 0.000
+22015 100 -0.0529973 0.053311  0.005995120 0.01165690 -0.01222490 -0.490394 676365814 1e-08   0.1 0.000
+23640 100 -0.0529973 0.053311 -0.000676563 0.00927547 -0.00546512 -0.245767 676365814 0e+00   0.1 0.125
+23901 100 -0.0529973 0.053311 -0.000676563 0.00927547 -0.00546512 -0.245767 676365814 1e-08   0.1 0.125
+25511 100 -0.0529973 0.053311 -0.007444570 0.00834192  0.00149107  0.070706 676365814 0e+00   0.1 0.250
+25781 100 -0.0529973 0.053311 -0.007444570 0.00834192  0.00149107  0.070706 676365814 1e-08   0.1 0.250
+27312 100 -0.0529973 0.053311 -0.021306700 0.01148340  0.01606850  0.649428 676365814 0e+00   0.1 0.500
+27572 100 -0.0529973 0.053311 -0.021306700 0.01148340  0.01606850  0.649428 676365814 1e-08   0.1 0.500
+```
+Once again, 8 different results each with the same mean0, showing no effect of r = 0 vs 1e-08 on the deterministic nature of SLiM affecting mean0, and also 4 results showing pleio only affecting mean1. So this isn't just one seed.
+
+## Conclusion
+
+The pleiotropy value appears to affect only mean1, implying values are pulled sequentially from the rmvnorm() function in SLiM, dependent on the first value (which is averaged to give mean0). The result of this is that for any given combination of r and delmu treatments, mean0 is the exact same for every single level of pleio, invalidating any comparisons between mean0 and mean1, or var0 and var1; basically any look into covariance or correlation as a result of pleio doesn't make any sense because all the seeds with a given parameter set (minus pleio) give the same values for mean0 regardless of pleio. On the bright side, this has shown that I should choose a different level for r in future.
+I guess this means I should randomise pleiotropic effects per mutation and stop looking at its individual effects, because clearly that doesn't make any sense.
+
+
+Actually I'm just dumb - of course mean0 wouldn't change: everything is being held constant so there would be no change since it's the same seed. Pleiotropy is only going to effect mean1 because it's pulled out after the effects for mean0, so we end up with a comparison of only what pleiotropy is doing, removing any effects of the other parameters.
+

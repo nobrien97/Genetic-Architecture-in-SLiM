@@ -1,0 +1,176 @@
+---
+title: "Probability of Normal Distributions"
+author: "Nick O'Brien"
+date: "29/04/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+``` {r, echo = FALSE}
+dat_shap <- read.csv("Z:/Videos2/uni/SLiM/RProjects/NeuT1L10R1e-8_multirun/dat_shap.csv")
+```
+
+## Introduction
+
+From my early tests, I've found that the movement of univariate population means over time depends on the rate of deleterious mutations, and the amount of linkage between regions controlling the trait of interest. Differing levels of these parameters change the trajectories of populations, and the distribution of means of many runs at the end of the simulation. In this set of experiments, I repeated a SLiM simulation (of 100 seeds) 10 times to get an idea of the trait means of 100 runs at generation 20000 being normally distributed. In other words, I found the probability of the distribution of means being normal, albeit with a small sample size (n=10).
+
+## The SLiM Script
+
+The SLiM script follows the neutral evolution of 1 trait under the control of ten gene regions where phenotype-affecting neutral mutations can appear. Trait-independent neutral and deleterious can also appear, with the rate of deleterious mutations being varied in script between 1 of 3 values: 0.0 (no deleterious mutations), 0.1 (1 in 10 mutations are deleterious), and 1.0 (equal chance deleterious or neutral).
+The linkage between these gene regions is also altered in script via recombination rate between regions, which is the recombination rate between the end base position of one region and the start of the next (1bp); it can be 0 (complete linkage), 1e-8 (intermediate linkage), or 0.5 (complete independence). 
+The overall recombination rate across the whole genome (apart of course from the  between-region rate explained in the treatment above) is 1e-08, SLiM's default.
+The mutation rate is 3.24e-09, an average over several recombination rates for multiple taxa. 
+The population size was 100 - quite low, so drift has relatively strong effects.
+
+
+## Running SLiM in R
+
+I used the packages foreach, doParallel, and future to set up a parallel processing system to run SLiM in. Using the system() commands inside foreach loops, I ran SLiM via the Windows linux subsystem (in ubuntu) to produce output:
+
+
+```{r eval=FALSE}
+library(foreach)
+library(doParallel)
+library(future)
+
+# Parameter set up for SLiM
+
+rsample <- sample(1:2147483647, 1000) # This big number is the max integer R can store: a signed 32 bit int*
+delmu <- c(0.0, 0.1, 1.0)
+recom <- c(0.0, "1e-08", 0.5) # Treat as a character because SLiM gets confused when giving 1e-08 otherwise
+
+# - run on all available cores, treat them as nodes
+
+cl <- makeCluster(future::availableCores())
+registerDoParallel(cl)
+
+
+#Run SLiM through the WSL, defining parameters in command line
+
+foreach(i=rsample) %:%
+  foreach(j=delmu) %:%
+  foreach(k=recom) %dopar% {
+  # Use string manipulation functions to configure the command line args,
+  # then run SLiM with system(),
+  slim_out <- system(sprintf("wsl slim -d seed=%i -d delmu=%f -d recom=%s neutral1T10L_multirunpvaluedistrib.slim", i, j, k), intern=T)
+}
+
+stopCluster(cl)
+```
+
+This code runs the same SLiM script for three levels of deleterious mutation prevalence and linkage (recombination between regions), and 1000 random seeds. The SLiM script outputs a .csv with the generation, population mean and variance, seed, and the deleterious mutation and recombination/linkage treatment. This is then imported into R with read.csv so we can calculate normality and plot the results.
+
+\* Apparently R only has one integer type - signed 32 bit integers. This number is pretty small, so it might be worth finding a package (e.g. bit64) to store larger values for getting seeds. This may have some problems with compatability with R's core though. An alternative to look into is storing the seeds as doubles, but we get floating point precision problems there: potentially could coerce it to an int in SLiM, which does support 64 bit ints, but may need to convert back to a double in the output.
+
+
+## Normality Testing
+
+Because we are looking at the final distributions of means, we need to get a subset of the data at only generation 20000:  
+
+```{r eval=FALSE}
+# Import the output files from SLiM script into R as a data frame
+slim_out_Neu1T10Lmultirunpvaluedist <- read.csv("out_Neu1T10Lmultirunpvaluedist.csv", header = F)
+
+
+# Attach a header onto the output data frame
+names(slim_out_Neu1T10Lmultirunpvaluedist) <- c("gen", "mean", "var", "seed", "r", "delmu")
+
+# Get only the final means at gen 20000
+
+slim_out_Neu1T10Lmultirunpvaluedist_final <- subset(slim_out_Neu1T10Lmultirunpvaluedist, gen == 20000)
+```
+
+Now we have to calculate normality tests for each variable combination 100 seeds at a time (resulting in 10 independent tests of normality for 10 'runs'). First, we shuffle the dataset to randomly sample 100 at a time:
+
+```{r eval=FALSE}
+# Shuffle final output so we can sample from it 100 seeds at a time, creating a new shapiro p value matrix from
+# each 100 seeds
+
+shuffled_final<- sample(slim_out_Neu1T10Lmultirunpvaluedist_final)
+```
+
+Now we want to set up some matrices for our loops to paste into, which we will paste into a new data frame that we'll use for plotting. We'll also set up some vectors to use in the loop, for each treatment combination
+
+```{r eval = FALSE}
+# Set up a matrix to put our Shapiro-Wilk test results in. 
+shapmat <- matrix(nrow=length(unique(slim_out_Neu1T10Lmultirunpvaluedist_final$delmu)), ncol=length(unique(slim_out_Neu1T10Lmultirunpvaluedist_final$r)))
+rownames(shapmat) <- c("Del = 0", "Del = 0.1", "Del = 1")
+colnames(shapmat) <-c("r = 0", "r = 1e-08", "r = 0.5")
+
+# Set up some parameters to use in the calculation loop
+seqshap <- as.integer(seq(100, 1000, by = 100))
+listshapmat <- list()
+delmuvec <- c(0.0, 0.1, 1.0)
+recomvec <- c(0.0, 1e-08, 0.5)
+
+# And a data frame to eventually put the p-values in
+dat_shap <- data.frame(
+  delmu = rep(delmuvec, times = 30),
+  r = rep(recomvec, each = 3, times = 10),
+  iteration = rep(c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10), each = 9),
+  pvalue = c(1:90)
+)
+```
+
+With everything set up, we run a loop to calculate the p-values for each treatment combination for each set of 100 seeds taken from the shuffled SLiM output.
+
+```{r eval = FALSE}
+  for (s in 1:length(seqshap)) {
+    for( i in 1:length(delmuvec))  {  #################  For each mutation rate
+      for(j in 1:length(recomvec))  { ########### For each recombination rate/linkage amount
+
+        # Calculate normality
+      sample_temp <- shuffled_final$mean[shuffled_final$delmu == delmuvec[i] & shuffled_final$r == recomvec[j]] 
+      sample_temp2 <- sample_temp[(seqshap[s]-99):seqshap[s]]
+      shapout_temp <- unlist(shapiro.test(sample_temp2))
+    
+      shapmat[i,j] <- shapout_temp[2]
+      assign(paste0("shapmat_SEnd",seqshap[s]), shapmat)
+      rm(sample_temp, sample_temp2, shapout_temp)
+        }
+    }
+    listshapmat <- c(listshapmat, as.list(shapmat))
+
+  }
+
+# Put listshapmat in as the p values in the data frame
+
+dat_shap$pvalue <- as.double(listshapmat)
+```
+
+
+## Plotting
+
+Now with the p-values calculated and in a data frame, we can plot the density distributions of 
+the p-values with ggplot2
+
+``` {r dat_shap}
+# Plot densities
+
+
+library(ggplot2)
+
+# New labels for facets
+    r.labs <- c("r = 0", "r = 1e-8", "r = 0.5")
+    names(r.labs) <- c("0", "1e-08", "0.5")
+    
+ggplot(dat_shap, aes(x = pvalue, colour = as.factor(delmu))) +
+  geom_line(stat = "density") +
+  facet_grid(r ~ ., scales = "free", labeller = labeller( r = r.labs)) +
+  labs(colour = "Deleterious\nmutation\nprevalence", x = "p-value") +
+  theme_classic()
+
+```
+
+What this figure shows is that with either complete linkage or complete independence (r = 0 or r =0.5, respectively), deleterious mutation prevalence has a lesser effect on normality than when recombination is intermediate: in this case, having high deleterious mutation prevalence has a high chance of conferring a low p-value in a Shapiro-Wilk test, indicating non-normality. Whilst this is still the case across the board, the scale in the two extremes of linkage is much smaller.
+
+Another finding is that at all levels of linkage/recombination, having no deleterious mutations results in a very similar effect - slight bias towards p-values below 0.5, but in general a fairly uniform spread across the entire range of 0.0 to 1.0. This changes slightly with linkage, with independence (r = 0.5) conferring the largest bias towards lower values (between 0.0 and 0.25)
+
+
+# Conclusions
+
+These tests have shown that high prevalence of deleterious mutations in conjunction with intermediate levels of linkage lead to strong biases towards non-normality after 20000 generations of neutral evolution of a single trait under the control of 10 gene regions. What could cause this? Could be that 10 is not enough iterations - maybe this is an error.
+
