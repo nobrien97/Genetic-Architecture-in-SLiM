@@ -1,8 +1,8 @@
-// set up a balancing selection simulation, mu = mutation rate, Ne = eff pop size
+// set up a simple neutral simulation, mu = mutation rate, Ne = eff pop size
 // increasing complexity: not all mutations are pleiotropic, pleiotropy rate given by pleio: this is the percentage of mutations that should be pleiotropic
 // Also output for all mutations - their effects, frequencies, origin generation and positions. Can get a measurement of linkage by their distance, whether they are 
 // in the same region etc. 
-// Model now puts mutations which have fixed into substitution objects and adds the effects of substitutions correctly into the phenotypes. These 
+// Model now puts neutral mutations which have fixed into substitution objects and adds the effects of substitutions correctly into the phenotypes. These 
 // substitutions are also put in the mutation output (freq = 1)
 // Mutation file gets massive, possibly need to compress it with writeFile(compress = T), but that will add performance overhead + lots more RAM usage as it will 
 // likely keep each line in memory while it appends them and compresses
@@ -20,11 +20,11 @@ initialize() {
 	setSeed(asInteger(seed));			// sets the seed from either a command line input, -d seed=i, or from the above CfgParam
 	catn("Actual seed: " + asInteger(seed));
 	setCfgParam("mu", 6.3e-6); // Genome-wide mutation rate per locus, Schug et al. 1996, as above
-	setCfgParam("Ne", 10000); // Population size
+	setCfgParam("Ne", 100); // Population size
 	setCfgParam("pleiorate", 0.44); // Proportion of QTL mutations that should be pleiotropic - given by Chesmore et al. 2017, based on human disease GWAS studies!
 	setCfgParam("del_mean", -0.03); // Mean used for the gamma distribution that deleterious mutations are pulled function
 	setCfgParam("del_shape", 0.2); // Shape parameter for gamma distribution used for deleterious mutations
-	setCfgParam("delmu", 1.0); // Proportion of deleterious mutations compared to others (relative to others, 0.1 compared to 1 of neutral)
+	setCfgParam("delmu", 0.0); // Proportion of deleterious mutations compared to others (relative to others, 0.1 compared to 1 of neutral)
 	setCfgParam("rregion", 0.0); // Recombination rate between genomic regions
 	setCfgParam("rwide", 1.346e-5); // Recombination rate across the whole genome (aside from the between genomic regions rate)
 	setCfgParam("nloci", 100); // Number of QTL positions along the chromosome - where QTL mutations can appear, sampled from sample()
@@ -46,7 +46,7 @@ initialize() {
 	initializeMutationType("m2", 0.5, "g", del_mean, del_shape);  // del_mean and del_shape are defined in the batch run script, or the rwide script
 	m2.color = "red";
 	
-	//m3 mutation type: pleiotropic QTL for all traits, fixed, we pull effects from rmvnorm
+	//m3 mutation type: pleiotropic QTL for both traits, fixed, we pull effects from rmvnorm
 	initializeMutationType("m3", 0.5, "f", 0.0);
 	//	m3.convertToSubstitution = F;
 	m3.color = "green";
@@ -69,37 +69,54 @@ initialize() {
 	initializeMutationType("m7", 0.5, "n", 0.0, 1.0);
 	m7.color = "cyan";
 	
+	//m8 mutation type: QTL for phenotype 4 only
+	initializeMutationType("m8", 0.5, "n", 0.0, 1.0);
+	//	m8.convertToSubstitution = F;
+	m8.color = "purple";
+	
+	//m9 mutation type: QTL for phenotype 5 only
+	initializeMutationType("m9", 0.5, "n", 0.0, 1.0);
+	//	m9.convertToSubstitution = F;
+	m9.color = "aquamarine";
+	
+	//m10 mutation type: QTL for phenotype 6 only
+	initializeMutationType("m10", 0.5, "n", 0.0, 1.0);	
+	m10.color = "chartreuse";
+	
+	//m11 mutation type: QTL for phenotype 7 only
+	initializeMutationType("m11", 0.5, "n", 0.0, 1.0);
+	m11.color = "orangered";
 	
 	
 	// g1 genomic element type: uses m1 and m2 for all mutations - get other effects only if determined for m1 
 	initializeGenomicElementType("g1", c(m1, m2), c(1, delmu));
 	
-	//g2 genomic element type: includes QTLS - pleiotropic is at a different rate to regular mutations
-	initializeGenomicElementType("g2", c(m1, m2, m3, m4, m5), c(1, delmu, pleiorate, 1, 1));
-	
-	
 	// Chromosome set up with 10 genomic regions, where there are 200 potential QTL sites, the rest are neutral sites (m1, m2)
 	initializeGenomicElement(g1, 0, genomelength - 1);
 	
-	initializeRecombinationRate(0.0); // We set this later, when we get the positions of QTLs
+	recomseq = seq(0, genomelength - 1, by = 0.1*genomelength); // Create 10 equally-distanced chromosomes
+	ends = asInteger(round(recomseq[1:9])); 	// Convert to int from float
+	ends = c(sort(c(ends, ends+1)), genomelength);
+	rbtwnQTL = c(rep(rregion, length(ends)));
+	rgenome = c(rep(rwide, length(ends))); 
+	rates = c(rbind(rgenome, rbtwnQTL), rwide);
+	rates = rates[0:(length(ends) - 1)];
+	
+	initializeRecombinationRate(rates, ends); // We set this later, when we get the positions of QTLs
 
 	
 	// QTL constants
 	
-	setCfgParam("QTL_mu", c(0, 0, 0, 0)); // mean distribution value for multivariate normal we are pulling effects of all four traits from
-	setCfgParam("QTL_cov01", 0.0); // covariance between the pulls in the multivariate normal (pleiotropic correlation between traits)
-	setCfgParam("QTL_cov02", 0.0);
-	setCfgParam("QTL_cov03", 0.0);
-	setCfgParam("QTL_cov12", 0.0);
-	setCfgParam("QTL_cov13", 0.0);
-	setCfgParam("QTL_cov23", 0.0);
-	setCfgParam("QTL_optima", c(0.05, -0.05, 0.05, -0.05) ); // optimum trait values for fitness	
-	
-	
-	setCfgParam("QTL_sigma", matrix(c(1, QTL_cov01, QTL_cov02, QTL_cov03,
-										QTL_cov01, 1, QTL_cov12, QTL_cov13,
-										QTL_cov02, QTL_cov12, 1, QTL_cov23,
-										QTL_cov03, QTL_cov13, QTL_cov23, 1), nrow=4)); // sigma used in multivariate normal pull - variance covariance matrix, where variance of each trait = 1
+	setCfgParam("QTL_mu", c(0, 0, 0, 0, 0, 0, 0, 0)); // mean distribution value for multivariate normal we are pulling effects of all four traits from
+	setCfgParam("QTL_cov", rep(0.0, 28)); // Set up the covariance terms as 0.0 for each of them, 
+	setCfgParam("QTL_sigma", matrix(c(1, QTL_cov[0], QTL_cov[1], QTL_cov[2], QTL_cov[3], QTL_cov[4], QTL_cov[5], QTL_cov[6],
+									QTL_cov[0], 1, QTL_cov[7], QTL_cov[8], QTL_cov[9], QTL_cov[10], QTL_cov[11], QTL_cov[12],
+									QTL_cov[1], QTL_cov[7], 1, QTL_cov[13], QTL_cov[14], QTL_cov[15], QTL_cov[16], QTL_cov[17],
+									QTL_cov[2], QTL_cov[8], QTL_cov[13], 1, QTL_cov[18], QTL_cov[19], QTL_cov[20], QTL_cov[21],
+									QTL_cov[3], QTL_cov[9], QTL_cov[14], QTL_cov[18], 1, QTL_cov[22], QTL_cov[23], QTL_cov[24],
+									QTL_cov[4], QTL_cov[10], QTL_cov[15], QTL_cov[19], QTL_cov[22], 1, QTL_cov[25], QTL_cov[26],
+									QTL_cov[5], QTL_cov[11], QTL_cov[16], QTL_cov[20], QTL_cov[23], QTL_cov[25], 1, QTL_cov[27],
+									QTL_cov[6], QTL_cov[12], QTL_cov[17], QTL_cov[21], QTL_cov[24], QTL_cov[26], QTL_cov[27], 1), nrow=8)); // sigma used in multivariate normal pull - variance covariance matrix, where variance of each trait = 1
 	
 	catn("\nQTL DFE means: ");
 	print(QTL_mu);
@@ -126,45 +143,6 @@ function (void) setCfgParam (s$ name, ifls value) // setup function for automati
 	//	chr_QTL = NULL;
 	//	for (chr in sim.chromosome.genomicElements) { chr_QTL = c(chr_QTL, rdunif(ploci, chr.startPosition, chr.endPosition)); } // for each genomic element, get 100 random positions from a discrete uniform distribution and store them as QTL positions
 	sim.setValue("chr_QTL", chr_QTL); //store these positions in a sim value
-	
-	endsamples = sample(chr_QTL, asInteger(round(0.1*length(chr_QTL))) ); // Take 10% of the 100 loci as end positions for chromosomes (testing independent assortment)
-	
-	// Set linkage between loci	via recombination
-	ends = c(endsamples + 1);
-	ends =  sort( c( endsamples, ( endsamples + 1 ), sim.chromosome.lastPosition )); // recombination rates for genome wide (rwide) occur until each QTL, then for that QTL a between rate is given, followed by more rwide
-	
-	
-	rbtwnQTL = c(rep(rregion, length(ends)));
-	rgenome = c(rep(rwide, length(ends))); 
-	rates = c(rbind(rgenome, rbtwnQTL), rwide);
-	rates = rates[0:(length(ends) - 1)];
-	
-	
-	if (ends[length(ends) - 1] > sim.chromosome.lastPosition) 		// Check we aren't trying to set the recombination rate outside our chromosome's length if we get a QTL pop up at the last position
-	{
-		ends = ends[0:length(ends) - 2];	
-		rates = rates[0:length(rates) - 2];	
-	}
-	
-		
-		for ( i in 0:(length(ends) - 2) ) 
-	{
-			if (ends[i] == ends[i+1]) { 				// Check if any two ends are right next to each other, if there are set the first one to -1
-				ends[i] = -1;
-			}
-		}
-		
-		rates[ends == -1] = rwide;					// For any rates where ends = -1, set the value to rwide so we can swap over to the normal behaviour and don't get a bunch of rregion across the genome
-	
-	rates = rates[ends != -1];					// Excise the -1s
-	ends = ends[ends != -1];
-
-	
-	
-//	catn(paste(rates, sep = ", ")); // ascending order error: occurs if two end positions are the same, which occurs if two QTL are next to each other (because chr_QTL[x] + 1 = chr_QTL[y]
-//	catn(paste(ends, sep = ", ")); 	// This is debug output for SLiM GUI, helps verify that endpoints are being generated and in a reasonable place
-	
-	sim.chromosome.setRecombinationRate(rates, ends);				// Set the recombination rates across the genome
 }
 
 // Set fitness of m4 and m5 to be neutral
@@ -184,25 +162,39 @@ fitness(m7) {
 	return 1.0;
 }
 
+fitness(m8) {
+	return 1.0;
+}
+
+fitness(m9) {
+	return 1.0;
+}
+
+fitness(m10) {
+	return 1.0;
+}
+
+fitness(m11) {
+	return 1.0;
+}
+
 // Check if the m1 mutation's position is at a chr_QTL position, if it is than redraw the mutationType
 
 mutation(m1) {
 	if (any(mut.position == sim.getValue("chr_QTL"))) { // If the mutation falls in any of our defined QTL loci within a region
 	
-			pleio = rbinom(1, 1, pleiorate); // Redraw the mutation type, determining whether the nonsyn mutation should be pleiotropic or not 
+			pleio = rbinom(1, 1, 0.5); // Redraw the mutation type, determining whether the nonsyn mutation should be pleiotropic or not 
 			if (pleio == 1) {
 				mut.setMutationType(m3);
 				effects = rmvnorm(1, QTL_mu, QTL_sigma);		// Calculate effects for m3 here since a mutation callback won't be called since it isn't autogenerated
-				
-			// From McGuigan et al. 2014: "...multivariate modeling indicated that 21% (1 in every 4.8) of five-trait matrices displayed significant mutational 							pleiotropy." But only found pleiotropy in 0.52% of bivariate covariances - so most pleiotropic mutations affect > 2 traits
-			// Decide how many traits to affect: pull a number from a gamma (? CHECK LITERATURE ?) distribution with some mean and shape parameter, then choose traits uniformly based on the number we want.
-			// Or we could leave the model assuming universal pleiotropy, rather than restricted modularity			
-				
-				
 				mut.setValue("e0", effects[0]);
 				mut.setValue("e1", effects[1]);
 				mut.setValue("e2", effects[2]);
 				mut.setValue("e3", effects[3]);
+				mut.setValue("e4", effects[4]);
+				mut.setValue("e5", effects[5]);
+				mut.setValue("e6", effects[6]);
+				mut.setValue("e7", effects[7]);
 				mut.setValue("fe", 0.0); //fitness effect
 				}
 			else {
@@ -216,6 +208,10 @@ mutation(m1) {
 					mut.setValue("e1", 0.0);
 					mut.setValue("e2", 0.0);
 					mut.setValue("e3", 0.0);
+					mut.setValue("e4", 0.0);
+					mut.setValue("e5", 0.0);
+					mut.setValue("e6", 0.0);
+					mut.setValue("e7", 0.0);
 					mut.setValue("fe", 0.0); //fitness effect
 					}
 					
@@ -224,6 +220,10 @@ mutation(m1) {
 					mut.setValue("e1", mut.selectionCoeff);
 					mut.setValue("e2", 0.0);
 					mut.setValue("e3", 0.0);
+					mut.setValue("e4", 0.0);
+					mut.setValue("e5", 0.0);
+					mut.setValue("e6", 0.0);
+					mut.setValue("e7", 0.0);
 					mut.setValue("fe", 0.0); //fitness effect	
 					}		
 				if (mut.mutationType == m6) {
@@ -231,6 +231,10 @@ mutation(m1) {
 					mut.setValue("e1", 0.0);
 					mut.setValue("e2", mut.selectionCoeff);
 					mut.setValue("e3", 0.0);
+					mut.setValue("e4", 0.0);
+					mut.setValue("e5", 0.0);
+					mut.setValue("e6", 0.0);
+					mut.setValue("e7", 0.0);
 					mut.setValue("fe", 0.0); //fitness effect	
 					}		
 				if (mut.mutationType == m7) {
@@ -238,10 +242,57 @@ mutation(m1) {
 					mut.setValue("e1", 0.0);
 					mut.setValue("e2", 0.0);
 					mut.setValue("e3", mut.selectionCoeff);
+					mut.setValue("e4", 0.0);
+					mut.setValue("e5", 0.0);
+					mut.setValue("e6", 0.0);
+					mut.setValue("e7", 0.0);
+					mut.setValue("fe", 0.0); //fitness effect	
+					}							
+				if (mut.mutationType == m8) {
+					mut.setValue("e0", 0.0);
+					mut.setValue("e1", 0.0);
+					mut.setValue("e2", 0.0);
+					mut.setValue("e3", 0.0);
+					mut.setValue("e4", mut.selectionCoeff);
+					mut.setValue("e5", 0.0);
+					mut.setValue("e6", 0.0);
+					mut.setValue("e7", 0.0);
+					mut.setValue("fe", 0.0); //fitness effect	
+					}							
+				if (mut.mutationType == m9) {
+					mut.setValue("e0", 0.0);
+					mut.setValue("e1", 0.0);
+					mut.setValue("e2", 0.0);
+					mut.setValue("e3", 0.0);
+					mut.setValue("e4", 0.0);
+					mut.setValue("e5", mut.selectionCoeff);
+					mut.setValue("e6", 0.0);
+					mut.setValue("e7", 0.0);
+					mut.setValue("fe", 0.0); //fitness effect	
+					}	
+				if (mut.mutationType == m10) {
+					mut.setValue("e0", 0.0);
+					mut.setValue("e1", 0.0);
+					mut.setValue("e2", 0.0);
+					mut.setValue("e3", 0.0);
+					mut.setValue("e4", 0.0);
+					mut.setValue("e5", 0.0);
+					mut.setValue("e6", mut.selectionCoeff);
+					mut.setValue("e7", 0.0);
+					mut.setValue("fe", 0.0); //fitness effect	
+					}							
+				if (mut.mutationType == m11) {
+					mut.setValue("e0", 0.0);
+					mut.setValue("e1", 0.0);
+					mut.setValue("e2", 0.0);
+					mut.setValue("e3", 0.0);
+					mut.setValue("e4", 0.0);
+					mut.setValue("e5", 0.0);
+					mut.setValue("e6", 0.0);
+					mut.setValue("e7", mut.selectionCoeff);
 					mut.setValue("fe", 0.0); //fitness effect	
 					}							
 				}
-							
 		return T;
 		}
 	else
@@ -257,6 +308,10 @@ mutation(m2) {
 	mut.setValue("e1", 0.0);
 	mut.setValue("e2", 0.0);
 	mut.setValue("e3", 0.0);
+	mut.setValue("e4", 0.0);
+	mut.setValue("e5", 0.0);
+	mut.setValue("e6", 0.0);
+	mut.setValue("e7", 0.0);
 	mut.setValue("fe", mut.selectionCoeff); // fitness effect
 	
 	return T;
@@ -264,8 +319,10 @@ mutation(m2) {
 }
 
 // Output and phenotype calculation
-late() {
+1:100000 late() {
 	
+	if (sim.generation % 500 != 0) // !CHECK THIS! Grab a sample every 500 generations: results in 200 time points per run, just like old model, file size should be the same as before
+		return;
 	// For each individual, grab the mutation effects and store them as a phenotype value for each phenotype, summing the effects of m3, m4, and/or, m5. This is additive!
 	
 	// First, collect the substitutions to apply to all individuals' phenotypes
@@ -276,6 +333,10 @@ late() {
 	sizem5 = size(fixed[fixed.mutationType == m5]);
 	sizem6 = size(fixed[fixed.mutationType == m6]);
 	sizem7 = size(fixed[fixed.mutationType == m7]);
+	sizem8 = size(fixed[fixed.mutationType == m8]);
+	sizem9 = size(fixed[fixed.mutationType == m9]);
+	sizem10 = size(fixed[fixed.mutationType == m10]);
+	sizem11 = size(fixed[fixed.mutationType == m11]);
 	
 	fixedfx0 = sizem3 ? sum(fixed[fixed.mutationType == m3].getValue("e0")) else 0.0 + sizem4 ? sum(fixed[fixed.mutationType == m4].getValue("e0")) else 0.0;
 	
@@ -284,11 +345,18 @@ late() {
 	fixedfx2 = sizem3 ? sum(fixed[fixed.mutationType == m3].getValue("e2")) else 0.0 + sizem6 ? sum(fixed[fixed.mutationType == m6].getValue("e2")) else 0.0;
 	
 	fixedfx3 = sizem3 ? sum(fixed[fixed.mutationType == m3].getValue("e3")) else 0.0 + sizem7 ? sum(fixed[fixed.mutationType == m7].getValue("e3")) else 0.0;
+
+	fixedfx4 = sizem3 ? sum(fixed[fixed.mutationType == m3].getValue("e4")) else 0.0 + sizem8 ? sum(fixed[fixed.mutationType == m8].getValue("e4")) else 0.0;
 	
+	fixedfx5 = sizem3 ? sum(fixed[fixed.mutationType == m3].getValue("e5")) else 0.0 + sizem9 ? sum(fixed[fixed.mutationType == m9].getValue("e5")) else 0.0;	
+	
+	fixedfx6 = sizem3 ? sum(fixed[fixed.mutationType == m3].getValue("e6")) else 0.0 + sizem10 ? sum(fixed[fixed.mutationType == m10].getValue("e6")) else 0.0;
+	
+	fixedfx7 = sizem3 ? sum(fixed[fixed.mutationType == m3].getValue("e7")) else 0.0 + sizem11 ? sum(fixed[fixed.mutationType == m11].getValue("e7")) else 0.0;
 	
 	for (ind in sim.subpopulations.individuals)
 	{
-		muts = ind.genomes.mutationsOfType(m3);
+		muts = ind.genomes.mutationsOfType(m3);			// Get only pleiotropic mutations first, then add the other effects later
 		mutscount = size(muts);
 		
 		phenotype0 = (mutscount ? sum(muts.getValue("e0")) else 0.0);
@@ -303,32 +371,27 @@ late() {
 		phenotype3 = (mutscount ? sum(muts.getValue("e3")) else 0.0);
 		phenotype3 = phenotype3 + (ind.sumOfMutationsOfType(m7)) + (fixedfx3); // add non-pleiotropic effects and fixed effects
 		
+		phenotype4 = (mutscount ? sum(muts.getValue("e4")) else 0.0);
+		phenotype4 = phenotype4 + (ind.sumOfMutationsOfType(m8)) + (fixedfx4); // add non-pleiotropic effects and fixed effects
+		
+		phenotype5 = (mutscount ? sum(muts.getValue("e5")) else 0.0);
+		phenotype5 = phenotype5 + (ind.sumOfMutationsOfType(m9)) + (fixedfx5); // add non-pleiotropic effects and fixed effects
+		
+		phenotype6 = (mutscount ? sum(muts.getValue("e6")) else 0.0);
+		phenotype6 = phenotype6 + (ind.sumOfMutationsOfType(m10)) + (fixedfx6); // add non-pleiotropic effects and fixed effects
+		
+		phenotype7 = (mutscount ? sum(muts.getValue("e7")) else 0.0);
+		phenotype7 = phenotype7 + (ind.sumOfMutationsOfType(m11)) + (fixedfx7); // add non-pleiotropic effects and fixed effects
+		
 		ind.setValue("phenotype0", phenotype0);
 		ind.setValue("phenotype1", phenotype1);
 		ind.setValue("phenotype2", phenotype2);
 		ind.setValue("phenotype3", phenotype3);
-		
-// Fitness calculated using dnorm: Gaussian function around the optimum phenotype, with the probability density of the phenotype	corresponding to the fitness 		
-// 	Measuring how far fitness is from optimum as the quantile, then gets the prob density at said quantile from sd 0, 10; multiplies by a selection strength
-// dnorm function: first is the quantile (optima minus the individual's phenotype value), mean of the distribution is 0, variance is equal to the optima value (so 1 standard deviation of the optimum)
-// So the larger the difference between phenotype and optimum, the lower the fitness (as you are further from 0)
-
-		
-		effect0 = 1.0 + dnorm(QTL_optima[0] - phenotype0, 0, abs(QTL_optima[0])) * 1000.0;		// From SLiM Manual p.225 + Online Workshop 13; width of 20 hard coded for trhe fitness functions, but optima are taken from the QTL_optima values defined earlier. Last number is a multiplier so that individuals precisely at the optimum have fitness x times greater than those infinitely far from the optima
-		effect1 = 1.0 + dnorm(QTL_optima[1] - phenotype1, 0, abs(QTL_optima[1])) * 1000.0;		// this term, dnorm()*x is our selection coefficient, s, effect is w
-		effect2 = 1.0 + dnorm(QTL_optima[2] - phenotype2, 0, abs(QTL_optima[2])) * 1000.0;		// except this applies to an individual's fitness over another rather than
-		effect3 = 1.0 + dnorm(QTL_optima[3] - phenotype3, 0, abs(QTL_optima[3])) * 1000.0;		// a genotype's
-		ind.fitnessScaling = effect0 * effect1 * effect2 * effect3;	// Since we are multiplying everything, this is like stab sel through correlational selection
-		
+		ind.setValue("phenotype4", phenotype4);
+		ind.setValue("phenotype5", phenotype5);
+		ind.setValue("phenotype6", phenotype6);
+		ind.setValue("phenotype7", phenotype7);
 	}
-	
-	// Diagnostics for checking phenotypes over time and fitness
-		catn(c(mean(inds.getValue("phenotype0")), mean(inds.getValue("phenotype1")), mean(inds.getValue("phenotype2")), mean(inds.getValue("phenotype3"))));
-		catn(mean(inds.fitnessScaling));
-	
-	if (sim.generation % 500 != 0) // !CHECK THIS! Grab a sample every 500 generations: results in 200 time points per run, just like old model, file size should be the same as before
-		return;
-		
 	// Get the values for output: mean trait values, variance of those trait values, covariance and correlation coefficients
 //	inds = sim.subpopulations.individuals;
 
@@ -336,23 +399,62 @@ late() {
 	phenotype1 = inds.getValue("phenotype1");
 	phenotype2 = inds.getValue("phenotype2");
 	phenotype3 = inds.getValue("phenotype3");
+	phenotype4 = inds.getValue("phenotype4");
+	phenotype5 = inds.getValue("phenotype5");
+	phenotype6 = inds.getValue("phenotype6");
+	phenotype7 = inds.getValue("phenotype7");
 
 	pheno0mean = mean(phenotype0);
 	pheno1mean = mean(phenotype1);
 	pheno2mean = mean(phenotype2);
 	pheno3mean = mean(phenotype3);
+	pheno4mean = mean(phenotype4);
+	pheno5mean = mean(phenotype5);
+	pheno6mean = mean(phenotype6);
+	pheno7mean = mean(phenotype7);
 	pheno0var = var(phenotype0);
 	pheno1var = var(phenotype1);
 	pheno2var = var(phenotype2);
 	pheno3var = var(phenotype3);
+	pheno4var = var(phenotype4);
+	pheno5var = var(phenotype5);
+	pheno6var = var(phenotype6);
+	pheno7var = var(phenotype7);
+
 	
 	// Covariances
-	phenocov01 = cov(phenotype0, phenotype1);
-	phenocov02 = cov(phenotype0, phenotype2);
-	phenocov03 = cov(phenotype0, phenotype3);
-	phenocov12 = cov(phenotype1, phenotype2);
-	phenocov13 = cov(phenotype1, phenotype3);
-	phenocov23 = cov(phenotype2, phenotype3);
+	phenocov = float(((size(sim.mutationTypes) - 3) - 1) * ((size(sim.mutationTypes) - 3) * 0.5)); // number of covariance terms: ntraits - 1 * ntraits/2
+	phenocov[0] = cov(phenotype0, phenotype1);
+	phenocov[1] = cov(phenotype0, phenotype2);
+	phenocov[2] = cov(phenotype0, phenotype3);
+	phenocov[3] = cov(phenotype0, phenotype4);
+	phenocov[4] = cov(phenotype0, phenotype5);
+	phenocov[5] = cov(phenotype0, phenotype6);
+	phenocov[6] = cov(phenotype0, phenotype7);
+	phenocov[7] = cov(phenotype1, phenotype2);
+	phenocov[8] = cov(phenotype1, phenotype3);
+	phenocov[9] = cov(phenotype1, phenotype4);
+	phenocov[10] = cov(phenotype1, phenotype5);
+	phenocov[11] = cov(phenotype1, phenotype6);
+	phenocov[12] = cov(phenotype1, phenotype7);
+	phenocov[13] = cov(phenotype2, phenotype3);
+	phenocov[14] = cov(phenotype2, phenotype4);
+	phenocov[15] = cov(phenotype2, phenotype5);
+	phenocov[16] = cov(phenotype2, phenotype6);
+	phenocov[17] = cov(phenotype2, phenotype7);
+	phenocov[18] = cov(phenotype3, phenotype4);
+	phenocov[19] = cov(phenotype3, phenotype5);
+	phenocov[20] = cov(phenotype3, phenotype6);
+	phenocov[21] = cov(phenotype3, phenotype7);
+	phenocov[22] = cov(phenotype4, phenotype5);
+	phenocov[23] = cov(phenotype4, phenotype6);
+	phenocov[24] = cov(phenotype4, phenotype7);
+	phenocov[25] = cov(phenotype5, phenotype6);
+	phenocov[26] = cov(phenotype5, phenotype7);
+	phenocov[27] = cov(phenotype6, phenotype7);
+	
+	phenocov = paste(phenocov, ",");
+	
 	
 	// Pearson correlation coefficients
 	phenocor01 = cor(phenotype0, phenotype1);
@@ -363,7 +465,7 @@ late() {
 	phenocor23 = cor(phenotype2, phenotype3);
 	
 	// Stick those values in the output, along with predictors - there are a lot of predictors now... do we replace them all with modelindex aside from seed?
-	meanline = paste(c(sim.generation, ", ", getSeed(), ", ", modelindex, ", ", rregion, ", ", rwide, ", ", delmu, ", ", QTL_cov01, ", ", Ne, ", ", pheno0mean, ", ", pheno0var, ", ", pheno1mean, ", ", pheno1var, ", ", pheno2mean, ", ", pheno2var, ", ", pheno3mean, ", ", pheno3var, ", ", phenocov01, ", ", phenocov02, ", ", phenocov03, ", ", phenocor01, ""), "");
+	meanline = paste(c(sim.generation, ",", getSeed(), ",", modelindex, ",", rregion, ",", rwide, ",", delmu, ",", paste(QTL_cov, ","), ",", Ne, ",", pheno0mean, ",", pheno0var, ",", pheno1mean, ",", pheno1var, ",", pheno2mean, ",", pheno2var, ",", pheno3mean, ",", pheno3var, ",", pheno4mean, ",", pheno4var, ",", pheno5mean, ",", pheno5var, ",", pheno6mean, ",", pheno6var, ",", pheno7mean, ",", pheno7var, ",", phenocov, ",", phenocor01, ""), "");
 	file = paste(meanline, "");
 	
 	// Write the file
@@ -378,7 +480,7 @@ late() {
 	// Output for mutations
 	
 	// Store vectors of unique mutations, sorted by the generation in which they originated
-	muts = sortBy(c(sim.mutationsOfType(m2), sim.mutationsOfType(m3), sim.mutationsOfType(m4), sim.mutationsOfType(m5), sim.mutationsOfType(m6), sim.mutationsOfType(m7)), "originGeneration");
+	muts = sortBy(c(sim.mutations[sim.mutations.mutationType != m1]), "originGeneration");
 	
 	// same for substitutions
 	subs = sortBy(c(sim.substitutions[sim.substitutions.mutationType != m1]), "originGeneration");
@@ -418,9 +520,9 @@ late() {
 		subType = sub.mutationType.id;
 		
 		if (sub != revsubs[0]) // THIS IS THE HACK THAT I MUST RESORT TO THANKS TO NO \b OR REPLACE() 	GOSH BLESS EIDOS
-			subLine = paste(c(sim.generation, ", ", getSeed(), ", ", modelindex, ", ", rregion, ", ", rwide, ", ", delmu, ", ", QTL_cov01, ", ", Ne, ", ", subType, ", ", sub.id, ", ", sub.position, ", ", sub.originGeneration, ", ", sub.getValue("e0"), ", ", sub.getValue("e1"), ", ", mut.getValue("e2"), ", ", mut.getValue("e3"), ", ", sub.getValue("fe"), ", ", subFreq, ", ", sub.fixationGeneration, "\n"), "");
+			subLine = paste(c(sim.generation, ", ", getSeed(), ", ", modelindex, ", ", rregion, ", ", rwide, ", ", delmu, ", ", QTL_cov01, ", ", Ne, ", ", subType, ", ", sub.id, ", ", sub.position, ", ", sub.originGeneration, ", ", sub.getValue("e0"), ", ", sub.getValue("e1"), ", ", sub.getValue("e2"), ", ", sub.getValue("e3"), ", ", sub.getValue("fe"), ", ", subFreq, ", ", sub.fixationGeneration, "\n"), "");
 		else
-			subLine = paste(c(sim.generation, ", ", getSeed(), ", ", modelindex, ", ", rregion, ", ", rwide, ", ", delmu, ", ", QTL_cov01, ", ", Ne, ", ", subType, ", ", sub.id, ", ", sub.position, ", ", sub.originGeneration, ", ", sub.getValue("e0"), ", ", sub.getValue("e1"), ", ", mut.getValue("e2"), ", ", mut.getValue("e3"), ", ", sub.getValue("fe"), ", ", subFreq, ", ", sub.fixationGeneration, ""), "");
+			subLine = paste(c(sim.generation, ", ", getSeed(), ", ", modelindex, ", ", rregion, ", ", rwide, ", ", delmu, ", ", QTL_cov01, ", ", Ne, ", ", subType, ", ", sub.id, ", ", sub.position, ", ", sub.originGeneration, ", ", sub.getValue("e0"), ", ", sub.getValue("e1"), ", ", sub.getValue("e2"), ", ", sub.getValue("e3"), ", ", sub.getValue("fe"), ", ", subFreq, ", ", sub.fixationGeneration, ""), "");
 		
 		mutsLines = c(mutsLines, subLine); // Add substitutions to mutation output
 	
@@ -712,7 +814,317 @@ late() {
 }
 
 
+// Trait 5: m3, m8
+// Genome output 1 and 2: Binary for whether a mutation has occurred at a given QTL position or not - the segregating sites table, and the size effects of those in the size effects table: The effects of each of these QTL mutations to a separate matrix, the size-effects table
+	// Using genomes, subs, and positions from genome output 1 declarations
+
+100000 late() {
+	genomes = sim.subpopulations.genomes;
+	subs = sim.substitutions[sim.substitutions.mutationType == m3 | sim.substitutions.mutationType == m8];
+	positions = sim.getValue("chr_QTL");
+	segsitesfile = NULL;
+	sizefxfile = NULL;
+	
+	if (length(subs) == 0 & length(c(genomes.positionsOfMutationsOfType(m3), genomes.positionsOfMutationsOfType(m8))) == 0) {		// Skip the loop if there are no mutations to put in
+		segsitesline = (rep(0, length(positions)) + ',');	
+		segsitesline = c(segsitesline[0:(size(segsitesline) - 2)], substr(segsitesline[size(segsitesline) - 1], 0, nchar(segsitesline[size(segsitesline) - 1]) - 2)); // Here we do some hacky stuff to remove the comma from the last entry in our segsitesline vector (using substr to take off the last entry (nchar - 2) of the last element of segsitesline (size(segsitesline) - 1)
+		segsitesfile = paste0(c(rep(paste0(c(segsitesline, "\n")), length(genomes) - 1), paste0(segsitesline)));
+	// Since if there are no mutations table 1 and 2 will just be 0s and identical, set sizefxfile = segsitesfile
+		sizefxfile = segsitesfile;
+	}
+	
+	else {
+		
+	// Looks horrible, but this is a vectorised version of what I was doing before, which is much faster. Here's what the code looks like spread out so it's more readable:
+
+//		segsiteslines = sapply(genomes, 
+//			"segsitesline = rep(0, sim.chromosome.lastPosition); 		// initialise the line with some 0s
+//			muts = applyValue.mutations[applyValue.mutations.mutationType == m3 | applyValue.mutations.mutationType == m4]; // get the appropriate mutations
+//			segsitesline[muts.position] = 1; // fill in positions in the line where a mutation/substitution is with a 1
+//			segsitesline[subs.position] = 1; 
+//			segsitesline = (applyValue != genomes[genomes.size() - 1] ? c((segsitesline[positions] + ','),'\\n') else (segsitesline[positions] + ',') ); // check if the current genome in the apply loop is the last one or not - if it isn't, add a new line, otherwise don't; also, add commas between the positions for csv
+//			segsitesline;"); 
+//		
+//		segsitesfile = paste0(segsiteslines); // paste the complete vector into a string for output
+		
+		
+	segsiteslines = sapply(genomes, 
+		"segsitesline = rep(0, sim.chromosome.lastPosition); 	muts = c(applyValue.mutationsOfType(m3), applyValue.mutationsOfType(m8));	segsitesline[muts.position] = 1; 	segsitesline[subs.position] = 1; 	segsitesline = (segsitesline[positions] + ','); 	segsitesline = c(segsitesline[0:(size(segsitesline) - 2)], substr(segsitesline[size(segsitesline) - 1], 0, nchar(segsitesline[size(segsitesline) - 1]) - 2)); segsitesline = (applyValue != genomes[genomes.size() - 1] ? c(segsitesline, '\\n') else (segsitesline)); 	segsitesline;"); 
+		
+		segsitesfile = paste0(segsiteslines);
+		
+		sizefxlines = sapply(genomes,
+	"sizefxline = rep(0.0, sim.chromosome.lastPosition); muts = c(applyValue.mutationsOfType(m3), applyValue.mutationsOfType(m8)); if (muts.size() > 0) { sizefxline[muts.position] = muts.getValue('e0'); } if (subs.size() > 0) {sizefxline[subs.position] = subs.getValue('e0'); } sizefxline = (sizefxline[positions] + ','); 	sizefxline = c(sizefxline[0:(size(sizefxline) - 2)], substr(sizefxline[size(sizefxline) - 1], 0, nchar(sizefxline[size(sizefxline) - 1]) - 2)); sizefxline = (applyValue != genomes[genomes.size() - 1] ? c(sizefxline, '\\n') else (sizefxline)); sizefxline;"); 
+			
+		sizefxfile = paste0(sizefxlines);
+		
+		}
+		
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, "trait5.csv"))), segsitesfile, append = T); // append is true so we can stick outputs from different model/seed runs into the same file
+//	// This is ~/model{modelindex}/seed_segsitesoutname_trait1.csv
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, "trait5.csv"))), sizefxfile, append = T);
+	
+
+	
+	
+	// Genome output 3: per individual homo/heterozygosity or absence: 0, 1, 2 - the genotype table
+	// Using subs and positions from genome output 1 declarations
+	
+	inds = sim.subpopulations.individuals;
+	zygosout = NULL;
+	zygosfile = NULL;
+	
+	if (length(subs) == 0 & length(c(inds.genomes.positionsOfMutationsOfType(m3), inds.genomes.positionsOfMutationsOfType(m8))) == 0) {		// Skip the loop if there are no mutations to put in	
+		zygosline = (rep(0, length(positions)) + ',');	
+		zygosline = c(zygosline[0:(size(zygosline) - 2)], substr(zygosline[(size(zygosline) - 1)], 0, nchar(zygosline[size(zygosline) - 1]) - 2));
+		zygosfile = paste0(c(rep(paste0(c(zygosline, "\n")), length(inds) - 1), paste0(zygosline)));
+	}
+	
+	else {
+		
+	zygoslines = sapply(inds, "zygosline = rep(0, sim.chromosome.lastPosition); muts0 = c(applyValue.genome1.mutationsOfType(m3), applyValue.genome1.mutationsOfType(m8)); muts1 = c(applyValue.genome2.mutationsOfType(m3), applyValue.genome2.mutationsOfType(m8)); shared = sort(c(setIntersection(muts0, muts1).position, subs.position)); unshared = sort(setSymmetricDifference(muts0, muts1).position); if ( size(shared) > 0 ) { zygosline[shared] = 2; } if (size(unshared) > 0 ) { zygosline[unshared] = 1; } zygosline = (zygosline[positions] + ','); 	zygosline = c(zygosline[0:(size(zygosline) - 2)], substr(zygosline[size(zygosline) - 1], 0, nchar(zygosline[size(zygosline) - 1]) - 2)); zygosline = (applyValue != inds[inds.size() - 1] ? c(zygosline, '\\n') else (zygosline)); zygosline;"); 
+		
+	zygosfile = paste0(zygoslines);
+	
+
+	}
+		writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, "trait5.csv"))), zygosfile);
+}
+
+// Trait 6: m3, m9
+// Genome output 1 and 2: Binary for whether a mutation has occurred at a given QTL position or not - the segregating sites table, and the size effects of those in the size effects table: The effects of each of these QTL mutations to a separate matrix, the size-effects table
+	// Using genomes, subs, and positions from genome output 1 declarations
+
+100000 late() {
+	genomes = sim.subpopulations.genomes;
+	subs = sim.substitutions[sim.substitutions.mutationType == m3 | sim.substitutions.mutationType == m9];
+	positions = sim.getValue("chr_QTL");
+	segsitesfile = NULL;
+	sizefxfile = NULL;
+	
+	if (length(subs) == 0 & length(c(genomes.positionsOfMutationsOfType(m3), genomes.positionsOfMutationsOfType(m9))) == 0) {		// Skip the loop if there are no mutations to put in
+		segsitesline = (rep(0, length(positions)) + ',');	
+		segsitesline = c(segsitesline[0:(size(segsitesline) - 2)], substr(segsitesline[size(segsitesline) - 1], 0, nchar(segsitesline[size(segsitesline) - 1]) - 2)); // Here we do some hacky stuff to remove the comma from the last entry in our segsitesline vector (using substr to take off the last entry (nchar - 2) of the last element of segsitesline (size(segsitesline) - 1)
+		segsitesfile = paste0(c(rep(paste0(c(segsitesline, "\n")), length(genomes) - 1), paste0(segsitesline)));
+	// Since if there are no mutations table 1 and 2 will just be 0s and identical, set sizefxfile = segsitesfile
+		sizefxfile = segsitesfile;
+	}
+	
+	else {
+		
+	// Looks horrible, but this is a vectorised version of what I was doing before, which is much faster. Here's what the code looks like spread out so it's more readable:
+
+//		segsiteslines = sapply(genomes, 
+//			"segsitesline = rep(0, sim.chromosome.lastPosition); 		// initialise the line with some 0s
+//			muts = applyValue.mutations[applyValue.mutations.mutationType == m3 | applyValue.mutations.mutationType == m4]; // get the appropriate mutations
+//			segsitesline[muts.position] = 1; // fill in positions in the line where a mutation/substitution is with a 1
+//			segsitesline[subs.position] = 1; 
+//			segsitesline = (applyValue != genomes[genomes.size() - 1] ? c((segsitesline[positions] + ','),'\\n') else (segsitesline[positions] + ',') ); // check if the current genome in the apply loop is the last one or not - if it isn't, add a new line, otherwise don't; also, add commas between the positions for csv
+//			segsitesline;"); 
+//		
+//		segsitesfile = paste0(segsiteslines); // paste the complete vector into a string for output
+		
+		
+	segsiteslines = sapply(genomes, 
+		"segsitesline = rep(0, sim.chromosome.lastPosition); 	muts = c(applyValue.mutationsOfType(m3), applyValue.mutationsOfType(m9));	segsitesline[muts.position] = 1; 	segsitesline[subs.position] = 1; 	segsitesline = (segsitesline[positions] + ','); 	segsitesline = c(segsitesline[0:(size(segsitesline) - 2)], substr(segsitesline[size(segsitesline) - 1], 0, nchar(segsitesline[size(segsitesline) - 1]) - 2)); segsitesline = (applyValue != genomes[genomes.size() - 1] ? c(segsitesline, '\\n') else (segsitesline)); 	segsitesline;"); 
+		
+		segsitesfile = paste0(segsiteslines);
+		
+		sizefxlines = sapply(genomes,
+	"sizefxline = rep(0.0, sim.chromosome.lastPosition); muts = c(applyValue.mutationsOfType(m3), applyValue.mutationsOfType(m9)); if (muts.size() > 0) { sizefxline[muts.position] = muts.getValue('e0'); } if (subs.size() > 0) {sizefxline[subs.position] = subs.getValue('e0'); } sizefxline = (sizefxline[positions] + ','); 	sizefxline = c(sizefxline[0:(size(sizefxline) - 2)], substr(sizefxline[size(sizefxline) - 1], 0, nchar(sizefxline[size(sizefxline) - 1]) - 2)); sizefxline = (applyValue != genomes[genomes.size() - 1] ? c(sizefxline, '\\n') else (sizefxline)); sizefxline;"); 
+			
+		sizefxfile = paste0(sizefxlines);
+		
+		}
+		
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, "trait6.csv"))), segsitesfile, append = T); // append is true so we can stick outputs from different model/seed runs into the same file
+//	// This is ~/model{modelindex}/seed_segsitesoutname_trait1.csv
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, "trait6.csv"))), sizefxfile, append = T);
+	
+
+	
+	
+	// Genome output 3: per individual homo/heterozygosity or absence: 0, 1, 2 - the genotype table
+	// Using subs and positions from genome output 1 declarations
+	
+	inds = sim.subpopulations.individuals;
+	zygosout = NULL;
+	zygosfile = NULL;
+	
+	if (length(subs) == 0 & length(c(inds.genomes.positionsOfMutationsOfType(m3), inds.genomes.positionsOfMutationsOfType(m9))) == 0) {		// Skip the loop if there are no mutations to put in	
+		zygosline = (rep(0, length(positions)) + ',');	
+		zygosline = c(zygosline[0:(size(zygosline) - 2)], substr(zygosline[(size(zygosline) - 1)], 0, nchar(zygosline[size(zygosline) - 1]) - 2));
+		zygosfile = paste0(c(rep(paste0(c(zygosline, "\n")), length(inds) - 1), paste0(zygosline)));
+	}
+	
+	else {
+		
+	zygoslines = sapply(inds, "zygosline = rep(0, sim.chromosome.lastPosition); muts0 = c(applyValue.genome1.mutationsOfType(m3), applyValue.genome1.mutationsOfType(m9)); muts1 = c(applyValue.genome2.mutationsOfType(m3), applyValue.genome2.mutationsOfType(m9)); shared = sort(c(setIntersection(muts0, muts1).position, subs.position)); unshared = sort(setSymmetricDifference(muts0, muts1).position); if ( size(shared) > 0 ) { zygosline[shared] = 2; } if (size(unshared) > 0 ) { zygosline[unshared] = 1; } zygosline = (zygosline[positions] + ','); 	zygosline = c(zygosline[0:(size(zygosline) - 2)], substr(zygosline[size(zygosline) - 1], 0, nchar(zygosline[size(zygosline) - 1]) - 2)); zygosline = (applyValue != inds[inds.size() - 1] ? c(zygosline, '\\n') else (zygosline)); zygosline;"); 
+		
+	zygosfile = paste0(zygoslines);
+	
+
+	}
+		writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, "trait6.csv"))), zygosfile);
+}
+
+// Trait 7: m3, m10
+// Genome output 1 and 2: Binary for whether a mutation has occurred at a given QTL position or not - the segregating sites table, and the size effects of those in the size effects table: The effects of each of these QTL mutations to a separate matrix, the size-effects table
+	// Using genomes, subs, and positions from genome output 1 declarations
+
+100000 late() {
+	genomes = sim.subpopulations.genomes;
+	subs = sim.substitutions[sim.substitutions.mutationType == m3 | sim.substitutions.mutationType == m10];
+	positions = sim.getValue("chr_QTL");
+	segsitesfile = NULL;
+	sizefxfile = NULL;
+	
+	if (length(subs) == 0 & length(c(genomes.positionsOfMutationsOfType(m3), genomes.positionsOfMutationsOfType(m10))) == 0) {		// Skip the loop if there are no mutations to put in
+		segsitesline = (rep(0, length(positions)) + ',');	
+		segsitesline = c(segsitesline[0:(size(segsitesline) - 2)], substr(segsitesline[size(segsitesline) - 1], 0, nchar(segsitesline[size(segsitesline) - 1]) - 2)); // Here we do some hacky stuff to remove the comma from the last entry in our segsitesline vector (using substr to take off the last entry (nchar - 2) of the last element of segsitesline (size(segsitesline) - 1)
+		segsitesfile = paste0(c(rep(paste0(c(segsitesline, "\n")), length(genomes) - 1), paste0(segsitesline)));
+	// Since if there are no mutations table 1 and 2 will just be 0s and identical, set sizefxfile = segsitesfile
+		sizefxfile = segsitesfile;
+	}
+	
+	else {
+		
+	// Looks horrible, but this is a vectorised version of what I was doing before, which is much faster. Here's what the code looks like spread out so it's more readable:
+
+//		segsiteslines = sapply(genomes, 
+//			"segsitesline = rep(0, sim.chromosome.lastPosition); 		// initialise the line with some 0s
+//			muts = applyValue.mutations[applyValue.mutations.mutationType == m3 | applyValue.mutations.mutationType == m4]; // get the appropriate mutations
+//			segsitesline[muts.position] = 1; // fill in positions in the line where a mutation/substitution is with a 1
+//			segsitesline[subs.position] = 1; 
+//			segsitesline = (applyValue != genomes[genomes.size() - 1] ? c((segsitesline[positions] + ','),'\\n') else (segsitesline[positions] + ',') ); // check if the current genome in the apply loop is the last one or not - if it isn't, add a new line, otherwise don't; also, add commas between the positions for csv
+//			segsitesline;"); 
+//		
+//		segsitesfile = paste0(segsiteslines); // paste the complete vector into a string for output
+		
+		
+	segsiteslines = sapply(genomes, 
+		"segsitesline = rep(0, sim.chromosome.lastPosition); 	muts = c(applyValue.mutationsOfType(m3), applyValue.mutationsOfType(m10));	segsitesline[muts.position] = 1; 	segsitesline[subs.position] = 1; 	segsitesline = (segsitesline[positions] + ','); 	segsitesline = c(segsitesline[0:(size(segsitesline) - 2)], substr(segsitesline[size(segsitesline) - 1], 0, nchar(segsitesline[size(segsitesline) - 1]) - 2)); segsitesline = (applyValue != genomes[genomes.size() - 1] ? c(segsitesline, '\\n') else (segsitesline)); 	segsitesline;"); 
+		
+		segsitesfile = paste0(segsiteslines);
+		
+		sizefxlines = sapply(genomes,
+	"sizefxline = rep(0.0, sim.chromosome.lastPosition); muts = c(applyValue.mutationsOfType(m3), applyValue.mutationsOfType(m10)); if (muts.size() > 0) { sizefxline[muts.position] = muts.getValue('e0'); } if (subs.size() > 0) {sizefxline[subs.position] = subs.getValue('e0'); } sizefxline = (sizefxline[positions] + ','); 	sizefxline = c(sizefxline[0:(size(sizefxline) - 2)], substr(sizefxline[size(sizefxline) - 1], 0, nchar(sizefxline[size(sizefxline) - 1]) - 2)); sizefxline = (applyValue != genomes[genomes.size() - 1] ? c(sizefxline, '\\n') else (sizefxline)); sizefxline;"); 
+			
+		sizefxfile = paste0(sizefxlines);
+		
+		}
+		
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, "trait7.csv"))), segsitesfile, append = T); // append is true so we can stick outputs from different model/seed runs into the same file
+//	// This is ~/model{modelindex}/seed_segsitesoutname_trait1.csv
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, "trait7.csv"))), sizefxfile, append = T);
+	
+
+	
+	
+	// Genome output 3: per individual homo/heterozygosity or absence: 0, 1, 2 - the genotype table
+	// Using subs and positions from genome output 1 declarations
+	
+	inds = sim.subpopulations.individuals;
+	zygosout = NULL;
+	zygosfile = NULL;
+	
+	if (length(subs) == 0 & length(c(inds.genomes.positionsOfMutationsOfType(m3), inds.genomes.positionsOfMutationsOfType(m10))) == 0) {		// Skip the loop if there are no mutations to put in	
+		zygosline = (rep(0, length(positions)) + ',');	
+		zygosline = c(zygosline[0:(size(zygosline) - 2)], substr(zygosline[(size(zygosline) - 1)], 0, nchar(zygosline[size(zygosline) - 1]) - 2));
+		zygosfile = paste0(c(rep(paste0(c(zygosline, "\n")), length(inds) - 1), paste0(zygosline)));
+	}
+	
+	else {
+		
+	zygoslines = sapply(inds, "zygosline = rep(0, sim.chromosome.lastPosition); muts0 = c(applyValue.genome1.mutationsOfType(m3), applyValue.genome1.mutationsOfType(m10)); muts1 = c(applyValue.genome2.mutationsOfType(m3), applyValue.genome2.mutationsOfType(m10)); shared = sort(c(setIntersection(muts0, muts1).position, subs.position)); unshared = sort(setSymmetricDifference(muts0, muts1).position); if ( size(shared) > 0 ) { zygosline[shared] = 2; } if (size(unshared) > 0 ) { zygosline[unshared] = 1; } zygosline = (zygosline[positions] + ','); 	zygosline = c(zygosline[0:(size(zygosline) - 2)], substr(zygosline[size(zygosline) - 1], 0, nchar(zygosline[size(zygosline) - 1]) - 2)); zygosline = (applyValue != inds[inds.size() - 1] ? c(zygosline, '\\n') else (zygosline)); zygosline;"); 
+		
+	zygosfile = paste0(zygoslines);
+	
+
+	}
+		writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, "trait7.csv"))), zygosfile);
+}
+
+// Trait 8: m3, m11
+// Genome output 1 and 2: Binary for whether a mutation has occurred at a given QTL position or not - the segregating sites table, and the size effects of those in the size effects table: The effects of each of these QTL mutations to a separate matrix, the size-effects table
+	// Using genomes, subs, and positions from genome output 1 declarations
+
+100000 late() {
+	genomes = sim.subpopulations.genomes;
+	subs = sim.substitutions[sim.substitutions.mutationType == m3 | sim.substitutions.mutationType == m11];
+	positions = sim.getValue("chr_QTL");
+	segsitesfile = NULL;
+	sizefxfile = NULL;
+	
+	if (length(subs) == 0 & length(c(genomes.positionsOfMutationsOfType(m3), genomes.positionsOfMutationsOfType(m11))) == 0) {		// Skip the loop if there are no mutations to put in
+		segsitesline = (rep(0, length(positions)) + ',');	
+		segsitesline = c(segsitesline[0:(size(segsitesline) - 2)], substr(segsitesline[size(segsitesline) - 1], 0, nchar(segsitesline[size(segsitesline) - 1]) - 2)); // Here we do some hacky stuff to remove the comma from the last entry in our segsitesline vector (using substr to take off the last entry (nchar - 2) of the last element of segsitesline (size(segsitesline) - 1)
+		segsitesfile = paste0(c(rep(paste0(c(segsitesline, "\n")), length(genomes) - 1), paste0(segsitesline)));
+	// Since if there are no mutations table 1 and 2 will just be 0s and identical, set sizefxfile = segsitesfile
+		sizefxfile = segsitesfile;
+	}
+	
+	else {
+		
+	// Looks horrible, but this is a vectorised version of what I was doing before, which is much faster. Here's what the code looks like spread out so it's more readable:
+
+//		segsiteslines = sapply(genomes, 
+//			"segsitesline = rep(0, sim.chromosome.lastPosition); 		// initialise the line with some 0s
+//			muts = applyValue.mutations[applyValue.mutations.mutationType == m3 | applyValue.mutations.mutationType == m4]; // get the appropriate mutations
+//			segsitesline[muts.position] = 1; // fill in positions in the line where a mutation/substitution is with a 1
+//			segsitesline[subs.position] = 1; 
+//			segsitesline = (applyValue != genomes[genomes.size() - 1] ? c((segsitesline[positions] + ','),'\\n') else (segsitesline[positions] + ',') ); // check if the current genome in the apply loop is the last one or not - if it isn't, add a new line, otherwise don't; also, add commas between the positions for csv
+//			segsitesline;"); 
+//		
+//		segsitesfile = paste0(segsiteslines); // paste the complete vector into a string for output
+		
+		
+	segsiteslines = sapply(genomes, 
+		"segsitesline = rep(0, sim.chromosome.lastPosition); 	muts = c(applyValue.mutationsOfType(m3), applyValue.mutationsOfType(m11));	segsitesline[muts.position] = 1; 	segsitesline[subs.position] = 1; 	segsitesline = (segsitesline[positions] + ','); 	segsitesline = c(segsitesline[0:(size(segsitesline) - 2)], substr(segsitesline[size(segsitesline) - 1], 0, nchar(segsitesline[size(segsitesline) - 1]) - 2)); segsitesline = (applyValue != genomes[genomes.size() - 1] ? c(segsitesline, '\\n') else (segsitesline)); 	segsitesline;"); 
+		
+		segsitesfile = paste0(segsiteslines);
+		
+		sizefxlines = sapply(genomes,
+	"sizefxline = rep(0.0, sim.chromosome.lastPosition); muts = c(applyValue.mutationsOfType(m3), applyValue.mutationsOfType(m11)); if (muts.size() > 0) { sizefxline[muts.position] = muts.getValue('e0'); } if (subs.size() > 0) {sizefxline[subs.position] = subs.getValue('e0'); } sizefxline = (sizefxline[positions] + ','); 	sizefxline = c(sizefxline[0:(size(sizefxline) - 2)], substr(sizefxline[size(sizefxline) - 1], 0, nchar(sizefxline[size(sizefxline) - 1]) - 2)); sizefxline = (applyValue != genomes[genomes.size() - 1] ? c(sizefxline, '\\n') else (sizefxline)); sizefxline;"); 
+			
+		sizefxfile = paste0(sizefxlines);
+		
+		}
+		
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, "trait8.csv"))), segsitesfile, append = T); // append is true so we can stick outputs from different model/seed runs into the same file
+//	// This is ~/model{modelindex}/seed_segsitesoutname_trait1.csv
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, "trait8.csv"))), sizefxfile, append = T);
+	
+
+	
+	
+	// Genome output 3: per individual homo/heterozygosity or absence: 0, 1, 2 - the genotype table
+	// Using subs and positions from genome output 1 declarations
+	
+	inds = sim.subpopulations.individuals;
+	zygosout = NULL;
+	zygosfile = NULL;
+	
+	if (length(subs) == 0 & length(c(inds.genomes.positionsOfMutationsOfType(m3), inds.genomes.positionsOfMutationsOfType(m11))) == 0) {		// Skip the loop if there are no mutations to put in	
+		zygosline = (rep(0, length(positions)) + ',');	
+		zygosline = c(zygosline[0:(size(zygosline) - 2)], substr(zygosline[(size(zygosline) - 1)], 0, nchar(zygosline[size(zygosline) - 1]) - 2));
+		zygosfile = paste0(c(rep(paste0(c(zygosline, "\n")), length(inds) - 1), paste0(zygosline)));
+	}
+	
+	else {
+		
+	zygoslines = sapply(inds, "zygosline = rep(0, sim.chromosome.lastPosition); muts0 = c(applyValue.genome1.mutationsOfType(m3), applyValue.genome1.mutationsOfType(m11)); muts1 = c(applyValue.genome2.mutationsOfType(m3), applyValue.genome2.mutationsOfType(m11)); shared = sort(c(setIntersection(muts0, muts1).position, subs.position)); unshared = sort(setSymmetricDifference(muts0, muts1).position); if ( size(shared) > 0 ) { zygosline[shared] = 2; } if (size(unshared) > 0 ) { zygosline[unshared] = 1; } zygosline = (zygosline[positions] + ','); 	zygosline = c(zygosline[0:(size(zygosline) - 2)], substr(zygosline[size(zygosline) - 1], 0, nchar(zygosline[size(zygosline) - 1]) - 2)); zygosline = (applyValue != inds[inds.size() - 1] ? c(zygosline, '\\n') else (zygosline)); zygosline;"); 
+		
+	zygosfile = paste0(zygoslines);
+	
+
+	}
+		writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, "trait8.csv"))), zygosfile);
+}
+
+
 // Run for 100,000 generations to capture even more neutral evolution
 100000 late() {
 	sim.simulationFinished();
 }
+

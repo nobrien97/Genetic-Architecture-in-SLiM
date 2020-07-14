@@ -349,76 +349,75 @@ mutation(m2) {
 	subs = sim.substitutions[sim.substitutions.mutationType == m3 | sim.substitutions.mutationType == m4];
 	positions = sim.getValue("chr_QTL");
 	segsitesfile = NULL;
-	segsiteslines = NULL;
 	sizefxfile = NULL;
 	
 	if (length(subs) == 0 & length(c(genomes.positionsOfMutationsOfType(m3), genomes.positionsOfMutationsOfType(m4))) == 0) {		// Skip the loop if there are no mutations to put in
-		segsitesline = rep(0, length(positions));	
-		segsitesfile = paste0(c(rep(paste(c(segsitesline, "\n"), ", "), length(genomes) - 1), paste(segsitesline, ", ")));
+		segsitesline = (rep(0, length(positions)) + ',');	
+		segsitesline = c(segsitesline[0:(size(segsitesline) - 2)], substr(segsitesline[size(segsitesline) - 1], 0, nchar(segsitesline[size(segsitesline) - 1]) - 2)); // Here we do some hacky stuff to remove the comma from the last entry in our segsitesline vector (using substr to take off the last entry (nchar - 2) of the last element of segsitesline (size(segsitesline) - 1)
+		segsitesfile = paste0(c(rep(paste0(c(segsitesline, "\n")), length(genomes) - 1), paste0(segsitesline)));
 	// Since if there are no mutations table 1 and 2 will just be 0s and identical, set sizefxfile = segsitesfile
 		sizefxfile = segsitesfile;
 	}
 	
-	else { 
-	
+	else {
+		
 	// Looks horrible, but this is a vectorised version of what I was doing before, which is much faster. Here's what the code looks like spread out so it's more readable:
 
-//		segsiteslines = sapply(genomes, 
-//			"segsitesline = rep(0, sim.chromosome.lastPosition); 		// initialise the line with some 0s
-//			muts = applyValue.mutations[applyValue.mutations.mutationType == m3 | applyValue.mutations.mutationType == m4]; // get the appropriate mutations
-//			segsitesline[muts.position] = 1; // fill in positions in the line where a mutation/substitution is with a 1
-//			segsitesline[subs.position] = 1; 
-//			segsitesline = (applyValue != genomes[genomes.size() - 1] ? c((segsitesline[positions] + ','),'\\n') else (segsitesline[positions] + ',') ); // check if the current genome in the apply loop is the last one or not - if it isn't, add a new line, otherwise don't; also, add commas between the positions for csv
-//			segsitesline;"); 
+//	segsiteslines = sapply(genomes, 
+//		"segsitesline = rep(0, sim.chromosome.lastPosition); 
+//		muts = c(applyValue.mutationsOfType(m3), applyValue.mutationsOfType(m4)); 
+//		segsitesline[muts.position] = 1; 
+//		segsitesline[subs.position] = 1; 
+//		segsitesline = (segsitesline[positions] + ','); 
+//		segsitesline = c(segsitesline[0:(size(segsitesline) - 2)], substr(segsitesline[size(segsitesline) - 1], 0, nchar(segsitesline[size(segsitesline) - 1]) - 2));
+//		segsitesline = (applyValue != genomes[genomes.size() - 1] ? c(segsitesline, '\\n') else (segsitesline)); 
+//		segsitesline;");  
 //		
 //		segsitesfile = paste0(segsiteslines); // paste the complete vector into a string for output
 		
-		
-		segsiteslines = sapply(genomes, 
-			"segsitesline = rep(0, sim.chromosome.lastPosition); muts = applyValue.mutations[applyValue.mutations.mutationType == m3 | applyValue.mutations.mutationType == m4]; segsitesline[muts.position] = 1; segsitesline[subs.position] = 1; segsitesline = (applyValue != genomes[genomes.size() - 1] ? c((segsitesline[positions] + ','),'\\n') else (segsitesline[positions] + ',') ); segsitesline;"); 
+// The bit in the middle, where we use substr() is there to remove the comma from the last element in segsitesline, so we don't have a trailing N/A column added
+
+	segsiteslines = sapply(genomes, 
+		"segsitesline = rep(0, sim.chromosome.lastPosition); 	muts = c(applyValue.mutationsOfType(m3), applyValue.mutationsOfType(m4));	segsitesline[muts.position] = 1; 	segsitesline[subs.position] = 1; 	segsitesline = (segsitesline[positions] + ','); 	segsitesline = c(segsitesline[0:(size(segsitesline) - 2)], substr(segsitesline[size(segsitesline) - 1], 0, nchar(segsitesline[size(segsitesline) - 1]) - 2)); segsitesline = (applyValue != genomes[genomes.size() - 1] ? c(segsitesline, '\\n') else (segsitesline)); 	segsitesline;"); 
 		
 		segsitesfile = paste0(segsiteslines);
 		
 		sizefxlines = sapply(genomes,
-	"sizefxline = rep(0.0, sim.chromosome.lastPosition); muts = applyValue.mutations[applyValue.mutations.mutationType == m3 | applyValue.mutations.mutationType == m4]; if (muts.size() > 0) { sizefxline[muts.position] = muts.getValue('e0'); } if (subs.size() > 0) {sizefxline[subs.position] = subs.getValue('e0'); } sizefxline = (applyValue != genomes[genomes.size() - 1] ? c((sizefxline[positions] + ','),'\\n') else (sizefxline[positions] + ',') ); sizefxline;"); 
+	"sizefxline = rep(0.0, sim.chromosome.lastPosition); muts = c(applyValue.mutationsOfType(m3), applyValue.mutationsOfType(m4)); if (muts.size() > 0) { sizefxline[muts.position] = muts.getValue('e0'); } if (subs.size() > 0) {sizefxline[subs.position] = subs.getValue('e0'); } sizefxline = (sizefxline[positions] + ','); 	sizefxline = c(sizefxline[0:(size(sizefxline) - 2)], substr(sizefxline[size(sizefxline) - 1], 0, nchar(sizefxline[size(sizefxline) - 1]) - 2)); sizefxline = (applyValue != genomes[genomes.size() - 1] ? c(sizefxline, '\\n') else (sizefxline)); sizefxline;"); 
 			
 		sizefxfile = paste0(sizefxlines);
 		
 		}
 		
-
 	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, "trait1.csv"))), segsitesfile, append = T); // append is true so we can stick outputs from different model/seed runs into the same file
-
 //	// This is ~/model{modelindex}/seed_segsitesoutname_trait1.csv
 	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, "trait1.csv"))), sizefxfile, append = T);
+	
 
-
-
-
-//	// Genome output 3: per individual homo/heterozygosity or absence: 0, 1, 2 - the genotype table
-//	// Using subs and positions from genome output 1 declarations
-//	
+	
+	
+	// Genome output 3: per individual homo/heterozygosity or absence: 0, 1, 2 - the genotype table
+	// Using subs and positions from genome output 1 declarations
+	
 	inds = sim.subpopulations.individuals;
 	zygosout = NULL;
 	zygosfile = NULL;
 	
-	if (length(subs) == 0 & length(c(inds.genomes.positionsOfMutationsOfType(m3), inds.genomes.positionsOfMutationsOfType(m4))) == 0) {		// Skip the loop if there are no mutations to put in
-		zygosline = rep(0, length(positions));	
-		zygosfile = paste0(c(rep(paste(c(zygosline, "\n"), ", "), length(inds) - 1), paste(zygosline, ", ")));
+	if (length(subs) == 0 & length(c(inds.genomes.positionsOfMutationsOfType(m3), inds.genomes.positionsOfMutationsOfType(m4))) == 0) {		// Skip the loop if there are no mutations to put in	
+		zygosline = (rep(0, length(positions)) + ',');	
+		zygosline = c(zygosline[0:(size(zygosline) - 2)], substr(zygosline[(size(zygosline) - 1)], 0, nchar(zygosline[size(zygosline) - 1]) - 2));
+		zygosfile = paste0(c(rep(paste0(c(zygosline, "\n")), length(inds) - 1), paste0(zygosline)));
 	}
 	
 	else {
-	
-	
-	zygoslines = sapply(inds, "zygosline = rep(0, sim.chromosome.lastPosition); muts0 = applyValue.genome1.mutations[applyValue.genome1.mutations.mutationType == m3 | applyValue.genome1.mutations.mutationType == m4]; muts1 = applyValue.genome2.mutations[applyValue.genome2.mutations.mutationType == m3 | applyValue.genome2.mutations.mutationType == m4]; shared = sort(c(setIntersection(muts0, muts1).position, subs.position)); unshared = sort(setSymmetricDifference(muts0, muts1).position); if ( size(shared) > 0 ) { zygosline[shared] = 2; } if (size(unshared) > 0 ) { zygosline[unshared] = 1; } zygosline = zygosline[positions];zygosline = (applyValue != inds[inds.size() - 1] ? c((zygosline + ','),'\\n') else (zygosline + ',') ); zygosline;"); 
+		
+	zygoslines = sapply(inds, "zygosline = rep(0, sim.chromosome.lastPosition); muts0 = c(applyValue.genome1.mutationsOfType(m3), applyValue.genome1.mutationsOfType(m4)); muts1 = c(applyValue.genome2.mutationsOfType(m3), applyValue.genome2.mutationsOfType(m4)); shared = sort(c(setIntersection(muts0, muts1).position, subs.position)); unshared = sort(setSymmetricDifference(muts0, muts1).position); if ( size(shared) > 0 ) { zygosline[shared] = 2; } if (size(unshared) > 0 ) { zygosline[unshared] = 1; } zygosline = (zygosline[positions] + ','); 	zygosline = c(zygosline[0:(size(zygosline) - 2)], substr(zygosline[size(zygosline) - 1], 0, nchar(zygosline[size(zygosline) - 1]) - 2)); zygosline = (applyValue != inds[inds.size() - 1] ? c(zygosline, '\\n') else (zygosline)); zygosline;"); 
 		
 	zygosfile = paste0(zygoslines);
 	
-		
-	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, "trait1.csv"))), zygosfile, append = T);
-	
-	
+
 	}	
+		writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, "trait1.csv"))), zygosfile, append = T);
 }
 
 
@@ -433,21 +432,22 @@ mutation(m2) {
 	sizefxfile = NULL;
 	
 	if (length(subs) == 0 & length(c(genomes.positionsOfMutationsOfType(m3), genomes.positionsOfMutationsOfType(m5))) == 0) {		// Skip the loop if there are no mutations to put in
-		segsitesline = rep(0, length(positions));	
-		segsitesfile = paste0(c(rep(paste(c(segsitesline, "\n"), ", "), length(genomes) - 1), paste(segsitesline, ", ")));
+		segsitesline = (rep(0, length(positions)) + ',');	
+		segsitesline = c(segsitesline[0:(size(segsitesline) - 2)], substr(segsitesline[size(segsitesline) - 1], 0, nchar(segsitesline[size(segsitesline) - 1]) - 2)); // Here we do some hacky stuff to remove the comma from the last entry in our segsitesline vector (using substr to take off the last entry (nchar - 2) of the last element of segsitesline (size(segsitesline) - 1)
+		segsitesfile = paste0(c(rep(paste0(c(segsitesline, "\n")), length(genomes) - 1), paste0(segsitesline)));
 	// Since if there are no mutations table 1 and 2 will just be 0s and identical, set sizefxfile = segsitesfile
 		sizefxfile = segsitesfile;
 	}
 	
 	else {
 		
-		segsiteslines = sapply(genomes, 
-			"segsitesline = rep(0, sim.chromosome.lastPosition); muts = applyValue.mutations[applyValue.mutations.mutationType == m3 | applyValue.mutations.mutationType == m5]; segsitesline[muts.position] = 1; segsitesline[subs.position] = 1; segsitesline = (applyValue != genomes[genomes.size() - 1] ? c((segsitesline[positions] + ','),'\\n') else (segsitesline[positions] + ',') ); segsitesline;"); 
+	segsiteslines = sapply(genomes, 
+		"segsitesline = rep(0, sim.chromosome.lastPosition); 	muts = c(applyValue.mutationsOfType(m3), applyValue.mutationsOfType(m5));	segsitesline[muts.position] = 1; 	segsitesline[subs.position] = 1; 	segsitesline = (segsitesline[positions] + ','); 	segsitesline = c(segsitesline[0:(size(segsitesline) - 2)], substr(segsitesline[size(segsitesline) - 1], 0, nchar(segsitesline[size(segsitesline) - 1]) - 2)); segsitesline = (applyValue != genomes[genomes.size() - 1] ? c(segsitesline, '\\n') else (segsitesline)); 	segsitesline;"); 
 		
 		segsitesfile = paste0(segsiteslines);
 		
 		sizefxlines = sapply(genomes,
-	"sizefxline = rep(0.0, sim.chromosome.lastPosition); muts = applyValue.mutations[applyValue.mutations.mutationType == m3 | applyValue.mutations.mutationType == m5]; if (muts.size() > 0) { sizefxline[muts.position] = muts.getValue('e1'); } if (subs.size() > 0) {sizefxline[subs.position] = subs.getValue('e1'); } sizefxline = (applyValue != genomes[genomes.size() - 1] ? c((sizefxline[positions] + ','),'\\n') else (sizefxline[positions] + ',') ); sizefxline;"); 
+	"sizefxline = rep(0.0, sim.chromosome.lastPosition); muts = c(applyValue.mutationsOfType(m3), applyValue.mutationsOfType(m5)); if (muts.size() > 0) { sizefxline[muts.position] = muts.getValue('e0'); } if (subs.size() > 0) {sizefxline[subs.position] = subs.getValue('e0'); } sizefxline = (sizefxline[positions] + ','); 	sizefxline = c(sizefxline[0:(size(sizefxline) - 2)], substr(sizefxline[size(sizefxline) - 1], 0, nchar(sizefxline[size(sizefxline) - 1]) - 2)); sizefxline = (applyValue != genomes[genomes.size() - 1] ? c(sizefxline, '\\n') else (sizefxline)); sizefxline;"); 
 			
 		sizefxfile = paste0(sizefxlines);
 		
@@ -466,21 +466,22 @@ mutation(m2) {
 	zygosout = NULL;
 	zygosfile = NULL;
 	
-	if (length(subs) == 0 & length(c(inds.genomes.positionsOfMutationsOfType(m3), inds.genomes.positionsOfMutationsOfType(m5))) == 0) {		// Skip the loop if there are no mutations to put in
-		zygosline = rep(0, length(positions));	
-		zygosfile = paste0(c(rep(paste(c(zygosline, "\n"), ", "), length(inds) - 1), paste(zygosline, ", ")));
+	if (length(subs) == 0 & length(c(inds.genomes.positionsOfMutationsOfType(m3), inds.genomes.positionsOfMutationsOfType(m5))) == 0) {		// Skip the loop if there are no mutations to put in	
+		zygosline = (rep(0, length(positions)) + ',');	
+		zygosline = c(zygosline[0:(size(zygosline) - 2)], substr(zygosline[(size(zygosline) - 1)], 0, nchar(zygosline[size(zygosline) - 1]) - 2));
+		zygosfile = paste0(c(rep(paste0(c(zygosline, "\n")), length(inds) - 1), paste0(zygosline)));
 	}
 	
 	else {
 		
 		// For each individual in the seqence, get a list of all the positions where QTL mutations occur, assign a 1 or 2 if that position matches a mutation's position 	
-	zygoslines = sapply(inds, "zygosline = rep(0, sim.chromosome.lastPosition); muts0 = applyValue.genome1.mutations[applyValue.genome1.mutations.mutationType == m3 | applyValue.genome1.mutations.mutationType == m5]; muts1 = applyValue.genome2.mutations[applyValue.genome2.mutations.mutationType == m3 | applyValue.genome2.mutations.mutationType == m5]; shared = sort(c(setIntersection(muts0, muts1).position, subs.position)); unshared = sort(setSymmetricDifference(muts0, muts1).position); if ( size(shared) > 0 ) { zygosline[shared] = 2; } if (size(unshared) > 0 ) { zygosline[unshared] = 1; } zygosline = zygosline[positions];zygosline = (applyValue != inds[inds.size() - 1] ? c((zygosline + ','),'\\n') else (zygosline + ',') ); zygosline;"); 
+	zygoslines = sapply(inds, "zygosline = rep(0, sim.chromosome.lastPosition); muts0 = c(applyValue.genome1.mutationsOfType(m3), applyValue.genome1.mutationsOfType(m5)); muts1 = c(applyValue.genome2.mutationsOfType(m3), applyValue.genome2.mutationsOfType(m5)); shared = sort(c(setIntersection(muts0, muts1).position, subs.position)); unshared = sort(setSymmetricDifference(muts0, muts1).position); if ( size(shared) > 0 ) { zygosline[shared] = 2; } if (size(unshared) > 0 ) { zygosline[unshared] = 1; } zygosline = (zygosline[positions] + ','); 	zygosline = c(zygosline[0:(size(zygosline) - 2)], substr(zygosline[size(zygosline) - 1], 0, nchar(zygosline[size(zygosline) - 1]) - 2)); zygosline = (applyValue != inds[inds.size() - 1] ? c(zygosline, '\\n') else (zygosline)); zygosline;"); 
 		
 	zygosfile = paste0(zygoslines);
 	
-	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, "trait2.csv"))), zygosfile);
-
 	}
+	
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, "trait2.csv"))), zygosfile);
 }
 
 
