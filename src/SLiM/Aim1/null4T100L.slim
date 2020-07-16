@@ -16,13 +16,18 @@
 
 
 initialize() {
-	setCfgParam("seed", asInteger(round(runif(1, 1, 2^62 - 1))));	// random seed
-	setSeed(asInteger(seed));			// sets the seed from either a command line input, -d seed=i, or from the above CfgParam
-	catn("Actual seed: " + asInteger(seed));
+	if (!exists("slimgui")) {
+		setCfgParam("seed", getSeed());	// random seed
+	}
+	else {
+		setSeed(asInteger(round(runif(1, 1, 2^62 - 1))));			// sets the seed from either a command line input, -s, or from the above CfgParam
+		setCfgParam("seed", getSeed());
+		catn("Actual seed: " + asInteger(seed));
+	}
 	
 	setCfgParam("mu", (6.3e-6) * 0.5); // Genome-wide mutation rate per locus, Schug et al. 1996, as above - SLiM appears to be roughly doubling expected mutations given this rate: 6.3e-6 * 20680 * 10000 = 1302.84 mutations/generation, but instead we end up with ~2500 -  for now I'm halving the rate
 
-	setCfgParam("Ne", 1000); // Population size
+	setCfgParam("Ne", 100); // Population size
 	setCfgParam("pleiorate", 0.44); // Proportion of QTL mutations that should be pleiotropic - given by Chesmore et al. 2017, based on human disease GWAS studies!
 	setCfgParam("del_mean", -0.03); // Mean used for the gamma distribution that deleterious mutations are pulled function
 	setCfgParam("del_shape", 0.2); // Shape parameter for gamma distribution used for deleterious mutations
@@ -93,17 +98,13 @@ initialize() {
 	// QTL constants
 	
 	setCfgParam("QTL_mu", c(0, 0, 0, 0)); // mean distribution value for multivariate normal we are pulling effects of all four traits from
-	setCfgParam("QTL_cov01", 0.0); // covariance between the pulls in the multivariate normal (pleiotropic correlation between traits)
-	setCfgParam("QTL_cov02", 0.0);
-	setCfgParam("QTL_cov03", 0.0);
-	setCfgParam("QTL_cov12", 0.0);
-	setCfgParam("QTL_cov13", 0.0);
-	setCfgParam("QTL_cov23", 0.0);
+	setCfgParam("QTL_cov", rep(0.0, 6)); // covariance between the pulls in the multivariate normal (pleiotropic correlation between traits)
+
 	
-	setCfgParam("QTL_sigma", matrix(c(1, QTL_cov01, QTL_cov02, QTL_cov03,
-										QTL_cov01, 1, QTL_cov12, QTL_cov13,
-										QTL_cov02, QTL_cov12, 1, QTL_cov23,
-										QTL_cov03, QTL_cov13, QTL_cov23, 1), nrow=4)); // sigma used in multivariate normal pull - variance covariance matrix, where variance of each trait = 1
+	setCfgParam("QTL_sigma", matrix(c(1, QTL_cov[0], QTL_cov[1], QTL_cov[2],
+										QTL_cov[0], 1, QTL_cov[3], QTL_cov[4],
+										QTL_cov[1], QTL_cov[3], 1, QTL_cov[5],
+										QTL_cov[2], QTL_cov[4], QTL_cov[5], 1), nrow=4)); // sigma used in multivariate normal pull - variance covariance matrix, where variance of each trait = 1
 	
 	catn("\nQTL DFE means: ");
 	print(QTL_mu);
@@ -277,33 +278,34 @@ mutation(m2) {
 	phenotype2 = inds.getValue("phenotype2");
 	phenotype3 = inds.getValue("phenotype3");
 
-	pheno0mean = mean(phenotype0);
-	pheno1mean = mean(phenotype1);
-	pheno2mean = mean(phenotype2);
-	pheno3mean = mean(phenotype3);
-	pheno0var = var(phenotype0);
-	pheno1var = var(phenotype1);
-	pheno2var = var(phenotype2);
-	pheno3var = var(phenotype3);
+	phenomeans = c(mean(phenotype0), mean(phenotype1), mean(phenotype2), mean(phenotype3));
+	phenovars = c(var(phenotype0), var(phenotype1), var(phenotype2), var(phenotype3));
+	
 	
 	// Covariances
-	phenocov01 = cov(phenotype0, phenotype1);
-	phenocov02 = cov(phenotype0, phenotype2);
-	phenocov03 = cov(phenotype0, phenotype3);
-	phenocov12 = cov(phenotype1, phenotype2);
-	phenocov13 = cov(phenotype1, phenotype3);
-	phenocov23 = cov(phenotype2, phenotype3);
+	phenocov = float(asInteger(((size(sim.mutationTypes) - 3) - 1) * ((size(sim.mutationTypes) - 3) * 0.5))); // number of covariance terms: ntraits - 1 * ntraits/2
+	phenocov[0] = cov(phenotype0, phenotype1);
+	phenocov[1] = cov(phenotype0, phenotype2);
+	phenocov[2] = cov(phenotype0, phenotype3);
+	phenocov[3] = cov(phenotype1, phenotype2);
+	phenocov[4] = cov(phenotype1, phenotype3);
+	phenocov[5] = cov(phenotype2, phenotype3);
+	
+	phenocov = paste(phenocov, ",");
 	
 	// Pearson correlation coefficients
-	phenocor01 = cor(phenotype0, phenotype1);
-	phenocor02 = cor(phenotype0, phenotype2);
-	phenocor03 = cor(phenotype0, phenotype3);
-	phenocor12 = cor(phenotype1, phenotype2);
-	phenocor13 = cor(phenotype1, phenotype3);
-	phenocor23 = cor(phenotype2, phenotype3);
+	phenocor = float(asInteger(((size(sim.mutationTypes) - 3) - 1) * ((size(sim.mutationTypes) - 3) * 0.5))); // number of covariance terms: ntraits - 1 * ntraits/2
+	phenocor[0] = cor(phenotype0, phenotype1);
+	phenocor[1] = cor(phenotype0, phenotype2);
+	phenocor[2] = cor(phenotype0, phenotype3);
+	phenocor[3] = cor(phenotype1, phenotype2);
+	phenocor[4] = cor(phenotype1, phenotype3);
+	phenocor[5] = cor(phenotype2, phenotype3);
+	
+	phenocor = paste(phenocor, ",");
 	
 	// Stick those values in the output, along with predictors - there are a lot of predictors now... do we replace them all with modelindex aside from seed?
-	meanline = paste(c(sim.generation, ", ", getSeed(), ", ", modelindex, ", ", rregion, ", ", rwide, ", ", delmu, ", ", QTL_cov01, ", ", Ne, ", ", pheno0mean, ", ", pheno0var, ", ", pheno1mean, ", ", pheno1var, ", ", pheno2mean, ", ", pheno2var, ", ", pheno3mean, ", ", pheno3var, ", ", phenocov01, ", ", phenocov02, ", ", phenocov03, ", ", phenocor01, ""), "");
+	meanline = paste(c(sim.generation, ", ", getSeed(), ", ", modelindex, ", ", rregion, ", ", rwide, ", ", delmu, ", ", paste(QTL_cov, ","), ", ", Ne, ", ", paste(phenomeans, ","), ", ", paste(phenovars, ","), phenocov, ", ", phenocor, ""), "");
 	file = paste(meanline, "");
 	
 	// Write the file
@@ -336,7 +338,8 @@ mutation(m2) {
 		for (mut in muts) {
 			mutFreq = mean(sim.subpopulations.genomes.containsMutations(mut));
 			mutType = mut.mutationType.id;
-			mutsLine = paste(c(sim.generation, ", ", getSeed(), ", ", modelindex, ", ", rregion, ", ", rwide, ", ", delmu, ", ", QTL_cov01, ", ", Ne, ", ", mutType, ", ", mut.id, ", ", mut.position, ", ", mut.originGeneration, ", ", mut.getValue("e0"), ", ", mut.getValue("e1"), ", ", mut.getValue("e2"), ", ", mut.getValue("e3"), ", ", mut.getValue("fe"), ", ", mutFreq, ", ", "N/A", "\n"), "");
+			mutValues = paste(c(mut.getValue("e0"), mut.getValue("e1"), mut.getValue("e2"), mut.getValue("e3")), ",");
+			mutsLine = paste(c(sim.generation, ",", getSeed(), ",", modelindex, ",", rregion, ",", rwide, ",", delmu, ",", paste(QTL_cov, ","), ",", Ne, ",", mutType, ",", mut.id, ",", mut.position, ",", mut.originGeneration, ",", mutValues, ",", mutFreq, ",", "N/A", "\n"), "");
 			
 			mutsLines = c(mutsLines, mutsLine);
 		}
@@ -344,10 +347,11 @@ mutation(m2) {
 		for (mut in muts) {
 			mutFreq = mean(sim.subpopulations.genomes.containsMutations(mut));
 			mutType = mut.mutationType.id;
+			mutValues = paste(c(mut.getValue("e0"), mut.getValue("e1"), mut.getValue("e2"), mut.getValue("e3")), ",");
 			if (mut != revmuts[0]) // Quality hack
-				mutsLine = paste(c(sim.generation, ", ", getSeed(), ", ", modelindex, ", ", rregion, ", ", rwide, ", ", delmu, ", ", QTL_cov01, ", ", Ne, ", ", mutType, ", ", mut.id, ", ", mut.position, ", ", mut.originGeneration, ", ", mut.getValue("e0"), ", ", mut.getValue("e1"), ", ", mut.getValue("e2"), ", ", mut.getValue("e3"), ", ", mut.getValue("fe"), ", ", mutFreq, ", ", "N/A", "\n"), "");
+				mutsLine = paste(c(sim.generation, ",", getSeed(), ",", modelindex, ",", rregion, ",", rwide, ",", delmu, ",", paste(QTL_cov, ","), ",", Ne, ",", mutType, ",", mut.id, ",", mut.position, ",", mut.originGeneration, ",", mutValues, ",", mut.getValue("fe"), ",", mutFreq, ",", "N/A", "\n"), "");
 			else
-				mutsLine = paste(c(sim.generation, ", ", getSeed(), ", ", modelindex, ", ", rregion, ", ", rwide, ", ", delmu, ", ", QTL_cov01, ", ", Ne, ", ", mutType, ", ", mut.id, ", ", mut.position, ", ", mut.originGeneration, ", ", mut.getValue("e0"), ", ", mut.getValue("e1"), ", ", mut.getValue("e2"), ", ", mut.getValue("e3"), ", ", mut.getValue("fe"), ", ", mutFreq, ", ", "N/A", ""), "");
+				mutsLine = paste(c(sim.generation, ",", getSeed(), ",", modelindex, ",", rregion, ",", rwide, ",", delmu, ",", paste(QTL_cov, ","), ",", Ne, ",", mutType, ",", mut.id, ",", mut.position, ",", mut.originGeneration, ",", mutValues, ",", mut.getValue("fe"), ",", mutFreq, ",", "N/A", ""), "");
 			mutsLines = c(mutsLines, mutsLine);
 		}
 	
@@ -356,11 +360,13 @@ mutation(m2) {
 	for (sub in subs) {
 		subFreq = 1.0;
 		subType = sub.mutationType.id;
+		subValues = paste(c(mut.getValue("e0"), mut.getValue("e1"), mut.getValue("e2"), mut.getValue("e3")), ",");
+
 		
 		if (sub != revsubs[0]) // THIS IS THE HACK THAT I MUST RESORT TO THANKS TO NO \b OR REPLACE() 	GOSH BLESS EIDOS
-			subLine = paste(c(sim.generation, ", ", getSeed(), ", ", modelindex, ", ", rregion, ", ", rwide, ", ", delmu, ", ", QTL_cov01, ", ", Ne, ", ", subType, ", ", sub.id, ", ", sub.position, ", ", sub.originGeneration, ", ", sub.getValue("e0"), ", ", sub.getValue("e1"), ", ", sub.getValue("e2"), ", ", sub.getValue("e3"), ", ", sub.getValue("fe"), ", ", subFreq, ", ", sub.fixationGeneration, "\n"), "");
+			subLine = paste(c(sim.generation, ",", getSeed(), ",", modelindex, ",", rregion, ",", rwide, ",", delmu, ",", paste(QTL_cov, ","), ",", Ne, ",", subType, ",", sub.id, ",", sub.position, ",", sub.originGeneration, ",", subValues, ",", sub.getValue("fe"), ",", subFreq, ",", sub.fixationGeneration, "\n"), "");
 		else
-			subLine = paste(c(sim.generation, ", ", getSeed(), ", ", modelindex, ", ", rregion, ", ", rwide, ", ", delmu, ", ", QTL_cov01, ", ", Ne, ", ", subType, ", ", sub.id, ", ", sub.position, ", ", sub.originGeneration, ", ", sub.getValue("e0"), ", ", sub.getValue("e1"), ", ", sub.getValue("e2"), ", ", sub.getValue("e3"), ", ", sub.getValue("fe"), ", ", subFreq, ", ", sub.fixationGeneration, ""), "");
+			subLine = paste(c(sim.generation, ",", getSeed(), ",", modelindex, ",", rregion, ",", rwide, ",", delmu, ",", paste(QTL_cov, ","), ",", Ne, ",", subType, ",", sub.id, ",", sub.position, ",", sub.originGeneration, ",", subValues, ",", sub.getValue("fe"), ",", subFreq, ",", sub.fixationGeneration, ""), "");
 		
 		mutsLines = c(mutsLines, subLine); // Add substitutions to mutation output
 	

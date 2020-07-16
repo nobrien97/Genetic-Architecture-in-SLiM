@@ -111,16 +111,10 @@ initialize() {
 	initializeRecombinationRate(rates, ends); // We set this later, when we get the positions of QTLs
 
 	
-	// QTL constants - we are assuming UNIVERSAL PLEIOTROPY here! 
+	// QTL constants
 	
 	setCfgParam("QTL_mu", c(0, 0, 0, 0, 0, 0, 0, 0)); // mean distribution value for multivariate normal we are pulling effects of all four traits from
-	setCfgParam("QTL_cov", 0.0); // Default covariance term for use in QTL_cov - 0 is our null: covariance, but with no direction
-	if (QTL_cov != 0.0) {
-		QTL_cov = rnorm(28, QTL_cov, QTL_cov/10);		// If we set our QTL_cov to something other than 0.0 (some directionality to the covariance), use a norm distribution to randomise effects around that value, so we aren't assuming every covariance value is identical
-	}
-	else {
-		QTL_cov = rep(QTL_cov, 28); // If QTL_cov is 0, expand that to a full vector of all covariance terms
-	}
+	setCfgParam("QTL_cov", rep(0.0, 28)); // Set up the covariance terms as 0.0 for each of them, 
 	setCfgParam("QTL_sigma", matrix(c(locisigma, QTL_cov[0], QTL_cov[1], QTL_cov[2], QTL_cov[3], QTL_cov[4], QTL_cov[5], QTL_cov[6],
 									QTL_cov[0], locisigma, QTL_cov[7], QTL_cov[8], QTL_cov[9], QTL_cov[10], QTL_cov[11], QTL_cov[12],
 									QTL_cov[1], QTL_cov[7], locisigma, QTL_cov[13], QTL_cov[14], QTL_cov[15], QTL_cov[16], QTL_cov[17],

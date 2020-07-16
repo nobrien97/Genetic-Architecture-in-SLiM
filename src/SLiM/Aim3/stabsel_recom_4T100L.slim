@@ -326,7 +326,7 @@ late() {
 		catn(c(mean(inds.getValue("phenotype0")), mean(inds.getValue("phenotype1")), mean(inds.getValue("phenotype2")), mean(inds.getValue("phenotype3"))));
 		catn(mean(inds.fitnessScaling));
 	
-	if (sim.generation % 500 != 0) // !CHECK THIS! Grab a sample every 500 generations: results in 200 time points per run, just like old model, file size should be the same as before
+	if (sim.generation % 500 != 0) // Grab a sample every 500 generations: results in 200 time points per run, just like old model, file size should be the same as before
 		return;
 		
 	// Get the values for output: mean trait values, variance of those trait values, covariance and correlation coefficients

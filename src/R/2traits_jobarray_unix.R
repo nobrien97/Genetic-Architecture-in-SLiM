@@ -45,7 +45,7 @@ foreach(i=rsample) %:%
   foreach(j=((PBSIND*5) - 4):(PBSIND*5)) %dopar% {
     # Use string manipulation functions to configure the command line args, feeding from a data frame of latin square combinations
     # then run SLiM with system(),
-    slim_out <- system(sprintf("/home/$USER/SLiM/slim -d seed=%s -d rregion=%s -d Ne=%i -d QTL_cov=%f -d pleiorate=%f -d delmu=%f -d rwide=%s -d modelindex=%i /home/$USER/SLiM/Scripts/null2T100L_june_restruct2_opt.slim", 
+    slim_out <- system(sprintf("/home/$USER/SLiM/slim -s %s -d rregion=%s -d Ne=%i -d QTL_cov=%f -d pleiorate=%f -d delmu=%f -d rwide=%s -d modelindex=%i /home/$USER/SLiM/Scripts/null2T100L_june_restruct2_opt.slim", 
                                as.character(i), as.character(lscombos$rregions[j]), as.integer(round(lscombos$Ne[j])), lscombos$pleiocov[j], lscombos$pleiorate[j], lscombos$delmu[j], as.character(lscombos$rwide[j]), j, intern=T))
   }
 stopCluster(cl)
