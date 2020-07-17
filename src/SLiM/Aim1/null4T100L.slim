@@ -25,7 +25,7 @@ initialize() {
 		catn("Actual seed: " + asInteger(seed));
 	}
 	
-	setCfgParam("mu", (6.3e-6) * 0.5); // Genome-wide mutation rate per locus, Schug et al. 1996, as above - SLiM appears to be roughly doubling expected mutations given this rate: 6.3e-6 * 20680 * 10000 = 1302.84 mutations/generation, but instead we end up with ~2500 -  for now I'm halving the rate
+	setCfgParam("mu", 6.3e-6); // Genome-wide mutation rate per locus, Schug et al. 1996, as above - SLiM appears to be roughly doubling expected mutations given this rate: 6.3e-6 * 20680 * 10000 = 1302.84 mutations/generation, but instead we end up with ~2500 -  for now I'm halving the rate
 
 	setCfgParam("Ne", 100); // Population size
 	setCfgParam("pleiorate", 0.44); // Proportion of QTL mutations that should be pleiotropic - given by Chesmore et al. 2017, based on human disease GWAS studies!
@@ -36,6 +36,7 @@ initialize() {
 	setCfgParam("rwide", 1.346e-5); // Recombination rate across the whole genome (aside from the between genomic regions rate)
 	setCfgParam("nloci", 100); // Number of QTL positions along the chromosome - where QTL mutations can appear, sampled from sample()
 	setCfgParam("genomelength", 20680); // Taken from my own analysis from Ensembl, and from Elliott and Gregory 2015 
+	setCfgParam("locisigma", 1.0); // Variance used for normal disttribution pulls - effectively the additive effect size
 	
 	setCfgParam("outname", 'out_4T100L_means.csv'); // Output filename/path for the trait means/variance
 	setCfgParam("outnamemuts", 'out_4T100L_muts.csv'); //Output filename/path for the mutation information

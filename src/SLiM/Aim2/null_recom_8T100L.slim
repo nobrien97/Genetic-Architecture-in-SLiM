@@ -97,21 +97,13 @@ initialize() {
 	// g1 genomic element type: uses m1 and m2 for all mutations - get other effects only if determined for m1 
 	initializeGenomicElementType("g1", c(m1, m2), c(1, delmu));
 	
-	// Chromosome set up with 10 genomic regions, where there are 200 potential QTL sites, the rest are neutral sites (m1, m2)
+	// Chromosome set up, where there are 100 potential QTL sites, the rest are neutral sites (m1, m2)
 	initializeGenomicElement(g1, 0, genomelength - 1);
 	
-	recomseq = seq(0, genomelength - 1, by = 0.1*genomelength); // Create 10 equally-distanced chromosomes
-	ends = asInteger(round(recomseq[1:9])); 	// Convert to int from float
-	ends = c(sort(c(ends, ends+1)), genomelength);
-	rbtwnQTL = c(rep(rregion, length(ends)));
-	rgenome = c(rep(rwide, length(ends))); 
-	rates = c(rbind(rgenome, rbtwnQTL), rwide);
-	rates = rates[0:(length(ends) - 1)];
-	
-	initializeRecombinationRate(rates, ends); // We set this later, when we get the positions of QTLs
+	initializeRecombinationRate(0.0); // We set this later, when we get the positions of QTLs
 
 	
-	// QTL constants - we are assuming UNIVERSAL PLEIOTROPY here! 
+	// QTL constants - UNIVERSAL PLEIOTROPY assumed!
 	
 	setCfgParam("pleio_mu", float(8)); // mean distribution value for multivariate normal we are pulling effects of all 8 traits from
 	setCfgParam("pleio_cov", 0.0); // Default covariance term for use in pleio_covs - 0 is our null: pleiotropy, but with no direction
@@ -151,10 +143,49 @@ function (void) setCfgParam (s$ name, ifls value) // setup function for automati
 // create a population of Ne individuals
 1 {
 	sim.addSubpop("p1", Ne);
-	chr_QTL = sort(sample(1:(sim.chromosome.lastPosition -1), nloci)); // Set the positions of our loci, from position 1 to the length of the chromosome; avoid the first and last positions to avoid errors with setting recombination ends at invalid locations
+	chr_QTL = sort(sample(1:(sim.chromosome.lastPosition-1), nloci));
 	//	chr_QTL = NULL;
 	//	for (chr in sim.chromosome.genomicElements) { chr_QTL = c(chr_QTL, rdunif(ploci, chr.startPosition, chr.endPosition)); } // for each genomic element, get 100 random positions from a discrete uniform distribution and store them as QTL positions
 	sim.setValue("chr_QTL", chr_QTL); //store these positions in a sim value
+	
+	endsamples = sample(chr_QTL, asInteger(round(0.1*length(chr_QTL))) ); // Take 10% of the 100 loci as end positions for chromosomes (testing independent assortment)
+	
+	// Set linkage between loci	via recombination
+	ends = c(endsamples + 1);
+	ends =  sort( c( endsamples, ( endsamples + 1 ), sim.chromosome.lastPosition )); // recombination rates for genome wide (rwide) occur until each QTL, then for that QTL a between rate is given, followed by more rwide
+	
+	
+	rbtwnQTL = c(rep(rregion, length(ends)));
+	rgenome = c(rep(rwide, length(ends))); 
+	rates = c(rbind(rgenome, rbtwnQTL), rwide);
+	rates = rates[0:(length(ends) - 1)];
+	
+	
+	if (ends[length(ends) - 1] > sim.chromosome.lastPosition) 		// Check we aren't trying to set the recombination rate outside our chromosome's length if we get a QTL pop up at the last position
+	{
+		ends = ends[0:length(ends) - 2];	
+		rates = rates[0:length(rates) - 2];	
+	}
+	
+		
+		for ( i in 0:(length(ends) - 2) ) 
+	{
+			if (ends[i] == ends[i+1]) { 				// Check if any two ends are right next to each other, if there are set the first one to -1
+				ends[i] = -1;
+			}
+		}
+		
+		rates[ends == -1] = rwide;					// For any rates where ends = -1, set the value to rwide so we can swap over to the normal behaviour and don't get a bunch of rregion across the genome
+	
+	rates = rates[ends != -1];					// Excise the -1s
+	ends = ends[ends != -1];
+
+	
+	
+//	catn(paste(rates, sep = ", ")); // ascending order error: occurs if two end positions are the same, which occurs if two QTL are next to each other (because chr_QTL[x] + 1 = chr_QTL[y]
+//	catn(paste(ends, sep = ", ")); 	// This is debug output for SLiM GUI, helps verify that endpoints are being generated and in a reasonable place
+	
+	sim.chromosome.setRecombinationRate(rates, ends);				// Set the recombination rates across the genome
 }
 
 // Set fitness of m4 and m5 to be neutral
@@ -190,10 +221,7 @@ fitness(m11) {
 	return 1.0;
 }
 
-// Check if the m1 mutation's position is at a chr_QTL position, if it is than redraw the mutationType to a phenotype one
-			// From McGuigan et al. 2014: "...multivariate modeling indicated that 21% (1 in every 4.8) of five-trait matrices displayed significant mutational 							pleiotropy." But only found pleiotropy in 0.52% of bivariate covariances - so most pleiotropic mutations affect > 2 traits
-			// Decide how many traits to affect: pull a number from a gamma (? CHECK LITERATURE ?) distribution with some mean and shape parameter, then choose traits uniformly based on the number we want.
-			// Or we could leave the model assuming universal pleiotropy, rather than restricted modularity		
+// Check if the m1 mutation's position is at a chr_QTL position, if it is than redraw the mutationType
 
 mutation(m1) {
 	if (any(mut.position == sim.getValue("chr_QTL"))) { // If the mutation falls in any of our defined QTL loci within a region
@@ -491,8 +519,6 @@ mutation(m2) {
 	
 	phenocor = paste(phenocor, ",");
 	
-	
-	
 	// Stick those values in the output, along with predictors - there are a lot of predictors now... do we replace them all with modelindex aside from seed?
 	meanline = paste(c(sim.generation, ",", getSeed(), ",", modelindex, ",", rregion, ",", rwide, ",", delmu, ",", paste(pleio_covs, ","), ",", Ne, ",", paste(phenomeans, ","), ",", paste(phenovars, ","), ",", phenocov, ",", phenocor, ""), "");
 	file = paste(meanline, "");
@@ -528,7 +554,7 @@ mutation(m2) {
 			mutFreq = mean(sim.subpopulations.genomes.containsMutations(mut));
 			mutType = mut.mutationType.id;
 			mutValues = paste(c(mut.getValue("e0"), mut.getValue("e1"), mut.getValue("e2"), mut.getValue("e3"), mut.getValue("e4"), mut.getValue("e5"), mut.getValue("e6"), mut.getValue("e7")), ",");
-			mutsLine = paste(c(sim.generation, ",", getSeed(), ",", modelindex, ",", rregion, ",", rwide, ",", delmu, ",", paste(sim.getValue(pleio_covs), ","), ",", Ne, ",", mutType, ",", mut.id, ",", mut.position, ",", mut.originGeneration, ",", mutValues, ",", mutFreq, ",", "N/A", "\n"), "");
+			mutsLine = paste(c(sim.generation, ",", getSeed(), ",", modelindex, ",", rregion, ",", rwide, ",", delmu, ",", paste(pleio_covs, ","), ",", Ne, ",", mutType, ",", mut.id, ",", mut.position, ",", mut.originGeneration, ",", mutValues, ",", mutFreq, ",", "N/A", "\n"), "");
 			
 			mutsLines = c(mutsLines, mutsLine);
 		}
@@ -1160,4 +1186,3 @@ mutation(m2) {
 100000 late() {
 	sim.simulationFinished();
 }
-
