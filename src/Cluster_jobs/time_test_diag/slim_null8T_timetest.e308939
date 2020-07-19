@@ -1,0 +1,18 @@
+########################### Execution Started #############################
+JobId:308939.tinmgr2
+UserName:s4395747
+GroupName:qris-uq
+ExecutionHost:tn329b
+###############################################################################
+########################### Job Execution History #############################
+JobId:308939.tinmgr2
+UserName:s4395747
+GroupName:qris-uq
+JobName:slim_null8T_timetest
+SessionId:13962
+ResourcesRequested:mem=24gb,ncpus=1,place=free,walltime=24:00:00
+ResourcesUsed:cpupercent=94,cput=07:24:26,mem=1326836kb,ncpus=1,vmem=1811928kb,walltime=07:24:29
+QueueUsed:Short
+AccountString:qris-uq
+ExitStatus:0
+###############################################################################
