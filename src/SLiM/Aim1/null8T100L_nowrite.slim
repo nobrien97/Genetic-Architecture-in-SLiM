@@ -4,7 +4,7 @@
 // in the same region etc. 
 // Model now puts neutral mutations which have fixed into substitution objects and adds the effects of substitutions correctly into the phenotypes. These 
 // substitutions are also put in the mutation output (freq = 1)
-// Mutation file gets massive, possibly need to compress it with writeFile(compress = T), but that will add performance overhead + lots more RAM usage as it will 
+// Mutation file gets massive, possibly need to compress it with writefile(compress = T), but that will add performance overhead + lots more RAM usage as it will 
 // likely keep each line in memory while it appends them and compresses
 // Alternative solution (which I've done here) is to get the mutation output less frequently, but this results in missing a lot of the micro-evolution going on 
 // through losses of mutations, which are likely to be missed
@@ -498,7 +498,7 @@ mutation(m2) {
 	file = paste(meanline, "");
 	
 	// Write the file
-	writeFile(outname, file, append = T);
+	//writefile(outname, file, append = T);
 	
 	
 // Mutation output: only do this once every 25000 generations: missing a lot of micro-evolution, but we keep fixations, and the files get too big otherwise	
@@ -565,8 +565,8 @@ mutation(m2) {
 	
 	// Write the mutations file
 	// Fail safe in case there are no mutations at some point and the for loop doesn't run
-	if (exists('mutsLine'))
-		writeFile(outnamemuts, mutsFile, append = T);
+//	if (exists('mutsLine'))
+		//writefile(outnamemuts, mutsFile, append = T);
 	
 	
 	// SLiMGUI test output 	
@@ -627,9 +627,9 @@ mutation(m2) {
 		
 		}
 		
-	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, "trait1.csv"))), segsitesfile, append = T); // append is true so we can stick outputs from different model/seed runs into the same file
+	//writefile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, "trait1.csv"))), segsitesfile, append = T); // append is true so we can stick outputs from different model/seed runs into the same file
 //	// This is ~/model{modelindex}/seed_segsitesoutname_trait1.csv
-	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, "trait1.csv"))), sizefxfile, append = T);
+	//writefile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, "trait1.csv"))), sizefxfile, append = T);
 	
 
 	
@@ -655,7 +655,7 @@ mutation(m2) {
 	
 
 	}	
-		writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, "trait1.csv"))), zygosfile, append = T);
+		//writefile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, "trait1.csv"))), zygosfile, append = T);
 }
 
 
@@ -691,9 +691,9 @@ mutation(m2) {
 		
 		}
 		
-	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, "trait2.csv"))), segsitesfile); 
+	//writefile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, "trait2.csv"))), segsitesfile); 
 
-	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, "_trait2.csv"))), sizefxfile);
+	//writefile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, "_trait2.csv"))), sizefxfile);
 	
 	
 	
@@ -719,7 +719,7 @@ mutation(m2) {
 	
 	}
 	
-	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, "trait2.csv"))), zygosfile);
+	//writefile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, "trait2.csv"))), zygosfile);
 }
 
 // Trait 3: m3, m6
@@ -754,9 +754,9 @@ mutation(m2) {
 		
 		}
 		
-	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, "trait3.csv"))), segsitesfile); 
+	//writefile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, "trait3.csv"))), segsitesfile); 
 
-	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, "_trait3.csv"))), sizefxfile);
+	//writefile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, "_trait3.csv"))), sizefxfile);
 	
 	
 	
@@ -780,7 +780,7 @@ mutation(m2) {
 	zygosfile = paste0(zygoslines);
 	
 	}
-	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, "trait3.csv"))), zygosfile);
+	//writefile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, "trait3.csv"))), zygosfile);
 }
 
 // Trait 4: m3, m7
@@ -816,9 +816,9 @@ mutation(m2) {
 		
 		}
 		
-	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, "trait4.csv"))), segsitesfile); 
+	//writefile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, "trait4.csv"))), segsitesfile); 
 
-	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, "_trait4.csv"))), sizefxfile);
+	//writefile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, "_trait4.csv"))), sizefxfile);
 	
 	
 	
@@ -843,7 +843,7 @@ mutation(m2) {
 	
 
 	}
-		writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, "trait4.csv"))), zygosfile);
+		//writefile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, "trait4.csv"))), zygosfile);
 }
 
 
@@ -893,9 +893,9 @@ mutation(m2) {
 		
 		}
 		
-	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, "trait5.csv"))), segsitesfile, append = T); // append is true so we can stick outputs from different model/seed runs into the same file
+	//writefile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, "trait5.csv"))), segsitesfile, append = T); // append is true so we can stick outputs from different model/seed runs into the same file
 //	// This is ~/model{modelindex}/seed_segsitesoutname_trait1.csv
-	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, "trait5.csv"))), sizefxfile, append = T);
+	//writefile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, "trait5.csv"))), sizefxfile, append = T);
 	
 
 	
@@ -921,7 +921,7 @@ mutation(m2) {
 	
 
 	}
-		writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, "trait5.csv"))), zygosfile);
+		//writefile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, "trait5.csv"))), zygosfile);
 }
 
 // Trait 6: m3, m9
@@ -970,9 +970,9 @@ mutation(m2) {
 		
 		}
 		
-	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, "trait6.csv"))), segsitesfile, append = T); // append is true so we can stick outputs from different model/seed runs into the same file
+	//writefile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, "trait6.csv"))), segsitesfile, append = T); // append is true so we can stick outputs from different model/seed runs into the same file
 //	// This is ~/model{modelindex}/seed_segsitesoutname_trait1.csv
-	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, "trait6.csv"))), sizefxfile, append = T);
+	//writefile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, "trait6.csv"))), sizefxfile, append = T);
 	
 
 	
@@ -998,7 +998,7 @@ mutation(m2) {
 	
 
 	}
-		writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, "trait6.csv"))), zygosfile);
+		//writefile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, "trait6.csv"))), zygosfile);
 }
 
 // Trait 7: m3, m10
@@ -1047,9 +1047,9 @@ mutation(m2) {
 		
 		}
 		
-	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, "trait7.csv"))), segsitesfile, append = T); // append is true so we can stick outputs from different model/seed runs into the same file
+	//writefile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, "trait7.csv"))), segsitesfile, append = T); // append is true so we can stick outputs from different model/seed runs into the same file
 //	// This is ~/model{modelindex}/seed_segsitesoutname_trait1.csv
-	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, "trait7.csv"))), sizefxfile, append = T);
+	//writefile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, "trait7.csv"))), sizefxfile, append = T);
 	
 
 	
@@ -1075,7 +1075,7 @@ mutation(m2) {
 	
 
 	}
-		writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, "trait7.csv"))), zygosfile);
+		//writefile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, "trait7.csv"))), zygosfile);
 }
 
 // Trait 8: m3, m11
@@ -1124,9 +1124,9 @@ mutation(m2) {
 		
 		}
 		
-	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, "trait8.csv"))), segsitesfile, append = T); // append is true so we can stick outputs from different model/seed runs into the same file
+	//writefile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, "trait8.csv"))), segsitesfile, append = T); // append is true so we can stick outputs from different model/seed runs into the same file
 //	// This is ~/model{modelindex}/seed_segsitesoutname_trait1.csv
-	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, "trait8.csv"))), sizefxfile, append = T);
+	//writefile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, "trait8.csv"))), sizefxfile, append = T);
 	
 
 	
@@ -1152,7 +1152,7 @@ mutation(m2) {
 	
 
 	}
-		writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, "trait8.csv"))), zygosfile);
+		//writefile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, "trait8.csv"))), zygosfile);
 }
 
 
