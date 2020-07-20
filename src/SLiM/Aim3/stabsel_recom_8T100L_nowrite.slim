@@ -24,6 +24,9 @@ initialize() {
 		setCfgParam("seed", getSeed());
 		catn("Actual seed: " + asInteger(seed));
 	}
+	
+	setCfgParam("start", clock() ); // Start time of the run, for diagnostic purposes	
+	
 	setCfgParam("mu", 6.3e-6); // Genome-wide mutation rate per locus, Schug et al. 1996, as above
 	setCfgParam("Ne", 10000); // Population size
 	setCfgParam("pleiorate", 0.44); // Proportion of QTL mutations that should be pleiotropic - given by Chesmore et al. 2017, based on human disease GWAS studies!
@@ -404,7 +407,7 @@ late() {
 	fixedfx7 = sizem3 ? sum(fixed[fixed.mutationType == m3].getValue("e7")) else 0.0 + sizem11 ? sum(fixed[fixed.mutationType == m11].getValue("e7")) else 0.0;
 	
 	
-	for (ind in sim.subpopulations.individuals)
+	for (ind in inds)
 	{
 		muts = ind.genomes.mutationsOfType(m3);			// Get only pleiotropic mutations first, then add the other effects later
 		mutscount = size(muts);
@@ -555,6 +558,10 @@ late() {
 	// Stick those values in the output, along with predictors - there are a lot of predictors now... do we replace them all with modelindex aside from seed?
 	meanline = paste(c(sim.generation, ",", getSeed(), ",", modelindex, ",", rregion, ",", rwide, ",", delmu, ",", paste(pleio_covs, ","), ",", Ne, ",", paste(phenomeans, ","), ",", paste(phenovars, ","), ",", phenocov, ",", phenocor, ""), "");
 	file = paste(meanline, "");
+	
+	// Diagnostic for how long the model is running for
+	catn("Generation: " + sim.generation);
+catn("Time elapsed: " + (clock() - start) + "\n");
 	
 	// Write the file
 //	writeFile(outname, file, append = T);

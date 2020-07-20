@@ -404,8 +404,15 @@ late() {
 	fixedfx7 = sizem3 ? sum(fixed[fixed.mutationType == m3].getValue("e7")) else 0.0 + sizem11 ? sum(fixed[fixed.mutationType == m11].getValue("e7")) else 0.0;
 	
 	
-	for (ind in sim.subpopulations.individuals)
+	for (ind in inds)
 	{
+	
+	
+//	sapply	 to generate phenotypes?
+	fitness = sapply(inds, <<
+		muts = applyValue.genomes.mutationsOfType(m3); mutscount = size(muts); phenotype0 = (mutscount ? sum(muts.getValue("e0")) else 0.0) + (applyValue.sumOfMutationsOfType(m4) + fixedfx0); phenotype1 = (mutscount ? sum(muts.getValue("e1")) else 0.0) + (applyValue.sumOfMutationsOfType(m5) + fixedfx1); phenotype2 = (mutscount ? sum(muts.getValue("e2")) else 0.0) + (applyValue.sumOfMutationsOfType(m6) + fixedfx2); phenotype3 = (mutscount ? sum(muts.getValue("e3")) else 0.0) + (applyValue.sumOfMutationsOfType(m7) + fixedfx3); phenotype4 = (mutscount ? sum(muts.getValue("e4")) else 0.0) + (applyValue.sumOfMutationsOfType(m8) + fixedfx4); phenotype5 = (mutscount ? sum(muts.getValue("e5")) else 0.0) + (applyValue.sumOfMutationsOfType(m9) + fixedfx5); phenotype6 = (mutscount ? sum(muts.getValue("e6")) else 0.0) + (applyValue.sumOfMutationsOfType(m10) + fixedfx6); phenotype7 = (mutscount ? sum(muts.getValue("e7")) else 0.0) + (applyValue.sumOfMutationsOfType(m11) + fixedfx7); applyValue.setValue("phenotype0", phenotype0); applyValue.setValue("phenotype1", phenotype1); applyValue.setValue("phenotype2", phenotype2); applyValue.setValue("phenotype3", phenotype3); applyValue.setValue("phenotype4", phenotype4); applyValue.setValue("phenotype5", phenotype5); applyValue.setValue("phenotype6", phenotype6); applyValue.setValue("phenotype7", phenotype7); effect0 = 1.0 + dnorm(optima[0] - phenotype0, 0, abs(optima[0])) * 1000.0; effect1 = 1.0 + dnorm(optima[1] - phenotype1, 0, abs(optima[1])) * 1000.0; effect2 = 1.0 + dnorm(optima[2] - phenotype2, 0, abs(optima[2])) * 1000.0; effect3 = 1.0 + dnorm(optima[3] - phenotype3, 0, abs(optima[3])) * 1000.0; effect4 = 1.0 + dnorm(optima[4] - phenotype4, 0, abs(optima[4])) * 1000.0; effect5 = 1.0 + dnorm(optima[5] - phenotype5, 0, abs(optima[5])) * 1000.0; effect6 = 1.0 + dnorm(optima[6] - phenotype6, 0, abs(optima[6])) * 1000.0; effect7 = 1.0 + dnorm(optima[7] - phenotype7, 0, abs(optima[7])) * 1000.0; applyValue.fitnessScaling = effect0 + effect1 + effect2 + effect3 + effect4 + effect5 + effect6 + effect7; fitness = applyValue.getValue("phenotype0");
+>> );
+	
 		muts = ind.genomes.mutationsOfType(m3);			// Get only pleiotropic mutations first, then add the other effects later
 		mutscount = size(muts);
 		
