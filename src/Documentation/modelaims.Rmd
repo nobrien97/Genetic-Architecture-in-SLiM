@@ -1,0 +1,84 @@
+---
+title: "Model Aims"
+author: "Nick O'Brien"
+date: "21/07/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+In this document I explain my aims and how each of my models will achieve those aims, as well as expectations of how long they will take to run, and how much computational power I will require to make them achievable. 
+
+## Common elements across all aims
+
+The goal of my overall project is to define how a parameter space contributes to genetic variation and covariation in a set of 8 complex traits. Through my aims I will focus on both genetic drift and stabilising selection, and their interactions with recombination rate and location. 
+
+Across all of my aims, I have the same genetic parameters that drive the output of the model. These include: 
+* Population size (Ne): Ranges from 100 to 10,000: very small populations to intermediate sizes 
+* Genome-wide recombination rate (rwide): Ranges from 0.0 to 1.346e-5: none to average recombination
+* Between-QTL recombination rate (rregion) - this defines the level of linkage between QTL loci: ranges from 0.0 to 0.5 (complete linkage to complete independence)
+* Number of loci (nloci): Ranges from 10 to 500: very few loci affecting a trait to many (from experimental results from QTL studies - McKown et al. 2014; Ehrenreich et al. 2010; Lu et al. 2010)
+* Distribution of allelic effects (locisigma): Ranges from 0.1 to 10: very small effects to large effects
+* Rate of pleiotropy (pleiorate): Ranges from 0.0 to 0.5: No pleiotropy to a relatively realistic amount
+* Rate of deleterious mutation (delmu): Ranges from 0.0 to 1.0: No deleterious mutations to equal chance to a neutral mutation
+* Pleiotropic mutational correlation (pleio_cov) - this defines the magnitude and direction of correlations between traits in pleiotropic mutations, used in the multivariate normal pull to get effects for all traits: Ranges from -0.5 to 0.5: Ranges from strong negative to strong positive mutational correlations
+
+To properly sample this parameter space requires a representative sample of a 8 dimensional hypercube, which I get with Latin hypercube sampling, using the columnwise-pairwise algorithm. I use 100 models for this sample and repeat these 100 models according to 100 seeds to total 10,000 runs for each of my experiments. 
+
+Each model also has a fixed mutation rate of 6.3x10^-6^, coming from Shug et al. 1996, and genome length of 20680, being an average of many eukaryotic species from Elliott and Gregory 2015, and Ensembl. These models run for 100,000 generations.
+
+In addition, prior to running the model for output, it will first be burnt in using a neutral simulation - Aim 1's model will be used to burn in Aim 1, Aim 2's will be used to burn in Aims 2 and 3. A model will be sufficiently burnt in once the population's heterozygosity mean and standard deviation remain constant (or within 5% of it) over time. After this period, a new script block will start for the model, where selection is either applied, or a continued neutral simulation occurs, and output is taken. Heterozygosity will continue to be periodically calculated, which will give another signature of selection: this can be taken over both time and space (space being across the genome).
+
+Output is in the following forms:
+* .csv file for phenotype means and variances
+* .csv file for mutation information (size effects, origin generation, chromosomal position, fixation generation if applicable)
+* .csv files for segregating sites, size effects, and zygosity of mutations in the form of matrices
+
+
+
+## Aim 1: The sampling distribution of neutral genetic architectures
+
+First, I am aiming to describe the sampling distribution of additive genetic variation and covariation due to neutral drift for the sample space detailed above. I will do this via my first model, which simulates the evolution of 8 traits via drift. This model has fixed positions of 'chromosome' ends, which means we are not simulating independent assortment as a treatment (this is reserved for aims 2 and 3). There are 10 chromosomes simulated with a degree of linkage specified by rregion.
+
+In a worst-case scenario, where rregion=0.5, Ne=10000, pleio_cov=0.5, pleiorate=1.0, delmu=0.0, and rwide=1.346e-5, this model takes around 7.4 hours to complete its 100,000 generations.
+Given this result, it can be expected that it shouldn't take more than 7.4*10,000 = 74,000 CPU hours to complete this experiment.
+
+There is also burn in time which must be accounted for. According to theory, to reach stable heterozygosity should be equal to 4 times the population size. Based on this, we should add an extra 40,000 generations to the time. This would be equal to 0.4 * 74,000 = 29,600 additional hours, for a total of 103,600 CPU hours.
+
+If we use 40 nodes, with 24 cores each, this results in 103,600 / (40 * 24) ~ 107.9 hours to complete, around 4-5 days.
+
+From this experiment we will obtain G matrices for each model and replicate at 200 time points. This can be used to compare the movement of Gmax and G2 over time between populations, the contributions of traits to the total variance between populations, and trajectories of evolution, Because these are null models, we should expect no significant difference between them in general, but when accounting for deleterious mutation (and the effects of background selection), as well as recombination rate, there may be differences in the amount of skew.
+
+We will also collect population means to track mean phenotypic evolution over time and compare population mean distributions between models. Preliminary analysis of models simulating 2 traits has shown that the level of deleterious mutation and recombination affect the kurtosis of final distributions, so that is expected to have an effect in these final models, and also be reflected to some extent in G matrices.
+
+## Aim 2: The effect of recombination on the sampling distribution of neutral genetic architectures
+
+I then intend to describe the effects of independent assortment on the sampling distribution of neutral genetic architectures. By randomising the positions of chromosome endpoints across the genome according to a subset of the QTLs, I am able to simulate the effects of linkage on phenotypic outcomes due to evolution by genetic drift. Again, there are 10 simulated chromosomes, but their endpoints are not evenly distributed across the chromosome, but randomly sampled from 10 of the randomly-allocated QTL loci.
+
+In a worst case-scenario, where rregion=0.5, Ne=10000, pleio_cov=0.5, pleiorate=1.0, delmu=0.0, and rwide=1.346e-5, this model takes
+
+
+
+From this experiment we will obtain G matrices for each model and replicate at 200 time points. This can be used to compare the movement of Gmax and G2 over time between populations, the contributions of traits to the total variance between populations, and trajectories of evolution, Because these are null models, we should expect no significant difference between them in general, but when accounting for deleterious mutation (and the effects of background selection), as well as recombination rate and the levels of linkage and dependence, there may be differences in the amount of skew.
+
+We will also collect population means to track mean phenotypic evolution over time and compare population mean distributions between models. Preliminary analysis of models simulating 2 traits has shown that the level of deleterious mutation and recombination affect the kurtosis of final distributions, so that is expected to have an effect in these final models, and also be reflected to some extent in G matrices.
+
+
+## Aim 3: The effect of recombination on the sampling distribution of complex genetic architectures after adaptation
+
+I intend to describe the effects of the above parameters, including independent assortment, on the sampling distribution of complex genetic architectures, taken after 100,000 generations of stabilising selection. Here, fitness is applied to the phenotype, and a random phenotype optimum is applied for each trait. This phenotype optimum is a fixed distance away (100*burnt-in mean) from the burnt-in population's phenotype value, and the course of the simulation drives the population towards it. 
+
+In a worst case-scenario, where rregion=0.5, Ne=10000, pleio_cov=0.5, pleiorate=1.0, delmu=0.0, and rwide=1.346e-5, this model takes
+
+There is also burn in time which must be accounted for. According to theory, to reach stable heterozygosity should be equal to 4 times the population size. In both Aims 2 and 3 we will use Aim 2's model to burn in initial mutation states, so we need to add a further 40% of the aim 2 worst-case run time onto the total: 
+
+If we use 40 nodes, with 24 cores each, this results in  hours to complete, around  days.
+
+
+From this experiment we will obtain G matrices for each model and replicate at 200 time points. This can be used to compare the movement of Gmax and G2 over time between populations, the contributions of traits to the total variance between populations, and trajectories of evolution. In addition, we will take the final Euclidean distance from the fitness optimum and compare that to the initial distance, giving a representation in trait space how far the population has moved. 
+
+We will also collect population means to track mean phenotypic evolution over time and compare population mean distributions between models.
