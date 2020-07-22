@@ -18,14 +18,23 @@ In this document I explain my aims and how each of my models will achieve those 
 The goal of my overall project is to define how a parameter space contributes to genetic variation and covariation in a set of 8 complex traits. Through my aims I will focus on both genetic drift and stabilising selection, and their interactions with recombination rate and location. 
 
 Across all of my aims, I have the same genetic parameters that drive the output of the model. These include: 
-* Population size (Ne): Ranges from 100 to 10,000: very small populations to intermediate sizes 
-* Genome-wide recombination rate (rwide): Ranges from 0.0 to 1.346e-5: none to average recombination
-* Between-QTL recombination rate (rregion) - this defines the level of linkage between QTL loci: ranges from 0.0 to 0.5 (complete linkage to complete independence)
+
++ Population size (Ne): Ranges from 100 to 10,000: very small populations to intermediate sizes 
+
++ Genome-wide recombination rate (rwide): Ranges from 0.0 to 1.346e-5: none to average recombination
+
++ Between-QTL recombination rate (rregion) - this defines the level of linkage between QTL loci: ranges from 0.0 to 0.5 (complete linkage to complete independence)
+
 * Number of loci (nloci): Ranges from 10 to 500: very few loci affecting a trait to many (from experimental results from QTL studies - McKown et al. 2014; Ehrenreich et al. 2010; Lu et al. 2010)
+
 * Distribution of allelic effects (locisigma): Ranges from 0.1 to 10: very small effects to large effects
+
 * Rate of pleiotropy (pleiorate): Ranges from 0.0 to 0.5: No pleiotropy to a relatively realistic amount
+
 * Rate of deleterious mutation (delmu): Ranges from 0.0 to 1.0: No deleterious mutations to equal chance to a neutral mutation
+
 * Pleiotropic mutational correlation (pleio_cov) - this defines the magnitude and direction of correlations between traits in pleiotropic mutations, used in the multivariate normal pull to get effects for all traits: Ranges from -0.5 to 0.5: Ranges from strong negative to strong positive mutational correlations
+
 
 To properly sample this parameter space requires a representative sample of a 8 dimensional hypercube, which I get with Latin hypercube sampling, using the columnwise-pairwise algorithm. I use 100 models for this sample and repeat these 100 models according to 100 seeds to total 10,000 runs for each of my experiments. 
 
@@ -59,11 +68,12 @@ We will also collect population means to track mean phenotypic evolution over ti
 
 I then intend to describe the effects of independent assortment on the sampling distribution of neutral genetic architectures. By randomising the positions of chromosome endpoints across the genome according to a subset of the QTLs, I am able to simulate the effects of linkage on phenotypic outcomes due to evolution by genetic drift. Again, there are 10 simulated chromosomes, but their endpoints are not evenly distributed across the chromosome, but randomly sampled from 10 of the randomly-allocated QTL loci.
 
-In a worst case-scenario, where rregion=0.5, Ne=10000, pleio_cov=0.5, pleiorate=1.0, delmu=0.0, and rwide=1.346e-5, this model takes
+In a worst case-scenario, where rregion=0.5, Ne=10000, pleio_cov=0.5, pleiorate=1.0, delmu=0.0, and rwide=1.346e-5, this model takes 8.405 hours for 100,000 generations. This is around 84047 CPU hours. 
+Adding on another 40% to account for theoretical brun-in time, this is 117,665.4 CPU hours.
 
+Using 40 nodes with 24 cores each, this is around 122.6 hours of real time to run, a bit over 5 days.
 
-
-From this experiment we will obtain G matrices for each model and replicate at 200 time points. This can be used to compare the movement of Gmax and G2 over time between populations, the contributions of traits to the total variance between populations, and trajectories of evolution, Because these are null models, we should expect no significant difference between them in general, but when accounting for deleterious mutation (and the effects of background selection), as well as recombination rate and the levels of linkage and dependence, there may be differences in the amount of skew.
+This experiment will also produce G matrices for each model and replicate at 200 time points. This can be used to compare the movement of Gmax and G2 over time between populations, the contributions of traits to the total variance between populations, and trajectories of evolution. Because these are still neutral models, we should expect no significant difference between them in general, but when accounting for deleterious mutation (and the effects of background selection), as well as recombination rate and the levels of linkage and dependence, there may be differences in the amount of skew. In addition, comparisons between these models and our true null should show the effects of linkage on trajectories of neutral evolution.
 
 We will also collect population means to track mean phenotypic evolution over time and compare population mean distributions between models. Preliminary analysis of models simulating 2 traits has shown that the level of deleterious mutation and recombination affect the kurtosis of final distributions, so that is expected to have an effect in these final models, and also be reflected to some extent in G matrices.
 
