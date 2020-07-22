@@ -43,10 +43,22 @@ Each model also has a fixed mutation rate of 6.3x10^-6^, coming from Shug et al.
 In addition, prior to running the model for output, it will first be burnt in using a neutral simulation - Aim 1's model will be used to burn in Aim 1, Aim 2's will be used to burn in Aims 2 and 3. A model will be sufficiently burnt in once the population's heterozygosity mean and standard deviation remain constant (or within 5% of it) over time. After this period, a new script block will start for the model, where selection is either applied, or a continued neutral simulation occurs, and output is taken. Heterozygosity will continue to be periodically calculated, which will give another signature of selection: this can be taken over both time and space (space being across the genome).
 
 Output is in the following forms:
+
 * .csv file for phenotype means and variances
 * .csv file for mutation information (size effects, origin generation, chromosomal position, fixation generation if applicable)
 * .csv files for segregating sites, size effects, and zygosity of mutations in the form of matrices
 
+
+The questions I hope to resolve for each of my aims are:
+
+* How does background selection change the trajectory of evolution under genetic drift? (Aim 1)
+* How does background selection affect a population's genetic variability under drift? (Aim 1)
+* How does recombination change the trajectory of evolution under genetic drift? (Aims 1 and 2)
+* How does recombination affect a population's genetic variability under drift? (Aims 1 and 2)
+* How do background selection and recombination interact to affect evolution under genetic drift (Aims 1 and 2)
+* How does background selection affect the outcomes of evolution by adaptation? (Aim 3)
+* How does recombination affect the outcomes of evolution by adaptation? (Aim 3)
+* How do background selection and recombination interact to alter the outcomes of evolution by adaptation? (Aim 3)
 
 
 ## Aim 1: The sampling distribution of neutral genetic architectures
