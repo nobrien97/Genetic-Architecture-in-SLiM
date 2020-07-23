@@ -1,0 +1,37 @@
+---
+title: "Burn-In"
+author: "Nick O'Brien"
+date: "23/07/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+I've been having some problems setting up the burn in for my simulations. The premise is that at mutation-drift equilibrium, the population's mean heterozygosity should be relatively stable, as predicted by population genetics theory. The time to burn-in should be proportional to 4 times the population size, and the predicted heterozygosity is equal to 4Nu. This is assuming completely neutral drift. 
+
+However, I've found I have been approaching the problem from the wrong angle: I need to be looking at the cyclical nature of heterozygosity as would be expected under mutation-drift balance (or mutation-drift-selection balance). Although on average over many seeds, you would expect the mean population heterozygosity to reach 4Nu, for any given seed, it is unlikely to stay at that point over time exactly: rather, mutations accumulate to push heterozygosity higher, and then drift results in fixation or loss, bringing the heterozygosity lower again. This results in a cycle (almost like a sine or cosine wave) that have amplitude and frequency proportional to population size, mutation rate, and other parameters - recombination, deleterious mutation, etc.
+
+Here, I examine this cyclical action with several population sizes in order to better understand the signature of a population in mutation-drift balance, and choose appropriate points to assume a population is burnt in (given thir population size).
+
+To see this cyclical nature, we can take an autocorrelation plot, or a figure of the population mean heterozygosity over time. Here is an example of population size = 1000:
+
+![Autocorrelation of population mean heterozygosity: Ne - 1000](Z:/Documents/GitHub/Genetic-Architecture-in-SLiM/src/SLiM/autocorr_Ne1000_example.png)
+![Population mean heterozygosity: Ne - 1000](Z:/Documents/GitHub/Genetic-Architecture-in-SLiM/src/SLiM/meanH_Ne1000_example.png)
+
+As you can see, there is a cycle of autocorrelation spikes that appear every so often, however their amplitude gets smaller over time (as you get further away from the initial time point). This is a signature of mutation-drift equilibrium. The two dotted lines in the means figure represent 5% either side of the expected 4Nu value of heterozygosity at equilibrium. If across all seeds and all time points we got the mean of this data, we would find that we do get around that value, however the wave behaviour of heterozygosity at equilibrium over time does not allow that at all time points (and due to the stochasticity of drift, not at all seeds).
+In fact, this mean (after 20,000 generations, or well after that initial climb to equilibrium from the empty state) does fall within there, at 0.0259, very close to the prediction of 0.0252 (4Nu = 4 * 1000 * 6.3e-6).
+
+## Further justification for burn-in times
+
+In this document I show the autocorrelations of different population sizes, deleterious mutation rates, and recombination rates to get a feel for how long I should leave my burn-ins before running my models.
+I expect that deleterious mutations (in the absence of recombination) will likely affect the amplitude of the wave greatly, but I am unsure of how it will affect the time to reach this wave-state (which is the important part for ensuring we are in some kind of balance).
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

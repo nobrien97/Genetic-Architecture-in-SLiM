@@ -1,0 +1,666 @@
+
+R version 3.5.0 (2018-04-23) -- "Joy in Playing"
+Copyright (C) 2018 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> 
+> # Worst case scenario test run for 8T Selection
+> 
+> system.time(system("/home/$USER/SLiM/slim -s 123 -d rregion=0.5 -d Ne=10000 -d QTL_cov=0.5 -d pleiorate=1.0 -d delmu=0.0 -d rwide=1.346e-5 /home/$USER/SLiM/Scripts/stabsel_recom_8T100L_nowrite.slim"))
+// Initial random seed:
+123
+
+// RunInitializeCallbacks():
+initializeMutationRate(6.3e-06);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(2, 0.5, "g", -0.03, 0.2);
+initializeMutationType(3, 0.5, "f", 0);
+initializeMutationType(4, 0.5, "n", 0, 1);
+initializeMutationType(5, 0.5, "n", 0, 1);
+initializeMutationType(6, 0.5, "n", 0, 1);
+initializeMutationType(7, 0.5, "n", 0, 1);
+initializeMutationType(8, 0.5, "n", 0, 1);
+initializeMutationType(9, 0.5, "n", 0, 1);
+initializeMutationType(10, 0.5, "n", 0, 1);
+initializeMutationType(11, 0.5, "n", 0, 1);
+initializeGenomicElementType(1, c(m1, m2), c(1, 0));
+initializeGenomicElement(g1, 0, 20679);
+initializeRecombinationRate(0);
+
+Pleiotropic QTL DFE means: 
+0 0 0 0 0 0 0 0
+
+Pleiotropic QTL DFE variance-covariance matrix (M matrix): 
+           [,0]       [,1]       [,2]       [,3]       [,4]       [,5]       [,6]       [,7]
+[0,]          1  0.0873766  0.0891241  0.0922109   0.108672  0.0838384    0.15512  0.0576042
+[1,]  0.0873766          1  0.0978428  0.0939021  0.0858573  0.0552766   0.153453  0.0865047
+[2,]  0.0891241  0.0978428          1  0.0938515  0.0612778 -0.0468695   0.161062   0.111604
+[3,]  0.0922109  0.0939021  0.0938515          1   0.181575  0.0597324   0.181136   0.103422
+[4,]   0.108672  0.0858573  0.0612778   0.181575          1   0.141621  0.0134196   0.134138
+[5,]  0.0838384  0.0552766 -0.0468695  0.0597324   0.141621          1  0.0400292   0.127997
+[6,]    0.15512   0.153453   0.161062   0.181136  0.0134196  0.0400292          1   0.125386
+[7,]  0.0576042  0.0865047   0.111604   0.103422   0.134138   0.127997   0.125386          1
+
+Trait optima: 
+7.33647 5.98893 -4.34442 -18.3089 5.08023 -3.56285 4.02013 18.0255
+
+// Starting run at generation <start>:
+1 
+
+Generation: 500
+Time elapsed: 94.32
+
+Generation: 1000
+Time elapsed: 214.85
+
+Generation: 1500
+Time elapsed: 360.25
+
+Generation: 2000
+Time elapsed: 539.17
+
+Generation: 2500
+Time elapsed: 736.17
+
+Generation: 3000
+Time elapsed: 926.44
+
+Generation: 3500
+Time elapsed: 1142.66
+
+Generation: 4000
+Time elapsed: 1380.75
+
+Generation: 4500
+Time elapsed: 1643.83
+
+Generation: 5000
+Time elapsed: 1934.81
+
+Generation: 5500
+Time elapsed: 2255.61
+
+Generation: 6000
+Time elapsed: 2601.54
+
+Generation: 6500
+Time elapsed: 2971.92
+
+Generation: 7000
+Time elapsed: 3339.44
+
+Generation: 7500
+Time elapsed: 3685.15
+
+Generation: 8000
+Time elapsed: 4053.8
+
+Generation: 8500
+Time elapsed: 4448.73
+
+Generation: 9000
+Time elapsed: 4848.51
+
+Generation: 9500
+Time elapsed: 5263.62
+
+Generation: 10000
+Time elapsed: 5694.88
+
+Generation: 10500
+Time elapsed: 6131.56
+
+Generation: 11000
+Time elapsed: 6589.17
+
+Generation: 11500
+Time elapsed: 7061.87
+
+Generation: 12000
+Time elapsed: 7550.96
+
+Generation: 12500
+Time elapsed: 8064.2
+
+Generation: 13000
+Time elapsed: 8591.84
+
+Generation: 13500
+Time elapsed: 9141.11
+
+Generation: 14000
+Time elapsed: 9700.66
+
+Generation: 14500
+Time elapsed: 10291.9
+
+Generation: 15000
+Time elapsed: 10893.7
+
+Generation: 15500
+Time elapsed: 11524
+
+Generation: 16000
+Time elapsed: 12163.1
+
+Generation: 16500
+Time elapsed: 12827.4
+
+Generation: 17000
+Time elapsed: 13532.9
+
+Generation: 17500
+Time elapsed: 14211.9
+
+Generation: 18000
+Time elapsed: 14929.4
+
+Generation: 18500
+Time elapsed: 15677.1
+
+Generation: 19000
+Time elapsed: 16440.7
+
+Generation: 19500
+Time elapsed: 17236.2
+
+Generation: 20000
+Time elapsed: 18023.6
+
+Generation: 20500
+Time elapsed: 18822.6
+
+Generation: 21000
+Time elapsed: 19626.5
+
+Generation: 21500
+Time elapsed: 20448.1
+
+Generation: 22000
+Time elapsed: 21306.2
+
+Generation: 22500
+Time elapsed: 22177
+
+Generation: 23000
+Time elapsed: 23121.9
+
+Generation: 23500
+Time elapsed: 24036.2
+
+Generation: 24000
+Time elapsed: 24967.7
+
+Generation: 24500
+Time elapsed: 25933
+
+Generation: 25000
+Time elapsed: 26909
+
+Generation: 25500
+Time elapsed: 27913.9
+
+Generation: 26000
+Time elapsed: 28933.1
+
+Generation: 26500
+Time elapsed: 29956.5
+
+Generation: 27000
+Time elapsed: 30977.5
+
+Generation: 27500
+Time elapsed: 32017.2
+
+Generation: 28000
+Time elapsed: 33078.5
+
+Generation: 28500
+Time elapsed: 34189.1
+
+Generation: 29000
+Time elapsed: 35341.1
+
+Generation: 29500
+Time elapsed: 36521.9
+
+Generation: 30000
+Time elapsed: 37671.7
+
+Generation: 30500
+Time elapsed: 38789.6
+
+Generation: 31000
+Time elapsed: 39964.1
+
+Generation: 31500
+Time elapsed: 41137.5
+
+Generation: 32000
+Time elapsed: 42320.9
+
+Generation: 32500
+Time elapsed: 43509.6
+
+Generation: 33000
+Time elapsed: 44741.4
+
+Generation: 33500
+Time elapsed: 45993.9
+
+Generation: 34000
+Time elapsed: 47249.4
+
+Generation: 34500
+Time elapsed: 48518.3
+
+Generation: 35000
+Time elapsed: 49785.7
+
+Generation: 35500
+Time elapsed: 51059
+
+Generation: 36000
+Time elapsed: 52307.8
+
+Generation: 36500
+Time elapsed: 53571.1
+
+Generation: 37000
+Time elapsed: 54844.2
+
+Generation: 37500
+Time elapsed: 56149.4
+
+Generation: 38000
+Time elapsed: 57505.2
+
+Generation: 38500
+Time elapsed: 58858.9
+
+Generation: 39000
+Time elapsed: 60225.1
+
+Generation: 39500
+Time elapsed: 61573.9
+
+Generation: 40000
+Time elapsed: 62935
+
+Generation: 40500
+Time elapsed: 64310.3
+
+Generation: 41000
+Time elapsed: 65676
+
+Generation: 41500
+Time elapsed: 67080.9
+
+Generation: 42000
+Time elapsed: 68443.4
+
+Generation: 42500
+Time elapsed: 69823.4
+
+Generation: 43000
+Time elapsed: 71195.6
+
+Generation: 43500
+Time elapsed: 72581.9
+
+Generation: 44000
+Time elapsed: 73963.2
+
+Generation: 44500
+Time elapsed: 75435.2
+
+Generation: 45000
+Time elapsed: 76926
+
+Generation: 45500
+Time elapsed: 78434.5
+
+Generation: 46000
+Time elapsed: 79927.9
+
+Generation: 46500
+Time elapsed: 81409.1
+
+Generation: 47000
+Time elapsed: 82974.7
+
+Generation: 47500
+Time elapsed: 84524
+
+Generation: 48000
+Time elapsed: 86037.8
+
+Generation: 48500
+Time elapsed: 87576.2
+
+Generation: 49000
+Time elapsed: 89071.6
+
+Generation: 49500
+Time elapsed: 90568.4
+
+Generation: 50000
+Time elapsed: 92145.8
+
+Generation: 50500
+Time elapsed: 93821.4
+
+Generation: 51000
+Time elapsed: 95456.6
+
+Generation: 51500
+Time elapsed: 97114.3
+
+Generation: 52000
+Time elapsed: 98737.2
+
+Generation: 52500
+Time elapsed: 100373
+
+Generation: 53000
+Time elapsed: 102030
+
+Generation: 53500
+Time elapsed: 103701
+
+Generation: 54000
+Time elapsed: 105386
+
+Generation: 54500
+Time elapsed: 107081
+
+Generation: 55000
+Time elapsed: 108821
+
+Generation: 55500
+Time elapsed: 110569
+
+Generation: 56000
+Time elapsed: 112326
+
+Generation: 56500
+Time elapsed: 114049
+
+Generation: 57000
+Time elapsed: 115783
+
+Generation: 57500
+Time elapsed: 117517
+
+Generation: 58000
+Time elapsed: 119242
+
+Generation: 58500
+Time elapsed: 121004
+
+Generation: 59000
+Time elapsed: 122728
+
+Generation: 59500
+Time elapsed: 124498
+
+Generation: 60000
+Time elapsed: 126277
+
+Generation: 60500
+Time elapsed: 128070
+
+Generation: 61000
+Time elapsed: 129840
+
+Generation: 61500
+Time elapsed: 131604
+
+Generation: 62000
+Time elapsed: 133371
+
+Generation: 62500
+Time elapsed: 135121
+
+Generation: 63000
+Time elapsed: 136881
+
+Generation: 63500
+Time elapsed: 138644
+
+Generation: 64000
+Time elapsed: 140386
+
+Generation: 64500
+Time elapsed: 142132
+
+Generation: 65000
+Time elapsed: 143819
+
+Generation: 65500
+Time elapsed: 145516
+
+Generation: 66000
+Time elapsed: 147220
+
+Generation: 66500
+Time elapsed: 148944
+
+Generation: 67000
+Time elapsed: 150658
+
+Generation: 67500
+Time elapsed: 152381
+
+Generation: 68000
+Time elapsed: 154102
+
+Generation: 68500
+Time elapsed: 155792
+
+Generation: 69000
+Time elapsed: 157471
+
+Generation: 69500
+Time elapsed: 159157
+
+Generation: 70000
+Time elapsed: 160888
+
+Generation: 70500
+Time elapsed: 162609
+
+Generation: 71000
+Time elapsed: 164335
+
+Generation: 71500
+Time elapsed: 166073
+
+Generation: 72000
+Time elapsed: 167768
+
+Generation: 72500
+Time elapsed: 169507
+
+Generation: 73000
+Time elapsed: 171247
+
+Generation: 73500
+Time elapsed: 173000
+
+Generation: 74000
+Time elapsed: 174769
+
+Generation: 74500
+Time elapsed: 176522
+
+Generation: 75000
+Time elapsed: 178285
+
+Generation: 75500
+Time elapsed: 180034
+
+Generation: 76000
+Time elapsed: 181750
+
+Generation: 76500
+Time elapsed: 183400
+
+Generation: 77000
+Time elapsed: 185304
+
+Generation: 77500
+Time elapsed: 187194
+
+Generation: 78000
+Time elapsed: 189071
+
+Generation: 78500
+Time elapsed: 190903
+
+Generation: 79000
+Time elapsed: 192743
+
+Generation: 79500
+Time elapsed: 194646
+
+Generation: 80000
+Time elapsed: 196488
+
+Generation: 80500
+Time elapsed: 198287
+
+Generation: 81000
+Time elapsed: 200122
+
+Generation: 81500
+Time elapsed: 201999
+
+Generation: 82000
+Time elapsed: 203953
+
+Generation: 82500
+Time elapsed: 205883
+
+Generation: 83000
+Time elapsed: 207818
+
+Generation: 83500
+Time elapsed: 209722
+
+Generation: 84000
+Time elapsed: 211614
+
+Generation: 84500
+Time elapsed: 213497
+
+Generation: 85000
+Time elapsed: 215313
+
+Generation: 85500
+Time elapsed: 217142
+
+Generation: 86000
+Time elapsed: 218913
+
+Generation: 86500
+Time elapsed: 220662
+
+Generation: 87000
+Time elapsed: 222412
+
+Generation: 87500
+Time elapsed: 224155
+
+Generation: 88000
+Time elapsed: 225890
+
+Generation: 88500
+Time elapsed: 227611
+
+Generation: 89000
+Time elapsed: 229342
+
+Generation: 89500
+Time elapsed: 231074
+
+Generation: 90000
+Time elapsed: 232818
+
+Generation: 90500
+Time elapsed: 234569
+
+Generation: 91000
+Time elapsed: 236311
+
+Generation: 91500
+Time elapsed: 238063
+
+Generation: 92000
+Time elapsed: 239809
+
+Generation: 92500
+Time elapsed: 241540
+
+Generation: 93000
+Time elapsed: 243246
+
+Generation: 93500
+Time elapsed: 244968
+
+Generation: 94000
+Time elapsed: 246674
+
+Generation: 94500
+Time elapsed: 248444
+
+Generation: 95000
+Time elapsed: 250236
+
+Generation: 95500
+Time elapsed: 252020
+
+Generation: 96000
+Time elapsed: 253767
+
+Generation: 96500
+Time elapsed: 255542
+
+Generation: 97000
+Time elapsed: 257333
+
+Generation: 97500
+Time elapsed: 259103
+
+Generation: 98000
+Time elapsed: 260865
+
+Generation: 98500
+Time elapsed: 262605
+
+Generation: 99000
+Time elapsed: 264362
+
+Generation: 99500
+Time elapsed: 266126
+
+Generation: 100000
+Time elapsed: 267883
+
+      user     system    elapsed 
+265914.712   2140.897 268057.597 
+> 
