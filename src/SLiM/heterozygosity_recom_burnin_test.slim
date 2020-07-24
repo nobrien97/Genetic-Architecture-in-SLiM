@@ -1,0 +1,456 @@
+// set up a simple neutral simulation, mu = mutation rate, Ne = eff pop size
+// increasing complexity: not all mutations are pleiotropic, pleiotropy rate given by pleio: this is the percentage of mutations that should be pleiotropic
+// Also output for all mutations - their effects, frequencies, origin generation and positions. Can get a measurement of linkage by their distance, whether they are 
+// in the same region etc. 
+// Model now puts neutral mutations which have fixed into substitution objects and adds the effects of substitutions correctly into the phenotypes. These 
+// substitutions are also put in the mutation output (freq = 1)
+// Mutation file gets massive, possibly need to compress it with writeFile(compress = T), but that will add performance overhead + lots more RAM usage as it will 
+// likely keep each line in memory while it appends them and compresses
+// Alternative solution (which I've done here) is to get the mutation output less frequently, but this results in missing a lot of the micro-evolution going on 
+// through losses of mutations, which are likely to be missed
+// We've set the total number of generations to 100,000 to track evolution over longer periods - this may be too long for Awoonga, it is 2.2x longer per run! 
+// Although should handle this long period better now since we're converting everything to substitutions - but not by a massive amount
+
+// New genome structure: 10 genomic regions, each of 100 QTL loci: these loci can be synonymous (m1), or nonsynonymous (m3, m4, m5), being either pleiotropic (m3), or randomly chosen from the non-pleiotropic mutations (m4, m5). Perhaps I should change this: so we have QTL loci for each trait.
+
+// Further changes to genome: each bp is treated as an individual locus/gene now - as to be consistent with the definition of our mutations being QTLs. This means mutation rate/recombination rate is actually chance of mutation/recombination per locus per generation. This means these rates will need to be changed to be normalised to this: perhaps average number of base pairs per gene, add those probabilities to get to the per gene rate.
+
+// Genome size:
+
+// Genome size taken as an average of the number of protein-coding genes in a variety of eukaryotes - ten taken from each group of metazoans (non-vertebrate), plants, protists, vertebrates and fungi, and averaged to the genome size 19869. All data taken from Ensembl.
+// ALTERNATIVE - Elliott and Gregory 2015, found averages for many more species: average 9953 for Fungi, 18943 for animals, 35577 for plants: grand average of 21491 genes in a theoretical eukaryote
+// Hou and Lin 2009 had their own table of gene counts across species of eukaryotes, but the data is a bit dated -  contains animals, plants, fungi; averages to 13264.22 protein-coding genes - I think exclude this
+// What about regulatory regions - assumed they are grouped in with the protein-coding gene, they must be somewhere controlling it, so think of a mutation in the model not necessarily being a mutation on th locus itself, but a mutation at any place in a genome that affects that locus's function (at least in the case of QTL or deleterious mutations; neutral would be the same but without affecting function)
+
+// Average my data with that of Elliott and Gregory for a combined estimate: 20680
+
+
+// Recombination rate now is recombination between genes, so a more direct look at distance between loci
+// I think set it for one genomic region now, and rregion/recombination between will be the recombination rate to the right of each QTL locus - simulating how close/far away they are from each other on an actual genome
+// rwide, correct for size of each locus, on average 1346bp (0.001346 Mbp) length for eukaryotic coding sequences, highly conserved (Xu et al. 2006)
+// rwide should therefore be whatever the value is * 1346
+// mutation rate is the same - 1.29e-8 * 1346
+
+// genome-wide mutation rate: should now be mutations per locus, so we need a better estimate: 2.2x10-9*1346 from Kumar and Subramanian 2002; 6.3x10-6 from Schug et al. 1997; 2.4e-4 Thuillet et al. 2002; 1.246e-3 Zhang et al. 2018; 4.6e-9*1346 Smeds et al. 2016; 
+// Averages to 2.943e-4
+
+// genome-wide recombination rate: Sidhu and Gill 2005: in wheat, varies from 2e-9 to 7e-8; Lynch 2005, humans: 5e-4
+
+// Stacking policy: both mutations should simultaneously be there, as this signifies multiple mutations within a locus, each with a separate effect
+
+
+// AIM 1: Null model: rregion should be FIXED - independent assortment isn't a treatment for here.
+
+
+
+
+initialize() {
+	if (!exists("slimgui")) {
+		setCfgParam("seed", getSeed());	// random seed
+	}
+	else {
+		setSeed(asInteger(round(runif(1, 1, 2^62 - 1))));			// sets the seed from either a command line input, -s, or from the above CfgParam
+		setCfgParam("seed", getSeed());
+		catn("Actual seed: " + asInteger(seed));
+	}
+	catn("Actual seed: " + asInteger(seed));
+	setCfgParam("mu", 6.3e-6); // Genome-wide mutation rate per locus, Schug et al. 1996, as above
+	setCfgParam("Ne", 1000); // Population size
+	setCfgParam("pleiorate", 0.44); // Proportion of QTL mutations that should be pleiotropic - given by Chesmore et al. 2017, based on human disease GWAS studies!
+	setCfgParam("del_mean", -0.03); // Mean used for the gamma distribution that deleterious mutations are pulled function
+	setCfgParam("del_shape", 0.2); // Shape parameter for gamma distribution used for deleterious mutations
+	setCfgParam("delmu", 0.0); // Proportion of deleterious mutations compared to others (relative to others, 0.1 compared to 1 of neutral)
+	setCfgParam("rregion", 1e-8); // Recombination rate between genomic regions
+	setCfgParam("rwide", 1.346e-5); // Recombination rate across the whole genome (aside from the between genomic regions rate)
+	setCfgParam("nloci", 100); // Number of QTL positions along the chromosome - where QTL mutations can appear, sampled from sample()
+	setCfgParam("genomelength", 20680); // Taken from my own analysis from Ensembl, and from Elliott and Gregory 2015 
+	setCfgParam("expectedpi", 4*Ne*mu); // Expected heterozygosity under equilibrium, used for burn-in calculation.
+	setCfgParam("locisigma", 1.0);
+	
+	setCfgParam("outname", 'out_2T100L_means.csv'); // Output filename/path for the trait means/variance
+	setCfgParam("outnamemuts", 'out_2T100L_muts.csv'); //Output filename/path for the mutation information
+//	setCfgParam("phenooutname", 'out_2T100L_pheno.csv'); // Output filename/path for the final phenotypes of all individuals
+	setCfgParam("segsitesoutname", 'out_2T100L_segsites'); // Output filename for genomes - the 0s and 1s for whether a mutation is present at a certain position
+	setCfgParam("zygosoutname", 'out_2T100L_zygosity'); // Output filename for zygosity of mutations for each individual for each locus position	
+	setCfgParam("sizefxoutname", 'out_2T100L_sizefx'); // Output filename for size effects table of mutations and substitutions
+	
+	setCfgParam("modelindex", 1); // Identifier for the combination of predictors used in latin square: this is the row number in the lscombos.csv file
+	
+	//	defineConstant("varmu", -0.2^2); // expected mutation variance
+	//	defineConstant("eqvar", 2*Ne*varmu); // expected variance under mutation-drift equilibrium
+	
+	initializeMutationRate(mu);
+	
+	initializeMutationType("m1", 0.5, "f", 0.0); // Neutral, non-trait-affecting mutations
+	
+	//m2 mutation type: deleterious/background selection
+	initializeMutationType("m2", 0.5, "g", del_mean, del_shape);  // del_mean and del_shape are defined in the batch run script, or the cfg parameters
+	m2.color = "red";
+	
+	//m3 mutation type: pleiotropic QTL for both traits, fixed, we pull effects from rmvnorm
+	initializeMutationType("m3", 0.5, "f", 0.0);
+	//	m3.convertToSubstitution = F;
+	m3.color = "green";
+	
+	//m4 mutation type: QTL for phenotype 0 only
+	initializeMutationType("m4", 0.5, "n", 0.0, locisigma);
+	//	m4.convertToSubstitution = F;
+	m4.color = "blue";
+	
+	//m5 mutation type: QTL for phenotype 1 only
+	initializeMutationType("m5", 0.5, "n", 0.0, locisigma);
+	//	m5.convertToSubstitution = F;
+	m5.color = "gray";
+	
+	//m6 mutation type: QTL for phenotype 2 only
+	initializeMutationType("m6", 0.5, "n", 0.0, locisigma);	
+	m6.color = "pink";
+	
+	//m7 mutation type: QTL for phenotype 3 only
+	initializeMutationType("m7", 0.5, "n", 0.0, locisigma);
+	m7.color = "cyan";
+	
+	//m8 mutation type: QTL for phenotype 4 only
+	initializeMutationType("m8", 0.5, "n", 0.0, locisigma);
+	//	m8.convertToSubstitution = F;
+	m8.color = "purple";
+	
+	//m9 mutation type: QTL for phenotype 5 only
+	initializeMutationType("m9", 0.5, "n", 0.0, locisigma);
+	//	m9.convertToSubstitution = F;
+	m9.color = "aquamarine";
+	
+	//m10 mutation type: QTL for phenotype 6 only
+	initializeMutationType("m10", 0.5, "n", 0.0, locisigma);	
+	m10.color = "chartreuse";
+	
+	//m11 mutation type: QTL for phenotype 7 only
+	initializeMutationType("m11", 0.5, "n", 0.0, locisigma);
+	m11.color = "orangered";
+	
+	
+	// g1 genomic element type: uses m1 and m2 for all mutations - get other effects only if determined for m1 
+	initializeGenomicElementType("g1", c(m1, m2), c(1, delmu));
+	
+	// Chromosome set up, where there are 100 potential QTL sites, the rest are neutral sites (m1, m2)
+	initializeGenomicElement(g1, 0, genomelength - 1);
+	
+	initializeRecombinationRate(0.0); // We set this later, when we get the positions of QTLs
+
+	
+	// QTL constants - UNIVERSAL PLEIOTROPY assumed!
+	
+	setCfgParam("pleio_mu", float(8)); // mean distribution value for multivariate normal we are pulling effects of all 8 traits from
+	setCfgParam("pleio_cov", 0.0); // Default covariance term for use in pleio_covs - 0 is our null: pleiotropy, but with no direction
+	if (pleio_cov != 0.0) {
+		defineConstant("pleio_covs", rnorm(28, pleio_cov, pleio_cov/2));		// If we set our pleio_cov to something other than 0.0 (some directionality to the covariance), use a norm distribution to randomise effects around that value, so we aren't assuming every covariance value is identical
+	}
+	else {
+		defineConstant("pleio_covs", rep(pleio_cov, 28)); // If pleio_cov is 0, expand that to a full vector of all covariance terms
+	}
+	setCfgParam("pleio_sigma", matrix(c(locisigma, pleio_covs[0], pleio_covs[1], pleio_covs[2], pleio_covs[3], pleio_covs[4], pleio_covs[5], pleio_covs[6],
+									pleio_covs[0], locisigma, pleio_covs[7], pleio_covs[8], pleio_covs[9], pleio_covs[10], pleio_covs[11], pleio_covs[12],
+									pleio_covs[1], pleio_covs[7], locisigma, pleio_covs[13], pleio_covs[14], pleio_covs[15], pleio_covs[16], pleio_covs[17],
+									pleio_covs[2], pleio_covs[8], pleio_covs[13], locisigma, pleio_covs[18], pleio_covs[19], pleio_covs[20], pleio_covs[21],
+									pleio_covs[3], pleio_covs[9], pleio_covs[14], pleio_covs[18], locisigma, pleio_covs[22], pleio_covs[23], pleio_covs[24],
+									pleio_covs[4], pleio_covs[10], pleio_covs[15], pleio_covs[19], pleio_covs[22], locisigma, pleio_covs[25], pleio_covs[26],
+									pleio_covs[5], pleio_covs[11], pleio_covs[16], pleio_covs[20], pleio_covs[23], pleio_covs[25], locisigma, pleio_covs[27],
+									pleio_covs[6], pleio_covs[12], pleio_covs[17], pleio_covs[21], pleio_covs[24], pleio_covs[26], pleio_covs[27], 1), nrow=8)); // sigma used in multivariate normal pull - variance covariance matrix, where variance of each trait = 1
+	
+	catn("\nPleiotropic QTL DFE means: ");
+	print(pleio_mu);
+	catn("\nPleiotropic QTL DFE variance-covariance matrix (M matrix): ");
+	print(pleio_sigma);
+}
+
+// This M matrix defines the direction of pleiotropy via the covariance. Covariance between traits at the end 
+// of the simulation is due to a combination of this covariance term, random effects of drift, recombination,
+// and deleterious mutation on the population. 
+
+
+function (void) setCfgParam (s$ name, ifls value) // setup function for automating constant definitions between gui and command line
+{
+	if (!exists(name))
+		defineConstant(name, value);
+}
+
+
+/*
+
+  Estimate the average nucleotide heterozygosity in a subpopulation by sampling individuals at random and averaging the heterozygosity of all of the individuals sampled.  Note that this function normally uses a sample of individuals, of a size supplied in the optional parameter sampleSize; but if sampleSize is equal to the number of individuals in subpop, it will instead compute the heterozygosity exactly, as the mean of the heterozygosities of all individuals, rather than taking a sample.  For large subpopulations, that will of course be much slower than using a sample, however.
+
+Modified from SLiM-Extras, https://github.com/MesserLab/SLiM-Extras
+
+*/
+
+function (f$)genomicHeterozygosity(o<Genome>$ genome1, o<Genome>$ genome2)
+{
+	muts1 = c(genome1.mutationsOfType(m3), genome1.mutationsOfType(m4), genome1.mutationsOfType(m5), genome1.mutationsOfType(m6), genome1.mutationsOfType(m7), genome1.mutationsOfType(m8), genome1.mutationsOfType(m9), genome1.mutationsOfType(m10), genome1.mutationsOfType(m11));
+	muts2 = c(genome2.mutationsOfType(m3), genome2.mutationsOfType(m4), genome2.mutationsOfType(m5), genome2.mutationsOfType(m6), genome2.mutationsOfType(m7), genome2.mutationsOfType(m8), genome2.mutationsOfType(m9), genome2.mutationsOfType(m10), genome2.mutationsOfType(m11));
+	unshared = setSymmetricDifference(muts1, muts2);
+	pi = size(unshared) / size(sim.getValue("chr_QTL"));
+	return pi;
+}
+
+function (f)subpopHeterozygosity(o<Subpopulation>$ subpop, [i$ sampleSize=100])
+{
+	if (sampleSize == subpop.individualCount)
+		sampledIndividuals = subpop.individuals;
+	else
+		sampledIndividuals = sample(subpop.individuals, sampleSize, replace=T);
+	
+	pi_total = float(size(sampledIndividuals));
+	for (individual in sampledIndividuals)
+	{
+		genomes = individual.genomes;
+		individual_pi = genomicHeterozygosity(genomes[0], genomes[1]);
+		pi_total[match(individual, sampledIndividuals)] = individual_pi;
+	}
+	return c(mean(pi_total), var(pi_total));
+}
+
+
+
+
+
+// create a population of Ne individuals
+1 {
+	sim.addSubpop("p1", Ne);
+	chr_QTL = sort(sample(1:(sim.chromosome.lastPosition-1), nloci));
+	//	chr_QTL = NULL;
+	//	for (chr in sim.chromosome.genomicElements) { chr_QTL = c(chr_QTL, rdunif(ploci, chr.startPosition, chr.endPosition)); } // for each genomic element, get 100 random positions from a discrete uniform distribution and store them as QTL positions
+	sim.setValue("chr_QTL", chr_QTL); //store these positions in a sim value
+	
+	endsamples = sample(chr_QTL, asInteger(round(0.1*length(chr_QTL))) ); // Take 10% of the 100 loci as end positions for chromosomes (testing independent assortment)
+	
+	// Set linkage between loci	via recombination
+	ends = c(endsamples + 1);
+	ends =  sort( c( endsamples, ( endsamples + 1 ), sim.chromosome.lastPosition )); // recombination rates for genome wide (rwide) occur until each QTL, then for that QTL a between rate is given, followed by more rwide
+	
+	
+	rbtwnQTL = c(rep(rregion, length(ends)));
+	rgenome = c(rep(rwide, length(ends))); 
+	rates = c(rbind(rgenome, rbtwnQTL), rwide);
+	rates = rates[0:(length(ends) - 1)];
+	
+	
+	if (ends[length(ends) - 1] > sim.chromosome.lastPosition) 		// Check we aren't trying to set the recombination rate outside our chromosome's length if we get a QTL pop up at the last position
+	{
+		ends = ends[0:length(ends) - 2];	
+		rates = rates[0:length(rates) - 2];	
+	}
+	
+		
+		for ( i in 0:(length(ends) - 2) ) 
+	{
+			if (ends[i] == ends[i+1]) { 				// Check if any two ends are right next to each other, if there are set the first one to -1
+				ends[i] = -1;
+			}
+		}
+		
+		rates[ends == -1] = rwide;					// For any rates where ends = -1, set the value to rwide so we can swap over to the normal behaviour and don't get a bunch of rregion across the genome
+	
+	rates = rates[ends != -1];					// Excise the -1s
+	ends = ends[ends != -1];
+
+	
+	
+//	catn(paste(rates, sep = ", ")); // ascending order error: occurs if two end positions are the same, which occurs if two QTL are next to each other (because chr_QTL[x] + 1 = chr_QTL[y]
+//	catn(paste(ends, sep = ", ")); 	// This is debug output for SLiM GUI, helps verify that endpoints are being generated and in a reasonable place
+	
+	sim.chromosome.setRecombinationRate(rates, ends);				// Set the recombination rates across the genome
+	
+	
+}
+
+fitness(m4) {
+	return 1.0;
+}
+
+fitness(m5) {
+	return 1.0;
+}
+
+fitness(m6) {
+	return 1.0;
+}
+
+fitness(m7) {
+	return 1.0;
+}
+
+fitness(m8) {
+	return 1.0;
+}
+
+fitness(m9) {
+	return 1.0;
+}
+
+fitness(m10) {
+	return 1.0;
+}
+
+fitness(m11) {
+	return 1.0;
+}
+
+// Check if the m1 mutation's position is at a chr_QTL position, if it is than redraw the mutationType
+
+mutation(m1) {
+	if (any(mut.position == sim.getValue("chr_QTL"))) { // If the mutation falls in any of our defined QTL loci within a region
+	
+			pleio = rbinom(1, 1, pleiorate); // Redraw the mutation type, determining whether the nonsyn mutation should be pleiotropic or not 
+			if (pleio == 1) {
+				mut.setMutationType(m3);
+				effects = rmvnorm(1, pleio_mu, pleio_sigma);		// Calculate effects for m3 here since a mutation callback won't be called since it isn't autogenerated
+				mut.setValue("e0", effects[0]);
+				mut.setValue("e1", effects[1]);
+				mut.setValue("e2", effects[2]);
+				mut.setValue("e3", effects[3]);
+				mut.setValue("e4", effects[4]);
+				mut.setValue("e5", effects[5]);
+				mut.setValue("e6", effects[6]);
+				mut.setValue("e7", effects[7]);
+				mut.setValue("fe", 0.0); //fitness effect
+				}
+			else {
+				type = rdunif(1, 3, (length(sim.mutationTypes) - 1)); // If it isn't pleiotropic, randomly choose one of the phenotypes for the QTL to affect
+				mut.setMutationType(sim.mutationTypes[type]);
+				mut.setSelectionCoeff(mut.mutationType.drawSelectionCoefficient(1));
+				
+					
+				if (mut.mutationType == m4)	{
+					mut.setValue("e0", mut.selectionCoeff);				// Calculate effects for the appropriate phenotype, since it isn't pleiotropic
+					mut.setValue("e1", 0.0);
+					mut.setValue("e2", 0.0);
+					mut.setValue("e3", 0.0);
+					mut.setValue("e4", 0.0);
+					mut.setValue("e5", 0.0);
+					mut.setValue("e6", 0.0);
+					mut.setValue("e7", 0.0);
+					mut.setValue("fe", 0.0); //fitness effect
+					}
+					
+				if (mut.mutationType == m5) {
+					mut.setValue("e0", 0.0);
+					mut.setValue("e1", mut.selectionCoeff);
+					mut.setValue("e2", 0.0);
+					mut.setValue("e3", 0.0);
+					mut.setValue("e4", 0.0);
+					mut.setValue("e5", 0.0);
+					mut.setValue("e6", 0.0);
+					mut.setValue("e7", 0.0);
+					mut.setValue("fe", 0.0); //fitness effect	
+					}		
+				if (mut.mutationType == m6) {
+					mut.setValue("e0", 0.0);
+					mut.setValue("e1", 0.0);
+					mut.setValue("e2", mut.selectionCoeff);
+					mut.setValue("e3", 0.0);
+					mut.setValue("e4", 0.0);
+					mut.setValue("e5", 0.0);
+					mut.setValue("e6", 0.0);
+					mut.setValue("e7", 0.0);
+					mut.setValue("fe", 0.0); //fitness effect	
+					}		
+				if (mut.mutationType == m7) {
+					mut.setValue("e0", 0.0);
+					mut.setValue("e1", 0.0);
+					mut.setValue("e2", 0.0);
+					mut.setValue("e3", mut.selectionCoeff);
+					mut.setValue("e4", 0.0);
+					mut.setValue("e5", 0.0);
+					mut.setValue("e6", 0.0);
+					mut.setValue("e7", 0.0);
+					mut.setValue("fe", 0.0); //fitness effect	
+					}							
+				if (mut.mutationType == m8) {
+					mut.setValue("e0", 0.0);
+					mut.setValue("e1", 0.0);
+					mut.setValue("e2", 0.0);
+					mut.setValue("e3", 0.0);
+					mut.setValue("e4", mut.selectionCoeff);
+					mut.setValue("e5", 0.0);
+					mut.setValue("e6", 0.0);
+					mut.setValue("e7", 0.0);
+					mut.setValue("fe", 0.0); //fitness effect	
+					}							
+				if (mut.mutationType == m9) {
+					mut.setValue("e0", 0.0);
+					mut.setValue("e1", 0.0);
+					mut.setValue("e2", 0.0);
+					mut.setValue("e3", 0.0);
+					mut.setValue("e4", 0.0);
+					mut.setValue("e5", mut.selectionCoeff);
+					mut.setValue("e6", 0.0);
+					mut.setValue("e7", 0.0);
+					mut.setValue("fe", 0.0); //fitness effect	
+					}	
+				if (mut.mutationType == m10) {
+					mut.setValue("e0", 0.0);
+					mut.setValue("e1", 0.0);
+					mut.setValue("e2", 0.0);
+					mut.setValue("e3", 0.0);
+					mut.setValue("e4", 0.0);
+					mut.setValue("e5", 0.0);
+					mut.setValue("e6", mut.selectionCoeff);
+					mut.setValue("e7", 0.0);
+					mut.setValue("fe", 0.0); //fitness effect	
+					}							
+				if (mut.mutationType == m11) {
+					mut.setValue("e0", 0.0);
+					mut.setValue("e1", 0.0);
+					mut.setValue("e2", 0.0);
+					mut.setValue("e3", 0.0);
+					mut.setValue("e4", 0.0);
+					mut.setValue("e5", 0.0);
+					mut.setValue("e6", 0.0);
+					mut.setValue("e7", mut.selectionCoeff);
+					mut.setValue("fe", 0.0); //fitness effect	
+					}							
+				}
+		return T;
+		}
+	else
+	
+		return T;
+}
+
+
+// For non-pleiotropic mutations, set their e0 and e1 values so we can have standardised output in that format
+
+mutation(m2) {
+	mut.setValue("e0", 0.0);
+	mut.setValue("e1", 0.0);
+	mut.setValue("e2", 0.0);
+	mut.setValue("e3", 0.0);
+	mut.setValue("e4", 0.0);
+	mut.setValue("e5", 0.0);
+	mut.setValue("e6", 0.0);
+	mut.setValue("e7", 0.0);
+	mut.setValue("fe", mut.selectionCoeff); // fitness effect
+	
+	return T;
+
+}
+
+// Output and phenotype calculation
+1:100000 late() {
+	
+	if (sim.generation % 500 != 0) // !CHECK THIS! Grab a sample every 500 generations: results in 200 time points per run, just like old model, file size should be the same as before
+		return;
+
+	He = subpopHeterozygosity(p1, Ne);	
+	
+	file = paste(c(sim.generation, asString(seed), Ne, rwide, delmu, He), ",");
+	writeFile("./heterozygosity_recom.csv", file, append=T); 
+
+}
+
+
+// Run for 100,000 generations to capture even more neutral evolution
+100000 late() {
+	sim.simulationFinished();
+}
+

@@ -30,8 +30,11 @@ In fact, this mean (after 20,000 generations, or well after that initial climb t
 In this document I show the autocorrelations of different population sizes, deleterious mutation rates, and recombination rates to get a feel for how long I should leave my burn-ins before running my models.
 I expect that deleterious mutations (in the absence of recombination) will likely affect the amplitude of the wave greatly, but I am unsure of how it will affect the time to reach this wave-state (which is the important part for ensuring we are in some kind of balance).
 
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+## Null model
+
+![Population mean heterozygosity: Ne - 1000](Z:/Documents/GitHub/Genetic-Architecture-in-SLiM/src/SLiM/meanheterozygosity_test.png)
+
+Looks like population size affects time to equilibrium as expected! Recombination rate didn't (although I only had two levels: 0 and 1e-5). Deleterious mutation does some weird stuff: drastically lowers the equilibrium value, although an equilibrium does appear to be reached, and quite quickly as well across all population sizes. As if deleterious mutation is stifling the ability of neutral mutations to rise in frequency, and puts a cap on how much can segregate at a time.
+It is important then that we make sure deleterious mutations are kept in from the outset: if we leave them out for burn in, and introduce them later, we will be creating a second burn in during our run as the heterozygosity drops to the levels seen in the bottom figure. Given that there still is an equilibrium, it should be fine. It does reach equilibrium faster however, so there is potential to save some time by using a shorter burn-in for different values of deleterious mutation prevalence.
+
