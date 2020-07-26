@@ -27,7 +27,7 @@ system.time(system("wsl slim -s 123 heterozygosity_burnin_test.slim",
                            ))
 
 library(ggplot2)
-library(gghighlight)
+library(forcats)
 
 # Simple function to calculate standard error
 
@@ -39,9 +39,14 @@ std.error <-  function(x) {
 
 dat_het <-read.csv("heterozygosity.csv", header = F)
 
+dat_het1000 <- read.csv("heterozygosity1000.csv", header = F)
+
+names(dat_het1000) <- c("gens", "seed", "mean", "var")
+dat_het1000$seed <- as.factor(dat_het1000$seed)
+
 names(dat_het) <- c("gens", "seed", "Ne", "rwide", "delmu", "mean", "var")
-dat_het$delmu <- factor(dat_het$delmu, labels = c("No~deleterious~mutations", "Equal~chance~deleterious/neutral")) 
-dat_het$rwide <- factor(dat_het$rwide, labels = c("r~'='~0", "r~'='~1.346~'x'~10^{-5}")) 
+dat_het$delmu <- factor(dat_het$delmu, levels = c('No~deleterious~mutations', 'Equal~chance~deleterious/neutral')) 
+dat_het$rwide <- factor(dat_het$rwide, levels = c("r~'='~0", "r~'='~1.346~'x'~10^{-5}")) 
 dat_het$seed <- as.factor(dat_het$seed)
 
 
@@ -52,7 +57,10 @@ library(dplyr)
 dat_het_means <- dat_het[c(1, 3:6)] %>%
                    group_by(Ne, delmu, rwide, gens) %>%
                    summarise_all(list(groupmean = mean, se = std.error))
-  
+
+dat_het1000_means <- dat_het1000[c(1, 3)] %>%
+                      group_by(gens) %>%
+                      summarise_all(list(groupmean = mean, se = std.error))  
 
 library(coda)
 
@@ -60,18 +68,72 @@ mcmc_het <- mcmc(dat_het$mean[dat_het$Ne == 10000 & dat_het$rwide > 0.0 & dat_he
 autocorr.plot(mcmc_het, lag.max = 100)
 autocorr.plot(dat_het$mean, lag.max = 50)
 
+EPi1000bounds <- as.data.frame(c(0.0252+(0.0252*0.05), 0.0252-(0.0252*0.05)))
+names(EPibounds) <- "pibounds"
 
-seedchoice <- sample(unique(dat_het$seed), 2)
+plot_het1000 <- ggplot(dat_het1000_means,
+                   aes(x = gens, y = groupmean)) +
+  geom_ribbon(aes(ymin = (groupmean - se), ymax = (groupmean + se)), alpha=0.3, show.legend = F, linetype=0) +
+  geom_line() +
+  geom_hline(
+    data = EPi1000bounds,
+    aes(yintercept = pibounds), linetype="dashed"
+  ) +
+  ggtitle("Mean heterozygosity across QTL loci over time (Null model, Ne = 1000, No deleterious mutations)") +
+  #    theme_classic() +
+  #    theme(legend.position = "right") +
+  labs(x = "Generation", y = "Mean heterozygosity", color = "Population size")
 
 
+# Labels for expected equilibrium points for each population size (4Nu)
+
+EPibounds <- as.data.frame(c(4*500*6.3e-6+((4*500*6.3e-6)*0.05), 4*500*6.3e-6-((4*500*6.3e-6)*0.05),  
+                             4*2500*6.3e-6+((4*2500*6.3e-6)*0.05), 4*2500*6.3e-6-((4*2500*6.3e-6)*0.05),
+                             4*10000*6.3e-6+((4*10000*6.3e-6)*0.05), 4*10000*6.3e-6-((4*10000*6.3e-6)*0.05)) )
+EPibounds$delmu <- as.factor("No~deleterious~mutations")
+names(EPibounds) <- "pibounds"
  
- plot_het <- ggplot(dat_het_means,
+plot_het <- ggplot(dat_het_means,
                          aes(x = gens, y = groupmean, color = as.factor(Ne))) +
     geom_ribbon(aes(ymin = (groupmean - se), ymax = (groupmean + se)), alpha=0.3, show.legend = F, linetype=0) +
     geom_line() +
+    geom_hline(
+    data = EPibounds,
+    aes(yintercept = pibounds), linetype="dashed"
+  ) +
     facet_grid(delmu ~ ., scales = "free", labeller = label_parsed) +
-    ggtitle("Mean heterozygosity across QTL loci over time") +
+    ggtitle("Mean heterozygosity across QTL loci over time (AIM 1 model)") +
 #    theme_classic() +
 #    theme(legend.position = "right") +
     labs(x = "Generation", y = "Mean heterozygosity", color = "Population size")
-  
+
+
+
+
+
+ 
+ 
+dat_hetrecom <-read.csv("heterozygosity_recom.csv", header = F)
+ 
+names(dat_hetrecom) <- c("gens", "seed", "Ne", "rwide", "delmu", "mean", "var")
+dat_hetrecom$delmu <- factor(dat_hetrecom$delmu, labels = c('No~deleterious~mutations', 'Equal~chance~deleterious/neutral'), ordered = T) 
+dat_hetrecom$seed <- as.factor(dat_hetrecom$seed)  
+
+dat_hetrecom_means <- dat_hetrecom[c(1, 3:6)] %>%
+  group_by(Ne, delmu, rwide, gens) %>%
+  summarise_all(list(groupmean = mean, se = std.error))
+
+
+plot_hetrecom <- ggplot(dat_hetrecom_means,
+                   aes(x = gens, y = groupmean, color = as.factor(Ne))) +
+  geom_ribbon(aes(ymin = (groupmean - se), ymax = (groupmean + se)), alpha=0.3, show.legend = F, linetype=0) +
+  geom_line() +
+  facet_grid(delmu ~ ., scales = "free_y", labeller = label_parsed) +
+  geom_hline(
+    data = EPibounds,
+    aes(yintercept = pibounds), linetype="dashed"
+  ) +
+  ggtitle("Mean heterozygosity across QTL loci over time (AIM 2 model)") +
+  #    theme_classic() +
+  #    theme(legend.position = "right") +
+  labs(x = "Generation", y = "Mean heterozygosity", color = "Population size")
