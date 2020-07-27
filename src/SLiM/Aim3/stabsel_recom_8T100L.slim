@@ -592,7 +592,7 @@ late() {
 // Genome output: We have to do this for each trait! So Trait 1 uses mutation types m3 and m4; trait 2 uses m3 and m5, need to get these effects separately
 
 
-// Trait 1: m3, m4
+// Trait 1: m3, m4; e0
 // Genome output 1 and 2: Binary for whether a mutation has occurred at a given QTL position or not - the segregating sites table, and the size effects of those in the size effects table: The effects of each of these QTL mutations to a separate matrix, the size-effects table
 	// Using genomes, subs, and positions from genome output 1 declarations
 
@@ -673,7 +673,7 @@ late() {
 }
 
 
-// Trait 2: m3, m5
+// Trait 2: m3, m5; e1
 // Genome output 1 and 2: Binary for whether a mutation has occurred at a given QTL position or not - the segregating sites table; as well as table 2 for the size effects of those mutations
 
 100000 late() {
@@ -699,7 +699,7 @@ late() {
 		segsitesfile = paste0(segsiteslines);
 		
 		sizefxlines = sapply(genomes,
-	"sizefxline = rep(0.0, sim.chromosome.lastPosition); muts = c(applyValue.mutationsOfType(m3), applyValue.mutationsOfType(m5)); if (muts.size() > 0) { sizefxline[muts.position] = muts.getValue('e0'); } if (subs.size() > 0) {sizefxline[subs.position] = subs.getValue('e0'); } sizefxline = (sizefxline[positions] + ','); 	sizefxline = c(sizefxline[0:(size(sizefxline) - 2)], substr(sizefxline[size(sizefxline) - 1], 0, nchar(sizefxline[size(sizefxline) - 1]) - 2)); sizefxline = (applyValue != genomes[genomes.size() - 1] ? c(sizefxline, '\\n') else (sizefxline)); sizefxline;"); 
+	"sizefxline = rep(0.0, sim.chromosome.lastPosition); muts = c(applyValue.mutationsOfType(m3), applyValue.mutationsOfType(m5)); if (muts.size() > 0) { sizefxline[muts.position] = muts.getValue('e1'); } if (subs.size() > 0) {sizefxline[subs.position] = subs.getValue('e1'); } sizefxline = (sizefxline[positions] + ','); 	sizefxline = c(sizefxline[0:(size(sizefxline) - 2)], substr(sizefxline[size(sizefxline) - 1], 0, nchar(sizefxline[size(sizefxline) - 1]) - 2)); sizefxline = (applyValue != genomes[genomes.size() - 1] ? c(sizefxline, '\\n') else (sizefxline)); sizefxline;"); 
 			
 		sizefxfile = paste0(sizefxlines);
 		
@@ -736,7 +736,7 @@ late() {
 	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, "trait2.csv"))), zygosfile);
 }
 
-// Trait 3: m3, m6
+// Trait 3: m3, m6; e2
 // Genome output 1 and 2: Binary for whether a mutation has occurred at a given QTL position or not - the segregating sites table; as well as table 2 for the size effects of those mutations
 
 100000 late() {
@@ -762,7 +762,7 @@ late() {
 		segsitesfile = paste0(segsiteslines);
 		
 		sizefxlines = sapply(genomes,
-	"sizefxline = rep(0.0, sim.chromosome.lastPosition); muts = c(applyValue.mutationsOfType(m3), applyValue.mutationsOfType(m6)); if (muts.size() > 0) { sizefxline[muts.position] = muts.getValue('e0'); } if (subs.size() > 0) {sizefxline[subs.position] = subs.getValue('e0'); } sizefxline = (sizefxline[positions] + ','); 	sizefxline = c(sizefxline[0:(size(sizefxline) - 2)], substr(sizefxline[size(sizefxline) - 1], 0, nchar(sizefxline[size(sizefxline) - 1]) - 2)); sizefxline = (applyValue != genomes[genomes.size() - 1] ? c(sizefxline, '\\n') else (sizefxline)); sizefxline;"); 
+	"sizefxline = rep(0.0, sim.chromosome.lastPosition); muts = c(applyValue.mutationsOfType(m3), applyValue.mutationsOfType(m6)); if (muts.size() > 0) { sizefxline[muts.position] = muts.getValue('e2'); } if (subs.size() > 0) {sizefxline[subs.position] = subs.getValue('e2'); } sizefxline = (sizefxline[positions] + ','); 	sizefxline = c(sizefxline[0:(size(sizefxline) - 2)], substr(sizefxline[size(sizefxline) - 1], 0, nchar(sizefxline[size(sizefxline) - 1]) - 2)); sizefxline = (applyValue != genomes[genomes.size() - 1] ? c(sizefxline, '\\n') else (sizefxline)); sizefxline;"); 
 			
 		sizefxfile = paste0(sizefxlines);
 		
@@ -797,7 +797,7 @@ late() {
 	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, "trait3.csv"))), zygosfile);
 }
 
-// Trait 4: m3, m7
+// Trait 4: m3, m7; e3
 // Genome output 1 and 2: Binary for whether a mutation has occurred at a given QTL position or not - the segregating sites table; as well as table 2 for the size effects of those mutations
 
 100000 late() {
@@ -824,7 +824,7 @@ late() {
 		segsitesfile = paste0(segsiteslines);
 		
 		sizefxlines = sapply(genomes,
-	"sizefxline = rep(0.0, sim.chromosome.lastPosition); muts = c(applyValue.mutationsOfType(m3), applyValue.mutationsOfType(m7)); if (muts.size() > 0) { sizefxline[muts.position] = muts.getValue('e0'); } if (subs.size() > 0) {sizefxline[subs.position] = subs.getValue('e0'); } sizefxline = (sizefxline[positions] + ','); 	sizefxline = c(sizefxline[0:(size(sizefxline) - 2)], substr(sizefxline[size(sizefxline) - 1], 0, nchar(sizefxline[size(sizefxline) - 1]) - 2)); sizefxline = (applyValue != genomes[genomes.size() - 1] ? c(sizefxline, '\\n') else (sizefxline)); sizefxline;"); 
+	"sizefxline = rep(0.0, sim.chromosome.lastPosition); muts = c(applyValue.mutationsOfType(m3), applyValue.mutationsOfType(m7)); if (muts.size() > 0) { sizefxline[muts.position] = muts.getValue('e3'); } if (subs.size() > 0) {sizefxline[subs.position] = subs.getValue('e3'); } sizefxline = (sizefxline[positions] + ','); 	sizefxline = c(sizefxline[0:(size(sizefxline) - 2)], substr(sizefxline[size(sizefxline) - 1], 0, nchar(sizefxline[size(sizefxline) - 1]) - 2)); sizefxline = (applyValue != genomes[genomes.size() - 1] ? c(sizefxline, '\\n') else (sizefxline)); sizefxline;"); 
 			
 		sizefxfile = paste0(sizefxlines);
 		
@@ -861,7 +861,7 @@ late() {
 }
 
 
-// Trait 5: m3, m8
+// Trait 5: m3, m8; e4
 // Genome output 1 and 2: Binary for whether a mutation has occurred at a given QTL position or not - the segregating sites table, and the size effects of those in the size effects table: The effects of each of these QTL mutations to a separate matrix, the size-effects table
 	// Using genomes, subs, and positions from genome output 1 declarations
 
@@ -901,7 +901,7 @@ late() {
 		segsitesfile = paste0(segsiteslines);
 		
 		sizefxlines = sapply(genomes,
-	"sizefxline = rep(0.0, sim.chromosome.lastPosition); muts = c(applyValue.mutationsOfType(m3), applyValue.mutationsOfType(m8)); if (muts.size() > 0) { sizefxline[muts.position] = muts.getValue('e0'); } if (subs.size() > 0) {sizefxline[subs.position] = subs.getValue('e0'); } sizefxline = (sizefxline[positions] + ','); 	sizefxline = c(sizefxline[0:(size(sizefxline) - 2)], substr(sizefxline[size(sizefxline) - 1], 0, nchar(sizefxline[size(sizefxline) - 1]) - 2)); sizefxline = (applyValue != genomes[genomes.size() - 1] ? c(sizefxline, '\\n') else (sizefxline)); sizefxline;"); 
+	"sizefxline = rep(0.0, sim.chromosome.lastPosition); muts = c(applyValue.mutationsOfType(m3), applyValue.mutationsOfType(m8)); if (muts.size() > 0) { sizefxline[muts.position] = muts.getValue('e4'); } if (subs.size() > 0) {sizefxline[subs.position] = subs.getValue('e4'); } sizefxline = (sizefxline[positions] + ','); 	sizefxline = c(sizefxline[0:(size(sizefxline) - 2)], substr(sizefxline[size(sizefxline) - 1], 0, nchar(sizefxline[size(sizefxline) - 1]) - 2)); sizefxline = (applyValue != genomes[genomes.size() - 1] ? c(sizefxline, '\\n') else (sizefxline)); sizefxline;"); 
 			
 		sizefxfile = paste0(sizefxlines);
 		
@@ -938,7 +938,7 @@ late() {
 		writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, "trait5.csv"))), zygosfile);
 }
 
-// Trait 6: m3, m9
+// Trait 6: m3, m9; e5
 // Genome output 1 and 2: Binary for whether a mutation has occurred at a given QTL position or not - the segregating sites table, and the size effects of those in the size effects table: The effects of each of these QTL mutations to a separate matrix, the size-effects table
 	// Using genomes, subs, and positions from genome output 1 declarations
 
@@ -978,7 +978,7 @@ late() {
 		segsitesfile = paste0(segsiteslines);
 		
 		sizefxlines = sapply(genomes,
-	"sizefxline = rep(0.0, sim.chromosome.lastPosition); muts = c(applyValue.mutationsOfType(m3), applyValue.mutationsOfType(m9)); if (muts.size() > 0) { sizefxline[muts.position] = muts.getValue('e0'); } if (subs.size() > 0) {sizefxline[subs.position] = subs.getValue('e0'); } sizefxline = (sizefxline[positions] + ','); 	sizefxline = c(sizefxline[0:(size(sizefxline) - 2)], substr(sizefxline[size(sizefxline) - 1], 0, nchar(sizefxline[size(sizefxline) - 1]) - 2)); sizefxline = (applyValue != genomes[genomes.size() - 1] ? c(sizefxline, '\\n') else (sizefxline)); sizefxline;"); 
+	"sizefxline = rep(0.0, sim.chromosome.lastPosition); muts = c(applyValue.mutationsOfType(m3), applyValue.mutationsOfType(m9)); if (muts.size() > 0) { sizefxline[muts.position] = muts.getValue('e5'); } if (subs.size() > 0) {sizefxline[subs.position] = subs.getValue('e5'); } sizefxline = (sizefxline[positions] + ','); 	sizefxline = c(sizefxline[0:(size(sizefxline) - 2)], substr(sizefxline[size(sizefxline) - 1], 0, nchar(sizefxline[size(sizefxline) - 1]) - 2)); sizefxline = (applyValue != genomes[genomes.size() - 1] ? c(sizefxline, '\\n') else (sizefxline)); sizefxline;"); 
 			
 		sizefxfile = paste0(sizefxlines);
 		
@@ -1015,7 +1015,7 @@ late() {
 		writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, "trait6.csv"))), zygosfile);
 }
 
-// Trait 7: m3, m10
+// Trait 7: m3, m10; e6
 // Genome output 1 and 2: Binary for whether a mutation has occurred at a given QTL position or not - the segregating sites table, and the size effects of those in the size effects table: The effects of each of these QTL mutations to a separate matrix, the size-effects table
 	// Using genomes, subs, and positions from genome output 1 declarations
 
@@ -1055,7 +1055,7 @@ late() {
 		segsitesfile = paste0(segsiteslines);
 		
 		sizefxlines = sapply(genomes,
-	"sizefxline = rep(0.0, sim.chromosome.lastPosition); muts = c(applyValue.mutationsOfType(m3), applyValue.mutationsOfType(m10)); if (muts.size() > 0) { sizefxline[muts.position] = muts.getValue('e0'); } if (subs.size() > 0) {sizefxline[subs.position] = subs.getValue('e0'); } sizefxline = (sizefxline[positions] + ','); 	sizefxline = c(sizefxline[0:(size(sizefxline) - 2)], substr(sizefxline[size(sizefxline) - 1], 0, nchar(sizefxline[size(sizefxline) - 1]) - 2)); sizefxline = (applyValue != genomes[genomes.size() - 1] ? c(sizefxline, '\\n') else (sizefxline)); sizefxline;"); 
+	"sizefxline = rep(0.0, sim.chromosome.lastPosition); muts = c(applyValue.mutationsOfType(m3), applyValue.mutationsOfType(m10)); if (muts.size() > 0) { sizefxline[muts.position] = muts.getValue('e6'); } if (subs.size() > 0) {sizefxline[subs.position] = subs.getValue('e6'); } sizefxline = (sizefxline[positions] + ','); 	sizefxline = c(sizefxline[0:(size(sizefxline) - 2)], substr(sizefxline[size(sizefxline) - 1], 0, nchar(sizefxline[size(sizefxline) - 1]) - 2)); sizefxline = (applyValue != genomes[genomes.size() - 1] ? c(sizefxline, '\\n') else (sizefxline)); sizefxline;"); 
 			
 		sizefxfile = paste0(sizefxlines);
 		
@@ -1092,7 +1092,7 @@ late() {
 		writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, "trait7.csv"))), zygosfile);
 }
 
-// Trait 8: m3, m11
+// Trait 8: m3, m11; e7
 // Genome output 1 and 2: Binary for whether a mutation has occurred at a given QTL position or not - the segregating sites table, and the size effects of those in the size effects table: The effects of each of these QTL mutations to a separate matrix, the size-effects table
 	// Using genomes, subs, and positions from genome output 1 declarations
 
@@ -1132,7 +1132,7 @@ late() {
 		segsitesfile = paste0(segsiteslines);
 		
 		sizefxlines = sapply(genomes,
-	"sizefxline = rep(0.0, sim.chromosome.lastPosition); muts = c(applyValue.mutationsOfType(m3), applyValue.mutationsOfType(m11)); if (muts.size() > 0) { sizefxline[muts.position] = muts.getValue('e0'); } if (subs.size() > 0) {sizefxline[subs.position] = subs.getValue('e0'); } sizefxline = (sizefxline[positions] + ','); 	sizefxline = c(sizefxline[0:(size(sizefxline) - 2)], substr(sizefxline[size(sizefxline) - 1], 0, nchar(sizefxline[size(sizefxline) - 1]) - 2)); sizefxline = (applyValue != genomes[genomes.size() - 1] ? c(sizefxline, '\\n') else (sizefxline)); sizefxline;"); 
+	"sizefxline = rep(0.0, sim.chromosome.lastPosition); muts = c(applyValue.mutationsOfType(m3), applyValue.mutationsOfType(m11)); if (muts.size() > 0) { sizefxline[muts.position] = muts.getValue('e7'); } if (subs.size() > 0) {sizefxline[subs.position] = subs.getValue('e7'); } sizefxline = (sizefxline[positions] + ','); 	sizefxline = c(sizefxline[0:(size(sizefxline) - 2)], substr(sizefxline[size(sizefxline) - 1], 0, nchar(sizefxline[size(sizefxline) - 1]) - 2)); sizefxline = (applyValue != genomes[genomes.size() - 1] ? c(sizefxline, '\\n') else (sizefxline)); sizefxline;"); 
 			
 		sizefxfile = paste0(sizefxlines);
 		
@@ -1168,6 +1168,7 @@ late() {
 	}
 		writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, "trait8.csv"))), zygosfile);
 }
+
 
 
 // Run for 100,000 generations to capture selection
