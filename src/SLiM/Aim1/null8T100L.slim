@@ -104,7 +104,7 @@ initialize() {
 	recomseq = seq(0, genomelength - 1, by = 0.1*genomelength); // Create 10 equally-distanced chromosomes
 	ends = asInteger(round(recomseq[1:9])); 	// Convert to int from float, ignore the first value since it is 0
 	ends = c(sort(c(ends, ends+1)), genomelength);
-	rbtwnQTL = c(rep(0.5, length(ends)));		// rregion is fixed to 0.5, always have 10 chromosomes now
+	rbtwnQTL = c(rep(0.5, length(ends)));		// rsd is fixed to 0.5, always have 10 chromosomes now
 	rgenome = c(rnorm(length(ends), rwide, rsd)); 
 	rates = c(rbind(rgenome, rbtwnQTL), rwide);
 	rates = rates[0:(length(ends) - 1)];
@@ -577,7 +577,7 @@ mutation(m2) {
 			mutFreq = mean(sim.subpopulations.genomes.containsMutations(mut));
 			mutType = mut.mutationType.id;
 			mutValues = paste(c(mut.getValue("e0"), mut.getValue("e1"), mut.getValue("e2"), mut.getValue("e3"), mut.getValue("e4"), mut.getValue("e5"), mut.getValue("e6"), mut.getValue("e7")), ",");
-			mutsLine = paste(c(sim.generation, ",", getSeed(), ",", modelindex, ",", rregion, ",", rwide, ",", delmu, ",", paste(pleio_covs, ","), ",", Ne, ",", mutType, ",", mut.id, ",", mut.position, ",", mut.originGeneration, ",", mutValues, ",", mutFreq, ",", "N/A", "\n"), "");
+			mutsLine = paste(c(sim.generation, ",", getSeed(), ",", modelindex, ",", rsd, ",", rwide, ",", delmu, ",", paste(pleio_covs, ","), ",", Ne, ",", mutType, ",", mut.id, ",", mut.position, ",", mut.originGeneration, ",", mutValues, ",", mutFreq, ",", "N/A", "\n"), "");
 			
 			mutsLines = c(mutsLines, mutsLine);
 		}
@@ -587,9 +587,9 @@ mutation(m2) {
 			mutType = mut.mutationType.id;
 			mutValues = paste(c(mut.getValue("e0"), mut.getValue("e1"), mut.getValue("e2"), mut.getValue("e3"), mut.getValue("e4"), mut.getValue("e5"), mut.getValue("e6"), mut.getValue("e7")), ",");
 			if (mut != revmuts[0]) // Quality hack
-				mutsLine = paste(c(sim.generation, ",", getSeed(), ",", modelindex, ",", rregion, ",", rwide, ",", delmu, ",", paste(pleio_covs, ","), ",", Ne, ",", mutType, ",", mut.id, ",", mut.position, ",", mut.originGeneration, ",", mutValues, ",", mut.getValue("fe"), ",", mutFreq, ",", "N/A", "\n"), "");
+				mutsLine = paste(c(sim.generation, ",", getSeed(), ",", modelindex, ",", rsd, ",", rwide, ",", delmu, ",", paste(pleio_covs, ","), ",", Ne, ",", mutType, ",", mut.id, ",", mut.position, ",", mut.originGeneration, ",", mutValues, ",", mut.getValue("fe"), ",", mutFreq, ",", "N/A", "\n"), "");
 			else
-				mutsLine = paste(c(sim.generation, ",", getSeed(), ",", modelindex, ",", rregion, ",", rwide, ",", delmu, ",", paste(pleio_covs, ","), ",", Ne, ",", mutType, ",", mut.id, ",", mut.position, ",", mut.originGeneration, ",", mutValues, ",", mut.getValue("fe"), ",", mutFreq, ",", "N/A", ""), "");
+				mutsLine = paste(c(sim.generation, ",", getSeed(), ",", modelindex, ",", rsd, ",", rwide, ",", delmu, ",", paste(pleio_covs, ","), ",", Ne, ",", mutType, ",", mut.id, ",", mut.position, ",", mut.originGeneration, ",", mutValues, ",", mut.getValue("fe"), ",", mutFreq, ",", "N/A", ""), "");
 			mutsLines = c(mutsLines, mutsLine);
 		}
 	
@@ -602,9 +602,9 @@ mutation(m2) {
 
 		
 		if (sub != revsubs[0]) // THIS IS THE HACK THAT I MUST RESORT TO THANKS TO NO \b OR REPLACE() 	GOSH BLESS EIDOS
-			subLine = paste(c(sim.generation, ",", getSeed(), ",", modelindex, ",", rregion, ",", rwide, ",", delmu, ",", paste(pleio_covs, ","), ",", Ne, ",", subType, ",", sub.id, ",", sub.position, ",", sub.originGeneration, ",", subValues, ",", sub.getValue("fe"), ",", subFreq, ",", sub.fixationGeneration, "\n"), "");
+			subLine = paste(c(sim.generation, ",", getSeed(), ",", modelindex, ",", rsd, ",", rwide, ",", delmu, ",", paste(pleio_covs, ","), ",", Ne, ",", subType, ",", sub.id, ",", sub.position, ",", sub.originGeneration, ",", subValues, ",", sub.getValue("fe"), ",", subFreq, ",", sub.fixationGeneration, "\n"), "");
 		else
-			subLine = paste(c(sim.generation, ",", getSeed(), ",", modelindex, ",", rregion, ",", rwide, ",", delmu, ",", paste(pleio_covs, ","), ",", Ne, ",", subType, ",", sub.id, ",", sub.position, ",", sub.originGeneration, ",", subValues, ",", sub.getValue("fe"), ",", subFreq, ",", sub.fixationGeneration, ""), "");
+			subLine = paste(c(sim.generation, ",", getSeed(), ",", modelindex, ",", rsd, ",", rwide, ",", delmu, ",", paste(pleio_covs, ","), ",", Ne, ",", subType, ",", sub.id, ",", sub.position, ",", sub.originGeneration, ",", subValues, ",", sub.getValue("fe"), ",", subFreq, ",", sub.fixationGeneration, ""), "");
 		
 		mutsLines = c(mutsLines, subLine); // Add substitutions to mutation output
 	
