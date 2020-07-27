@@ -1,0 +1,27 @@
+########################### Execution Started #############################
+JobId:326155.tinmgr2
+UserName:s4395747
+GroupName:qris-uq
+ExecutionHost:fl117
+###############################################################################
+Loading required package: iterators
+Loading required package: parallel
+Error: unexpected '=' in:
+"    # then run SLiM with system(),
+        if (k ="
+Execution halted
+cat: //nvme/pbs/tmpdir/pbs.326155.tinmgr2/out_8T100L_null_means.csv: No such file or directory
+cat: //nvme/pbs/tmpdir/pbs.326155.tinmgr2/out_8T100L_null_means.csv: No such file or directory
+cat: //nvme/pbs/tmpdir/pbs.326155.tinmgr2/out_8T100L_null_chr.csv: No such file or directory
+########################### Job Execution History #############################
+JobId:326155.tinmgr2
+UserName:s4395747
+GroupName:qris-uq
+JobName:slim_matrix_example
+SessionId:26911
+ResourcesRequested:mem=120gb,ncpus=20,place=free,walltime=24:00:00
+ResourcesUsed:cpupercent=19,cput=00:00:01,mem=912596kb,ncpus=20,vmem=6590096kb,walltime=00:00:05
+QueueUsed:Short
+AccountString:qris-uq
+ExitStatus:1
+###############################################################################

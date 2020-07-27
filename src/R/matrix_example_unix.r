@@ -48,7 +48,7 @@ foreach(i=rsample) %:%
       foreach(k=delmu)  %dopar%   {
     # Use string manipulation functions to configure the command line args, feeding from a data frame of latin square combinations
     # then run SLiM with system(),
-        if (k = 0.0){
+        if (k == 0.0){
           slim_out <- system(sprintf("/home/$USER/SLiM/slim -s %s -d Ne=%i -d delmu=%f -d modelindex=0 /home/$USER/SLiM/Scripts/null8T100L.slim", 
                                as.character(i), j, k, intern=T))
         }
