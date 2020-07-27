@@ -16,7 +16,7 @@ module load R/3.5.0
 
 R --file=/home/$USER/SLiM/Scripts/matrix_example_unix.R
 
-zip -r /30days/$USER/matrix_example/matrices_${PBS_ARRAY_INDEX}.zip /$TMPDIR/matrices
+zip -r /30days/$USER/matrix_example/matrices.zip /$TMPDIR/matrices
 
 cat /$TMPDIR/out_8T100L_null_means.csv >> /30days/$USER/out_8T100L_null_means.csv
 

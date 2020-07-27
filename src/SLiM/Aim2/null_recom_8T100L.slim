@@ -30,7 +30,7 @@ initialize() {
 	setCfgParam("del_mean", -0.03); // Mean used for the gamma distribution that deleterious mutations are pulled function
 	setCfgParam("del_shape", 0.2); // Shape parameter for gamma distribution used for deleterious mutations
 	setCfgParam("delmu", 1.0); // Proportion of deleterious mutations compared to others (relative to others, 0.1 compared to 1 of neutral)
-	setCfgParam("rwide", 1.346e-8); // Recombination rate across the whole genome (used as mean in rnorm)
+	setCfgParam("rwide", 1.346e-5); // Recombination rate across the whole genome (used as mean in rnorm)
 	setCfgParam("rsd", rwide*0.1); // Recombination rate standard deviation (used in rnorm)
 	setCfgParam("nloci", 100); // Number of QTL positions along the chromosome - where QTL mutations can appear, sampled from sample()
 	setCfgParam("genomelength", 20680); // Taken from my own analysis from Ensembl, and from Elliott and Gregory 2015 
@@ -227,9 +227,9 @@ function (f)subpopHeterozygosity(o<Subpopulation>$ subpop, [i$ sampleSize=100])
 	rates = rates[ends != -1];					// Excise the -1s
 	ends = ends[ends != -1];
 
-	chrfile = paste(c(modelindex, seed, nloci, chr_QTL, rates, ends), ","); // Output information on where the QTLs are, and the recombination structure of the genome
+	chrfile = paste(c(modelindex, asString(seed), nloci, chr_QTL, rates, ends), ","); // Output information on where the QTLs are, and the recombination structure of the genome
 	
-	writeFile(outpositions, chrfile);
+	writeFile(outpositions, chrfile, append = T);
 	
 //	catn(paste(rates, sep = ", ")); // ascending order error: occurs if two end positions are the same, which occurs if two QTL are next to each other (because chr_QTL[x] + 1 = chr_QTL[y]
 //	catn(paste(ends, sep = ", ")); 	// This is debug output for SLiM GUI, helps verify that endpoints are being generated and in a reasonable place
