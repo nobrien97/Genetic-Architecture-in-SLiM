@@ -30,13 +30,12 @@ initialize() {
 	setCfgParam("del_mean", -0.03); // Mean used for the gamma distribution that deleterious mutations are pulled function
 	setCfgParam("del_shape", 0.2); // Shape parameter for gamma distribution used for deleterious mutations
 	setCfgParam("delmu", 1.0); // Proportion of deleterious mutations compared to others (relative to others, 0.1 compared to 1 of neutral)
-	setCfgParam("rwide", 1.346e-5); // Recombination rate across the whole genome (used as mean in rnorm)
-	setCfgParam("rsd", rwide*0.1); // Recombination rate standard deviation (used in rnorm)
+	setCfgParam("rregion", 0.0); // Recombination rate between genomic regions
+	setCfgParam("rwide", 1.346e-5); // Recombination rate across the whole genome (aside from the between genomic regions rate)
 	setCfgParam("nloci", 100); // Number of QTL positions along the chromosome - where QTL mutations can appear, sampled from sample()
 	setCfgParam("genomelength", 20680); // Taken from my own analysis from Ensembl, and from Elliott and Gregory 2015 
 	setCfgParam("locisigma", 1.0); // Variance used for normal disttribution pulls - effectively the additive effect size
 	
-	setCfgParam("outpositions", 'out_8T100L_null_chr.csv'); // Output filename/path for chromosome endpoints and QTL loci positions
 	setCfgParam("outname", 'out_8T100L_null_means.csv'); // Output filename/path for the trait means/variance
 	setCfgParam("outnamemuts", 'out_8T100L_null_muts.csv'); //Output filename/path for the mutation information
 	setCfgParam("segsitesoutname", 'out_8T100L_null_segsites'); // Output filename for genomes - the 0s and 1s for whether a mutation is present at a certain position
@@ -165,14 +164,14 @@ function (f)subpopHeterozygosity(o<Subpopulation>$ subpop, [i$ sampleSize=100])
 	else
 		sampledIndividuals = sample(subpop.individuals, sampleSize, replace=T);
 	
-	pi_total = 0.0;
+	pi_total = float(size(sampledIndividuals));
 	for (individual in sampledIndividuals)
 	{
 		genomes = individual.genomes;
 		individual_pi = genomicHeterozygosity(genomes[0], genomes[1]);
-		pi_total = pi_total + individual_pi;
+		pi_total[match(individual, sampledIndividuals)] = individual_pi;
 	}
-	return pi_total;
+	return c(mean(pi_total), var(pi_total));
 }
 
 
@@ -192,9 +191,9 @@ function (f)subpopHeterozygosity(o<Subpopulation>$ subpop, [i$ sampleSize=100])
 	ends =  sort( c( endsamples, ( endsamples + 1 ), sim.chromosome.lastPosition )); // recombination rates for genome wide (rwide) occur until each QTL, then for that QTL a between rate is given, followed by more rwide
 	
 	
-	rbtwnQTL = c(rep(0.5, length(ends)));
-	rgenome = c(rnorm(length(ends), rwide, rsd)); 
-	rates = c(rbind(rgenome, rbtwnQTL), rnorm(1, rwide, rsd);
+	rbtwnQTL = c(rep(rregion, length(ends)));
+	rgenome = c(rep(rwide, length(ends))); 
+	rates = c(rbind(rgenome, rbtwnQTL), rwide);
 	rates = rates[0:(length(ends) - 1)];
 	
 	

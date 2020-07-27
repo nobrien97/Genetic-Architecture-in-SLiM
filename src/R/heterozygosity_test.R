@@ -107,6 +107,16 @@ plot_het <- ggplot(dat_het_means,
 #    theme(legend.position = "right") +
     labs(x = "Generation", y = "Mean heterozygosity", color = "Population size")
 
+plot_het_500 <- ggplot(subset(dat_het_means, Ne == 500),
+                   aes(x = gens, y = groupmean)) +
+  geom_ribbon(aes(ymin = (groupmean - se), ymax = (groupmean + se)), alpha=0.3, show.legend = F, linetype=0) +
+  geom_line() +
+ 
+  facet_grid(delmu ~ ., scales = "free", labeller = label_parsed) +
+  ggtitle("Mean heterozygosity across QTL loci over time (AIM 1 model), Ne = 500") +
+  #    theme_classic() +
+  #    theme(legend.position = "right") +
+  labs(x = "Generation", y = "Mean heterozygosity")
 
 
 
@@ -137,3 +147,14 @@ plot_hetrecom <- ggplot(dat_hetrecom_means,
   #    theme_classic() +
   #    theme(legend.position = "right") +
   labs(x = "Generation", y = "Mean heterozygosity", color = "Population size")
+
+plot_hetrecom_500 <- ggplot(subset(dat_hetrecom_means, Ne == 500),
+                       aes(x = gens, y = groupmean)) +
+  geom_ribbon(aes(ymin = (groupmean - se), ymax = (groupmean + se)), alpha=0.3, show.legend = F, linetype=0) +
+  geom_line() +
+  
+  facet_grid(delmu ~ ., scales = "free", labeller = label_parsed) +
+  ggtitle("Mean heterozygosity across QTL loci over time (AIM 2 model), Ne = 500") +
+  #    theme_classic() +
+  #    theme(legend.position = "right") +
+  labs(x = "Generation", y = "Mean heterozygosity")

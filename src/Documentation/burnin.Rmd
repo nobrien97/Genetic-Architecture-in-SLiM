@@ -53,3 +53,14 @@ It is important then that we make sure deleterious mutations are kept in from th
 Strange change of trends: by randomising the sizes of chromosomes (via where the end points are), we get considerably less variation around the mean, much less amplitude of the wave of mutation-drift balance. My first thoughts of the reason for this are in my null model, where chromosome positions are fixed, there is a much greater chance for mutations to be spread unevenly within those chromosomes - almost always, some chromosomes will contain more loci than others. So the individual loci vary quite a lot in how linked they are, and that affects the rate at which they are fixed or lost together, altering heterozygosity according to this linkage. In this aim, because the end points are generated randomly (based on 10 loci chosen at random), there is a higher chance of the distance between loci being considerably further apart, so there is a lesser effect of linkage between loci, so they are indeed more independent and have smaller individual effects. I expect with more loci added (there are 100 in this model), the lines would become smoother with smaller CIs, and vice versa for fewer loci. 
 
 Also, probably due to an increased ability to get rid of deleterious mutations linked to QTLs, the mean heterozygosity is not reduced by as much as in AIM 1.
+
+
+## Ne = 500
+
+Below are figures of the same data, but only for Ne = 500:
+
+![](Z:/Documents/GitHub/Genetic-Architecture-in-SLiM/src/SLiM/meanH_AIM1_N500.png)
+
+![](Z:/Documents/GitHub/Genetic-Architecture-in-SLiM/src/SLiM/meanH_AIM2_N500.png)
+
+Deleterious mutation has some effect on global heterozygosity.
