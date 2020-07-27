@@ -151,8 +151,8 @@ Modified from SLiM-Extras, https://github.com/MesserLab/SLiM-Extras
 
 function (f$)genomicHeterozygosity(o<Genome>$ genome1, o<Genome>$ genome2)
 {
-	muts1 = c(genome1.mutationsOfType(m3), genome1.mutationsOfType(m4), genome1.mutationsOfType(m5), genome1.mutationsOfType(m6), genome1.mutationsOfType(m7), genome1.mutationsOfType(m8), genome1.mutationsOfType(m9), genome1.mutationsOfType(m10), genome1.mutationsOfType(m11));
-	muts2 = c(genome2.mutationsOfType(m3), genome2.mutationsOfType(m4), genome2.mutationsOfType(m5), genome2.mutationsOfType(m6), genome2.mutationsOfType(m7), genome2.mutationsOfType(m8), genome2.mutationsOfType(m9), genome2.mutationsOfType(m10), genome2.mutationsOfType(m11));
+	muts1 = genome1.mutations;
+	muts2 = genome2.mutations;
 	unshared = setSymmetricDifference(muts1, muts2);
 	pi = size(unshared) / size(sim.getValue("chr_QTL"));
 	return pi;
@@ -185,7 +185,7 @@ function (f)subpopHeterozygosity(o<Subpopulation>$ subpop, [i$ sampleSize=100])
 	//	for (chr in sim.chromosome.genomicElements) { chr_QTL = c(chr_QTL, rdunif(ploci, chr.startPosition, chr.endPosition)); } // for each genomic element, get 100 random positions from a discrete uniform distribution and store them as QTL positions
 	sim.setValue("chr_QTL", chr_QTL); //store these positions in a sim value
 	
-	endsamples = sample(chr_QTL, asInteger(round(0.1*length(chr_QTL))) ); // Take 10% of the 100 loci as end positions for chromosomes (testing independent assortment)
+	endsamples = sort(sample(1:(sim.chromosome.lastPosition-1), 10) ); // Take 10 loci as end positions for chromosomes (testing independent assortment)
 	
 	// Set linkage between loci	via recombination
 	ends = c(endsamples + 1);
@@ -194,7 +194,7 @@ function (f)subpopHeterozygosity(o<Subpopulation>$ subpop, [i$ sampleSize=100])
 	
 	rbtwnQTL = c(rep(0.5, length(ends)));
 	rgenome = c(rnorm(length(ends), rwide, rsd)); 
-	rates = c(rbind(rgenome, rbtwnQTL), rnorm(1, rwide, rsd);
+	rates = c(rbind(rgenome, rbtwnQTL), rnorm(1, rwide, rsd));
 	rates = rates[0:(length(ends) - 1)];
 	
 	
@@ -212,12 +212,14 @@ function (f)subpopHeterozygosity(o<Subpopulation>$ subpop, [i$ sampleSize=100])
 			}
 		}
 		
-		rates[ends == -1] = rwide;					// For any rates where ends = -1, set the value to rwide so we can swap over to the normal behaviour and don't get a bunch of rregion across the genome
+		rates[ends == -1] = rnorm(1, rwide, rsd);					// For any rates where ends = -1, set the value to rwide so we can swap over to the normal behaviour and don't get a bunch of rregion across the genome
 	
 	rates = rates[ends != -1];					// Excise the -1s
 	ends = ends[ends != -1];
 
+	chrfile = paste(c(modelindex, seed, nloci, chr_QTL, rates, ends), ","); // Output information on where the QTLs are, and the recombination structure of the genome
 	
+	writeFile(outpositions, chrfile);
 	
 //	catn(paste(rates, sep = ", ")); // ascending order error: occurs if two end positions are the same, which occurs if two QTL are next to each other (because chr_QTL[x] + 1 = chr_QTL[y]
 //	catn(paste(ends, sep = ", ")); 	// This is debug output for SLiM GUI, helps verify that endpoints are being generated and in a reasonable place
@@ -557,7 +559,7 @@ mutation(m2) {
 	phenocor = paste(phenocor, ",");
 	
 	// Stick those values in the output, along with predictors - there are a lot of predictors now... do we replace them all with modelindex aside from seed?
-	meanline = paste(c(sim.generation, ",", getSeed(), ",", modelindex, ",", rregion, ",", rwide, ",", delmu, ",", paste(pleio_covs, ","), ",", Ne, ",", paste(phenomeans, ","), ",", paste(phenovars, ","), ",", phenocov, ",", phenocor, ""), "");
+	meanline = paste(c(sim.generation, ",", getSeed(), ",", modelindex, ",", rsd, ",", rwide, ",", delmu, ",", paste(pleio_covs, ","), ",", Ne, ",", paste(phenomeans, ","), ",", paste(phenovars, ","), ",", phenocov, ",", phenocor, ""), "");
 	file = paste(meanline, "");
 	
 	// Write the file
