@@ -158,3 +158,32 @@ plot_hetrecom_500 <- ggplot(subset(dat_hetrecom_means, Ne == 500),
   #    theme_classic() +
   #    theme(legend.position = "right") +
   labs(x = "Generation", y = "Mean heterozygosity")
+
+
+# Heterozygosity test on new data set, where H is generated from all mutations, not just QTLs
+# Ne = 1000
+
+setwd("Z:/Documents/GitHub/Genetic-Architecture-in-SLiM/src/Cluster_jobs/Matrix_test_July/Output")
+dat_matex <- read.csv("out_8T100L_null_means.csv", header = F)
+
+names(dat_matex)[1:6] <- c("gens", "seed", "modelindex", "rsd", "rwide", "delmu") 
+names(dat_matex)[35] <- "Ne"
+names(dat_matex)[108:117] <- c("meanH1", "meanH2", "meanH3", "meanH4", "meanH5", "meanH6", "meanH7", "meanH8", "meanH9", "meanH10")
+dat_matex <- dat_matex[,c(1:6, 35, 108:117)]
+dat_matex$seed <- as.factor(dat_matex$seed)
+dat_matex$meanH <- (dat_matex$meanH1 + dat_matex$meanH2 + dat_matex$meanH3 + dat_matex$meanH4 + dat_matex$meanH5 + dat_matex$meanH6 + dat_matex$meanH7 + dat_matex$meanH8 + dat_matex$meanH9 + dat_matex$meanH10)/10
+
+dat_matex_means <- dat_matex[c(1, 6, 8:18)] %>%
+  group_by(delmu, gens) %>%
+  summarise_all(list(groupmean = mean, se = std.error))
+
+plot_matex_H <- ggplot(dat_matex_means,
+                            aes(x = gens, y = meanH_groupmean)) +
+  geom_ribbon(aes(ymin = (meanH_groupmean - meanH_se), ymax = (meanH_groupmean + meanH_se)), alpha=0.3, show.legend = F, linetype=0) +
+  geom_line() +
+  
+  facet_grid(delmu ~ ., scales = "free", labeller = label_parsed) +
+  ggtitle("Mean heterozygosity across the genome over time (AIM 1 model), Ne = 1000") +
+  #    theme_classic() +
+  #    theme(legend.position = "right") +
+  labs(x = "Generation", y = "Mean heterozygosity")

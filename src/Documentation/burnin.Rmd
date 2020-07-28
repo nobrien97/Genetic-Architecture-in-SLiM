@@ -23,9 +23,9 @@ In all of these models, recombination rates stay constant: rwide = 1.346e-5, and
 To see this cyclical nature, we can take an autocorrelation plot, or a figure of the population mean heterozygosity over time. Here is an example of population size = 1000:
 
 
-![Population autocorrelation: Ne - 1000](Z:/Documents/GitHub/Genetic-Architecture-in-SLiM/src/SLiM/autocorr_Ne1000_example.png)
+![Population autocorrelation: Ne - 1000](Z:/Documents/GitHub/Genetic-Architecture-in-SLiM/src/SLiM/Heterozygosity/autocorr_Ne1000_example.png)
 
-![Population mean heterozygosity: Ne - 1000](Z:/Documents/GitHub/Genetic-Architecture-in-SLiM/src/SLiM/meanH_NULL_Ne1000.png)
+![Population mean heterozygosity: Ne - 1000](Z:/Documents/GitHub/Genetic-Architecture-in-SLiM/src/SLiM/Heterozygosity/meanH_NULL_Ne1000.png)
 
 Each 'lag' in the autocorrelation graph represents 500 generations.
 The dotted lines are 5% bounds of the expected heterozygosity under equilibrium (4Nu, where N = 1000, and u = 6.3e-6).
@@ -40,7 +40,7 @@ I expect that deleterious mutations (in the absence of recombination) will likel
 
 ## Null model
 
-![](Z:/Documents/GitHub/Genetic-Architecture-in-SLiM/src/SLiM/meanH_AIM1.png)
+![](Z:/Documents/GitHub/Genetic-Architecture-in-SLiM/src/SLiM/Heterozygosity/meanH_AIM1.png)
 
 Looks like population size affects time to equilibrium as expected! Recombination rate didn't (although I only had two levels: 0 and 1e-5). Deleterious mutation does some weird stuff: drastically lowers the equilibrium value, although an equilibrium does appear to be reached, and quite quickly as well across all population sizes. As if deleterious mutation is stifling the ability of neutral mutations to rise in frequency, and puts a cap on how much can segregate at a time.
 It is important then that we make sure deleterious mutations are kept in from the outset: if we leave them out for burn in, and introduce them later, we will be creating a second burn in during our run as the heterozygosity drops to the levels seen in the bottom figure. Given that there still is an equilibrium, it should be fine. It does reach equilibrium faster however, so there is potential to save some time by using a shorter burn-in for different values of deleterious mutation prevalence.
@@ -48,7 +48,7 @@ It is important then that we make sure deleterious mutations are kept in from th
 
 ## Independent Assortment model
 
-![](Z:/Documents/GitHub/Genetic-Architecture-in-SLiM/src/SLiM/meanH_AIM2.png)
+![](Z:/Documents/GitHub/Genetic-Architecture-in-SLiM/src/SLiM/Heterozygosity/meanH_AIM2.png)
 
 Strange change of trends: by randomising the sizes of chromosomes (via where the end points are), we get considerably less variation around the mean, much less amplitude of the wave of mutation-drift balance. My first thoughts of the reason for this are in my null model, where chromosome positions are fixed, there is a much greater chance for mutations to be spread unevenly within those chromosomes - almost always, some chromosomes will contain more loci than others. So the individual loci vary quite a lot in how linked they are, and that affects the rate at which they are fixed or lost together, altering heterozygosity according to this linkage. In this aim, because the end points are generated randomly (based on 10 loci chosen at random), there is a higher chance of the distance between loci being considerably further apart, so there is a lesser effect of linkage between loci, so they are indeed more independent and have smaller individual effects. I expect with more loci added (there are 100 in this model), the lines would become smoother with smaller CIs, and vice versa for fewer loci. 
 
@@ -59,8 +59,19 @@ Also, probably due to an increased ability to get rid of deleterious mutations l
 
 Below are figures of the same data, but only for Ne = 500:
 
-![](Z:/Documents/GitHub/Genetic-Architecture-in-SLiM/src/SLiM/meanH_AIM1_N500.png)
+![](Z:/Documents/GitHub/Genetic-Architecture-in-SLiM/src/SLiM/Heterozygosity/meanH_AIM1_N500.png)
 
-![](Z:/Documents/GitHub/Genetic-Architecture-in-SLiM/src/SLiM/meanH_AIM2_N500.png)
+![](Z:/Documents/GitHub/Genetic-Architecture-in-SLiM/src/SLiM/Heterozygosity/meanH_AIM2_N500.png)
 
-Deleterious mutation has some effect on global heterozygosity.
+Deleterious mutation has some effect on global heterozygosity, with the amplitude becoming greater and  the frequency becoming shorter. Especially in the aim 1 model, in aim 2 the effects are somewhat mitigated.
+
+
+## Heterozygosity across the genome
+
+The above figures show heterozygosity at only QTL loci - because these mutations are comparatively rare, each has a large effect on heterozygosity, resulting in a lot of variation between and within runs.
+When we plot heterozygosity of all sites across the genome, the trend is the same, but the variation is considerably different:
+
+![](Z:/Documents/GitHub/Genetic-Architecture-in-SLiM/src/SLiM/Heterozygosity/meanH_AIM1_allsites.png)
+
+Here, deleterious mutations have a considerably smaller effect, likely due to the large number of neutral mutations: in the previous graphs, deleterious mutations far outnumbered the sites at which heterozygosity was calculated, swamping variation. Here, all mutation types are counted (including deleterious), so although deleterious mutations reduce variability, they aren't swamping all others, so the effect is smaller.
+This can be extrapolated to further expectations: higher amounts of deleterious mutations will disproportionately affect heterozygosity at QTLs compared to neutral sites simply because they are more likely to be swamped. So, variability in trait values will fall a lot, even if the variability at neutral sites is not affected as much.
