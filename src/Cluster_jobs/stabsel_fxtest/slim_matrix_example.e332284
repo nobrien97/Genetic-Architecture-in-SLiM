@@ -1,0 +1,24 @@
+########################### Execution Started #############################
+JobId:332284.tinmgr2
+UserName:s4395747
+GroupName:qris-uq
+ExecutionHost:tn109b
+###############################################################################
+Error: unexpected ')' in "system("/home/$USER/SLiM/slim -s 123 -d Ne=1000 -d QTL_cov=0.5 -d nloci=100 -d locisigma=10.0 -d pleiorate=1.0 -d delmu=1.0 -d rwide=1.907e-3 -d pleio_cov=0.5 -d delchr=10 /home/$USER/SLiM/Scr"
+Execution halted
+cat: //state/partition1/pbs/tmpdir/pbs.332284.tinmgr2/out_8T_stabsel_means.csv: No such file or directory
+cat: //state/partition1/pbs/tmpdir/pbs.332284.tinmgr2/out_8T_stabsel_muts.csv: No such file or directory
+cat: //state/partition1/pbs/tmpdir/pbs.332284.tinmgr2/out_8T_stabsel_chr.csv: No such file or directory
+cat: //state/partition1/pbs/tmpdir/pbs.332284.tinmgr2/out_8T_recom_burnin.csv: No such file or directory
+########################### Job Execution History #############################
+JobId:332284.tinmgr2
+UserName:s4395747
+GroupName:qris-uq
+JobName:slim_matrix_example
+SessionId:43575
+ResourcesRequested:mem=24gb,ncpus=1,place=free,walltime=48:00:00
+ResourcesUsed:cpupercent=33,cput=00:00:01,mem=0kb,ncpus=1,vmem=0kb,walltime=00:00:03
+QueueUsed:Single
+AccountString:qris-uq
+ExitStatus:1
+###############################################################################

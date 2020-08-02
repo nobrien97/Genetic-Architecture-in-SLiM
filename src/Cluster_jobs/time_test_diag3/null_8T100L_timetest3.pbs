@@ -1,0 +1,12 @@
+#!/bin/bash -l
+#PBS -q workq
+#PBS -A qris-uq
+#PBS -N null_time3
+#PBS -l walltime=72:00:00
+#PBS -l select=1:ncpus=1:mem=5G
+
+cd $TMPDIR
+
+module load R/3.5.0
+
+R --file=/home/$USER/SLiM/Scripts/8T100L_null_timetest_worstcase.R

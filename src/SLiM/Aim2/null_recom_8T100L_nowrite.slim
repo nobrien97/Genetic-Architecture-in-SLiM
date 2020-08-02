@@ -24,20 +24,23 @@ initialize() {
 		setCfgParam("seed", getSeed());
 		catn("Actual seed: " + asInteger(seed));
 	}
-	setCfgParam("mu", 6.540e-5); // Genome-wide mutation rate per locus, from Lynch 2010: average mutation rate per locus for a eukaryote - somewhere between invertebrates and plants: old mutation rate similar to archaea, but also similar to Drosophila
+	
+	defineConstant("clock", clock());
+	setCfgParam("mu", 6.3e-6); // Genome-wide mutation rate per locus, Schug et al. 1996, as above
 	setCfgParam("Ne", 10000); // Population size
-	setCfgParam("pleiorate", 1.0); // Proportion of QTL mutations that should be pleiotropic - given by Chesmore et al. 2017, based on human disease GWAS studies!
+	setCfgParam("pleiorate", 0.44); // Proportion of QTL mutations that should be pleiotropic - given by Chesmore et al. 2017, based on human disease GWAS studies!
 	setCfgParam("del_mean", -0.03); // Mean used for the gamma distribution that deleterious mutations are pulled function
 	setCfgParam("del_shape", 0.2); // Shape parameter for gamma distribution used for deleterious mutations
 	setCfgParam("delmu", 1.0); // Proportion of deleterious mutations compared to others (relative to others, 0.1 compared to 1 of neutral)
-	setCfgParam("rwide", 1.907e-3); // Recombination rate across the whole genome (used as mean in rnorm)
+	setCfgParam("rwide", 1.346e-5); // Recombination rate across the whole genome (used as mean in rnorm)
 	setCfgParam("rsd", rwide*0.1); // Recombination rate standard deviation (used in rnorm)
-	setCfgParam("nloci", 500); // Number of QTL positions along the chromosome - where QTL mutations can appear, sampled from sample()
+	setCfgParam("nloci", 100); // Number of QTL positions along the chromosome - where QTL mutations can appear, sampled from sample()
 	setCfgParam("genomelength", 20680); // Taken from my own analysis from Ensembl, and from Elliott and Gregory 2015 
-	setCfgParam("locisigma", 10.0); // Variance used for normal disttribution pulls - effectively the additive effect size
-	setCfgParam("delchr", 10); // Number of chromosomes to harbour deleterious mutations
+	setCfgParam("locisigma", 1.0); // Variance used for normal disttribution pulls - effectively the additive effect size
+	setCfgParam("delchr", 5); // Number of chromosomes to harbour deleterious mutations
 	
 	setCfgParam("outpositions", 'out_8T_recom_chr.csv'); // Output filename/path for chromosome endpoints and QTL loci positions
+	setCfgParam("outburn", 'out_8T_recom_burnin.csv'); // Output burn-in heterozygosities
 	setCfgParam("outname", 'out_8T_recom_means.csv'); // Output filename/path for the trait means/variance
 	setCfgParam("outnamemuts", 'out_8T_recom_muts.csv'); //Output filename/path for the mutation information
 	setCfgParam("segsitesoutname", 'out_8T_recom_segsites'); // Output filename for genomes - the 0s and 1s for whether a mutation is present at a certain position
@@ -143,7 +146,7 @@ initialize() {
 									pleio_covs[3], pleio_covs[9], pleio_covs[14], pleio_covs[18], locisigma, pleio_covs[22], pleio_covs[23], pleio_covs[24],
 									pleio_covs[4], pleio_covs[10], pleio_covs[15], pleio_covs[19], pleio_covs[22], locisigma, pleio_covs[25], pleio_covs[26],
 									pleio_covs[5], pleio_covs[11], pleio_covs[16], pleio_covs[20], pleio_covs[23], pleio_covs[25], locisigma, pleio_covs[27],
-									pleio_covs[6], pleio_covs[12], pleio_covs[17], pleio_covs[21], pleio_covs[24], pleio_covs[26], pleio_covs[27], 1), nrow=8)); // sigma used in multivariate normal pull - variance covariance matrix, where variance of each trait = 1
+									pleio_covs[6], pleio_covs[12], pleio_covs[17], pleio_covs[21], pleio_covs[24], pleio_covs[26], pleio_covs[27], locisigma), nrow=8)); // sigma used in multivariate normal pull - variance covariance matrix, where variance of each trait = 1
 	
 	catn("\nPleiotropic QTL DFE means: ");
 	print(pleio_mu);
@@ -430,8 +433,29 @@ mutation(m2) {
 
 }
 
-// Output and phenotype calculation
-1:100000 late() {
+// Timer
+1:150000 late() {
+	if (sim.generation % 500 != 0)
+		return;
+	else {
+		time = clock() - clock;
+		catn(sim.generation + " " + time);
+		}
+}
+
+// Burn-in period
+1:50000 late() {
+	if (sim.generation % 500 != 0) // Grab a sample every 500 generations
+		return;
+		
+	meanH = paste(subpopHeterozygosity(p1, Ne), ",");
+	Hfile = paste(c(sim.generation, asString(seed), modelindex, meanH, ","));
+	// writeFile(outburn, Hfile, append = T);
+}
+
+
+// Output and phenotype calculation - Also get this for the population when it has burnt in
+50000:150000 late() {
 	
 	if (sim.generation % 500 != 0) // !CHECK THIS! Grab a sample every 500 generations: results in 200 time points per run, just like old model, file size should be the same as before
 		return;
@@ -683,7 +707,7 @@ mutation(m2) {
 // Genome output 1 and 2: Binary for whether a mutation has occurred at a given QTL position or not - the segregating sites table, and the size effects of those in the size effects table: The effects of each of these QTL mutations to a separate matrix, the size-effects table
 	// Using genomes, subs, and positions from genome output 1 declarations
 
-100000 late() {
+150000 late() {
 	genomes = sim.subpopulations.genomes;
 	subs = sim.substitutions[sim.substitutions.mutationType == m3 | sim.substitutions.mutationType == m4];
 	positions = sim.getValue("chr_QTL");
@@ -763,7 +787,7 @@ mutation(m2) {
 // Trait 2: m3, m5; e1
 // Genome output 1 and 2: Binary for whether a mutation has occurred at a given QTL position or not - the segregating sites table; as well as table 2 for the size effects of those mutations
 
-100000 late() {
+150000 late() {
 	genomes = sim.subpopulations.genomes;
 	subs = sim.substitutions[sim.substitutions.mutationType == m3 | sim.substitutions.mutationType == m5];
 	positions = sim.getValue("chr_QTL");
@@ -826,7 +850,7 @@ mutation(m2) {
 // Trait 3: m3, m6; e2
 // Genome output 1 and 2: Binary for whether a mutation has occurred at a given QTL position or not - the segregating sites table; as well as table 2 for the size effects of those mutations
 
-100000 late() {
+150000 late() {
 	genomes = sim.subpopulations.genomes;
 	subs = sim.substitutions[sim.substitutions.mutationType == m3 | sim.substitutions.mutationType == m6];
 	positions = sim.getValue("chr_QTL");
@@ -887,7 +911,7 @@ mutation(m2) {
 // Trait 4: m3, m7; e3
 // Genome output 1 and 2: Binary for whether a mutation has occurred at a given QTL position or not - the segregating sites table; as well as table 2 for the size effects of those mutations
 
-100000 late() {
+150000 late() {
 	genomes = sim.subpopulations.genomes;
 	subs = sim.substitutions[sim.substitutions.mutationType == m3 | sim.substitutions.mutationType == m7];
 	positions = sim.getValue("chr_QTL");
@@ -952,7 +976,7 @@ mutation(m2) {
 // Genome output 1 and 2: Binary for whether a mutation has occurred at a given QTL position or not - the segregating sites table, and the size effects of those in the size effects table: The effects of each of these QTL mutations to a separate matrix, the size-effects table
 	// Using genomes, subs, and positions from genome output 1 declarations
 
-100000 late() {
+150000 late() {
 	genomes = sim.subpopulations.genomes;
 	subs = sim.substitutions[sim.substitutions.mutationType == m3 | sim.substitutions.mutationType == m8];
 	positions = sim.getValue("chr_QTL");
@@ -1029,7 +1053,7 @@ mutation(m2) {
 // Genome output 1 and 2: Binary for whether a mutation has occurred at a given QTL position or not - the segregating sites table, and the size effects of those in the size effects table: The effects of each of these QTL mutations to a separate matrix, the size-effects table
 	// Using genomes, subs, and positions from genome output 1 declarations
 
-100000 late() {
+150000 late() {
 	genomes = sim.subpopulations.genomes;
 	subs = sim.substitutions[sim.substitutions.mutationType == m3 | sim.substitutions.mutationType == m9];
 	positions = sim.getValue("chr_QTL");
@@ -1106,7 +1130,7 @@ mutation(m2) {
 // Genome output 1 and 2: Binary for whether a mutation has occurred at a given QTL position or not - the segregating sites table, and the size effects of those in the size effects table: The effects of each of these QTL mutations to a separate matrix, the size-effects table
 	// Using genomes, subs, and positions from genome output 1 declarations
 
-100000 late() {
+150000 late() {
 	genomes = sim.subpopulations.genomes;
 	subs = sim.substitutions[sim.substitutions.mutationType == m3 | sim.substitutions.mutationType == m10];
 	positions = sim.getValue("chr_QTL");
@@ -1183,7 +1207,7 @@ mutation(m2) {
 // Genome output 1 and 2: Binary for whether a mutation has occurred at a given QTL position or not - the segregating sites table, and the size effects of those in the size effects table: The effects of each of these QTL mutations to a separate matrix, the size-effects table
 	// Using genomes, subs, and positions from genome output 1 declarations
 
-100000 late() {
+150000 late() {
 	genomes = sim.subpopulations.genomes;
 	subs = sim.substitutions[sim.substitutions.mutationType == m3 | sim.substitutions.mutationType == m11];
 	positions = sim.getValue("chr_QTL");
@@ -1257,7 +1281,7 @@ mutation(m2) {
 }
 
 
-// Run for 100,000 generations to capture even more neutral evolution
-100000 late() {
+// Run for 100,000 generations to capture even more neutral evolution - plus 50,000 for burn-in
+150000 late() {
 	sim.simulationFinished();
 }

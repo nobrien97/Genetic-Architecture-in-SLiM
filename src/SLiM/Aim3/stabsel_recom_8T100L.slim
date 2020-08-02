@@ -36,9 +36,10 @@ initialize() {
 	setCfgParam("genomelength", 20680); // Taken from my own analysis from Ensembl, and from Elliott and Gregory 2015 
 	setCfgParam("locisigma", 1.0); // Variance used for normal disttribution pulls - effectively the additive effect size
 	setCfgParam("delchr", 5); // Number of chromosomes to harbour deleterious mutations	
-	setCfgParam("s", 100); // selection 'coefficient': really a multiplier for the final fitness to increase the difference between those with a phenotype infinitely far from the optimum and right on it
+	setCfgParam("wsd", 1.0); // multiplier for variance term in fitness function: distribution is N(0, optimum*wsd), always relative to optimum so it scales independently to optimum size
 	
 	setCfgParam("outpositions", 'out_8T_stabsel_chr.csv'); // Output filename/path for chromosome endpoints and QTL loci positions
+	setCfgParam("outburn", 'out_8T_recom_burnin.csv'); // Output burn-in heterozygosities
 	setCfgParam("outname", 'out_8T_stabsel_means.csv'); // Output filename/path for the trait means/variance
 	setCfgParam("outnamemuts", 'out_8T_stabsel_muts.csv'); //Output filename/path for the mutation information
 	setCfgParam("segsitesoutname", 'out_8T_stabsel_segsites'); // Output filename for genomes - the 0s and 1s for whether a mutation is present at a certain position
@@ -131,7 +132,6 @@ initialize() {
 	
 	setCfgParam("pleio_mu", c(0, 0, 0, 0, 0, 0, 0, 0)); // mean distribution value for multivariate normal we are pulling effects of all 8 traits from
 	setCfgParam("pleio_cov", 0.1); // Default covariance term for use in pleio_covs - 0 is our null: covariance, but with no direction
-	setCfgParam("optima", rnorm(8, 0, locisigma*10));
 	if (pleio_cov != 0.0) {
 		defineConstant("pleio_covs", rnorm(28, pleio_cov, pleio_cov/2));		// If we set our pleio_covs to something other than 0.0 (some directionality to the covariance), use a norm distribution to randomise effects around that value, so we aren't assuming every covariance value is identical
 	}
@@ -145,14 +145,12 @@ initialize() {
 									pleio_covs[3], pleio_covs[9], pleio_covs[14], pleio_covs[18], locisigma, pleio_covs[22], pleio_covs[23], pleio_covs[24],
 									pleio_covs[4], pleio_covs[10], pleio_covs[15], pleio_covs[19], pleio_covs[22], locisigma, pleio_covs[25], pleio_covs[26],
 									pleio_covs[5], pleio_covs[11], pleio_covs[16], pleio_covs[20], pleio_covs[23], pleio_covs[25], locisigma, pleio_covs[27],
-									pleio_covs[6], pleio_covs[12], pleio_covs[17], pleio_covs[21], pleio_covs[24], pleio_covs[26], pleio_covs[27], 1), nrow=8)); // sigma used in multivariate normal pull - variance covariance matrix, where variance of each trait = 1
+									pleio_covs[6], pleio_covs[12], pleio_covs[17], pleio_covs[21], pleio_covs[24], pleio_covs[26], pleio_covs[27], locisigma), nrow=8)); // sigma used in multivariate normal pull - variance covariance matrix, where variance of each trait = locisigma
 	
 	catn("\nPleiotropic QTL DFE means: ");
 	print(pleio_mu);
 	catn("\nPleiotropic QTL DFE variance-covariance matrix (M matrix): ");
 	print(pleio_sigma);
-	catn("\nTrait optima: ");
-	print(optima);
 }
 
 // This M matrix defines the direction of pleiotropy via the covariance. Covariance between traits at the end 
@@ -164,6 +162,50 @@ function (void) setCfgParam (s$ name, ifls value) // setup function for automati
 {
 	if (!exists(name))
 		defineConstant(name, value);
+}
+
+/*
+
+  Estimate the average nucleotide heterozygosity in a subpopulation by sampling individuals at random and averaging the heterozygosity of all of the individuals sampled.  Note that this function normally uses a sample of individuals, of a size supplied in the optional parameter sampleSize; but if sampleSize is equal to the number of individuals in subpop, it will instead compute the heterozygosity exactly, as the mean of the heterozygosities of all individuals, rather than taking a sample.  For large subpopulations, that will of course be much slower than using a sample, however.
+
+Modified from SLiM-Extras, https://github.com/MesserLab/SLiM-Extras
+
+*/
+
+function (f)chrHeterozygosity(o<Genome>$ genome1, o<Genome>$ genome2) // Chromosomal heterozygosity: calculates heterozygosite at each of the 10 chromosomes
+{
+	muts1 = genome1.mutations;
+	muts2 = genome2.mutations;
+	unshared = setSymmetricDifference(muts1, muts2);
+	ends = sort(sim.chromosome.recombinationEndPositions); 
+	pi = float(size(ends));
+
+	for (i in ends) {
+		index = match(i, ends);
+		if (index == 0)
+			pi[index] = size(unshared[unshared.position <= i]) / (ends[index] - 1);
+		else
+			pi[index] = size(unshared[unshared.position <= i & unshared.position >= ends[index - 1]]) / ( (ends[index] - ends[(index - 1)]) - 1);
+		
+	}
+	return pi;
+}
+
+function (f)subpopHeterozygosity(o<Subpopulation>$ subpop, [i$ sampleSize=100])
+{
+	if (sampleSize == subpop.individualCount)
+		sampledIndividuals = subpop.individuals;
+	else
+		sampledIndividuals = sample(subpop.individuals, sampleSize, replace=T);
+	
+	pi_total = 0.0;
+	for (individual in sampledIndividuals)
+	{
+		genomes = individual.genomes;
+		individual_pi = chrHeterozygosity(genomes[0], genomes[1]);
+		pi_total = pi_total + individual_pi;
+	}
+	return pi_total[!isNAN(pi_total)]/sampleSize;
 }
 
 
@@ -392,8 +434,191 @@ mutation(m2) {
 
 }
 
-// Output and phenotype calculation
-late() {
+// Burn-in period
+1:50000 late() {
+	if (sim.generation % 500 != 0) // Grab a sample every 500 generations
+		return;
+		
+	meanH = paste(subpopHeterozygosity(p1, Ne), ",");
+	Hfile = paste(c(sim.generation, asString(seed), modelindex, meanH, ","));
+	writeFile(outburn, Hfile, append = T);
+}
+
+// At the end of burn-in, we get the phenotypes and output that. We also choose fitness optimums based on 100*the mean phenotype value, which populations will move towards.
+50000 late() {
+	inds = sim.subpopulations.individuals;
+	fixed = sim.substitutions;
+	sizem3 = size(fixed[fixed.mutationType == m3]);
+	sizem4 = size(fixed[fixed.mutationType == m4]);
+	sizem5 = size(fixed[fixed.mutationType == m5]);
+	sizem6 = size(fixed[fixed.mutationType == m6]);
+	sizem7 = size(fixed[fixed.mutationType == m7]);
+	sizem8 = size(fixed[fixed.mutationType == m8]);
+	sizem9 = size(fixed[fixed.mutationType == m9]);
+	sizem10 = size(fixed[fixed.mutationType == m10]);
+	sizem11 = size(fixed[fixed.mutationType == m11]);
+	
+	fixedfx0 = sizem3 ? sum(fixed[fixed.mutationType == m3].getValue("e0")) else 0.0 + sizem4 ? sum(fixed[fixed.mutationType == m4].getValue("e0")) else 0.0;
+	
+	fixedfx1 = sizem3 ? sum(fixed[fixed.mutationType == m3].getValue("e1")) else 0.0 + sizem5 ? sum(fixed[fixed.mutationType == m5].getValue("e1")) else 0.0;
+	
+	fixedfx2 = sizem3 ? sum(fixed[fixed.mutationType == m3].getValue("e2")) else 0.0 + sizem6 ? sum(fixed[fixed.mutationType == m6].getValue("e2")) else 0.0;
+	
+	fixedfx3 = sizem3 ? sum(fixed[fixed.mutationType == m3].getValue("e3")) else 0.0 + sizem7 ? sum(fixed[fixed.mutationType == m7].getValue("e3")) else 0.0;
+
+	fixedfx4 = sizem3 ? sum(fixed[fixed.mutationType == m3].getValue("e4")) else 0.0 + sizem8 ? sum(fixed[fixed.mutationType == m8].getValue("e4")) else 0.0;
+	
+	fixedfx5 = sizem3 ? sum(fixed[fixed.mutationType == m3].getValue("e5")) else 0.0 + sizem9 ? sum(fixed[fixed.mutationType == m9].getValue("e5")) else 0.0;	
+	
+	fixedfx6 = sizem3 ? sum(fixed[fixed.mutationType == m3].getValue("e6")) else 0.0 + sizem10 ? sum(fixed[fixed.mutationType == m10].getValue("e6")) else 0.0;
+	
+	fixedfx7 = sizem3 ? sum(fixed[fixed.mutationType == m3].getValue("e7")) else 0.0 + sizem11 ? sum(fixed[fixed.mutationType == m11].getValue("e7")) else 0.0;
+	
+	for (ind in sim.subpopulations.individuals)
+	{
+		muts = ind.genomes.mutationsOfType(m3);			// Get only pleiotropic mutations first, then add the other effects later
+		mutscount = size(muts);
+		
+		phenotype0 = (mutscount ? sum(muts.getValue("e0")) else 0.0);
+		phenotype0 = phenotype0 + (ind.sumOfMutationsOfType(m4)) + (fixedfx0); // add non-pleiotropic effects and fixed effects
+		
+		phenotype1 = (mutscount ? sum(muts.getValue("e1")) else 0.0);
+		phenotype1 = phenotype1 + (ind.sumOfMutationsOfType(m5)) + (fixedfx1); // add non-pleiotropic effects and fixed effects
+		
+		phenotype2 = (mutscount ? sum(muts.getValue("e2")) else 0.0);
+		phenotype2 = phenotype2 + (ind.sumOfMutationsOfType(m6)) + (fixedfx2); // add non-pleiotropic effects and fixed effects
+		
+		phenotype3 = (mutscount ? sum(muts.getValue("e3")) else 0.0);
+		phenotype3 = phenotype3 + (ind.sumOfMutationsOfType(m7)) + (fixedfx3); // add non-pleiotropic effects and fixed effects
+		
+		phenotype4 = (mutscount ? sum(muts.getValue("e4")) else 0.0);
+		phenotype4 = phenotype4 + (ind.sumOfMutationsOfType(m8)) + (fixedfx4); // add non-pleiotropic effects and fixed effects
+		
+		phenotype5 = (mutscount ? sum(muts.getValue("e5")) else 0.0);
+		phenotype5 = phenotype5 + (ind.sumOfMutationsOfType(m9)) + (fixedfx5); // add non-pleiotropic effects and fixed effects
+		
+		phenotype6 = (mutscount ? sum(muts.getValue("e6")) else 0.0);
+		phenotype6 = phenotype6 + (ind.sumOfMutationsOfType(m10)) + (fixedfx6); // add non-pleiotropic effects and fixed effects
+		
+		phenotype7 = (mutscount ? sum(muts.getValue("e7")) else 0.0);
+		phenotype7 = phenotype7 + (ind.sumOfMutationsOfType(m11)) + (fixedfx7); // add non-pleiotropic effects and fixed effects
+		
+		ind.setValue("phenotype0", phenotype0);
+		ind.setValue("phenotype1", phenotype1);
+		ind.setValue("phenotype2", phenotype2);
+		ind.setValue("phenotype3", phenotype3);
+		ind.setValue("phenotype4", phenotype4);
+		ind.setValue("phenotype5", phenotype5);
+		ind.setValue("phenotype6", phenotype6);
+		ind.setValue("phenotype7", phenotype7);
+	}
+	// Get the values for output: mean trait values, variance of those trait values, covariance and correlation coefficients
+//	inds = sim.subpopulations.individuals;
+
+	phenotype0 = inds.getValue("phenotype0");
+	phenotype1 = inds.getValue("phenotype1");
+	phenotype2 = inds.getValue("phenotype2");
+	phenotype3 = inds.getValue("phenotype3");
+	phenotype4 = inds.getValue("phenotype4");
+	phenotype5 = inds.getValue("phenotype5");
+	phenotype6 = inds.getValue("phenotype6");
+	phenotype7 = inds.getValue("phenotype7");
+
+	phenomeans = c(mean(phenotype0), mean(phenotype1), mean(phenotype2), mean(phenotype3), mean(phenotype4), mean(phenotype5), mean(phenotype6), mean(phenotype7));
+	
+	phenovars = c(var(phenotype0), var(phenotype1), var(phenotype2), var(phenotype3), var(phenotype4), var(phenotype5), var(phenotype6), var(phenotype7));
+	
+	
+	// Covariances
+	phenocov = float(asInteger(((size(sim.mutationTypes) - 3) - 1) * ((size(sim.mutationTypes) - 3) * 0.5))); // number of covariance terms: ntraits - 1 * ntraits/2
+	phenocov[0] = cov(phenotype0, phenotype1);
+	phenocov[1] = cov(phenotype0, phenotype2);
+	phenocov[2] = cov(phenotype0, phenotype3);
+	phenocov[3] = cov(phenotype0, phenotype4);
+	phenocov[4] = cov(phenotype0, phenotype5);
+	phenocov[5] = cov(phenotype0, phenotype6);
+	phenocov[6] = cov(phenotype0, phenotype7);
+	phenocov[7] = cov(phenotype1, phenotype2);
+	phenocov[8] = cov(phenotype1, phenotype3);
+	phenocov[9] = cov(phenotype1, phenotype4);
+	phenocov[10] = cov(phenotype1, phenotype5);
+	phenocov[11] = cov(phenotype1, phenotype6);
+	phenocov[12] = cov(phenotype1, phenotype7);
+	phenocov[13] = cov(phenotype2, phenotype3);
+	phenocov[14] = cov(phenotype2, phenotype4);
+	phenocov[15] = cov(phenotype2, phenotype5);
+	phenocov[16] = cov(phenotype2, phenotype6);
+	phenocov[17] = cov(phenotype2, phenotype7);
+	phenocov[18] = cov(phenotype3, phenotype4);
+	phenocov[19] = cov(phenotype3, phenotype5);
+	phenocov[20] = cov(phenotype3, phenotype6);
+	phenocov[21] = cov(phenotype3, phenotype7);
+	phenocov[22] = cov(phenotype4, phenotype5);
+	phenocov[23] = cov(phenotype4, phenotype6);
+	phenocov[24] = cov(phenotype4, phenotype7);
+	phenocov[25] = cov(phenotype5, phenotype6);
+	phenocov[26] = cov(phenotype5, phenotype7);
+	phenocov[27] = cov(phenotype6, phenotype7);
+	
+	phenocov = paste(phenocov, ",");
+	
+	
+	// Pearson correlation coefficients
+	phenocor = float(asInteger(((size(sim.mutationTypes) - 3) - 1) * ((size(sim.mutationTypes) - 3) * 0.5))); // number of covariance terms: ntraits - 1 * ntraits/2
+	phenocor[0] = cor(phenotype0, phenotype1);
+	phenocor[1] = cor(phenotype0, phenotype2);
+	phenocor[2] = cor(phenotype0, phenotype3);
+	phenocor[3] = cor(phenotype0, phenotype4);
+	phenocor[4] = cor(phenotype0, phenotype5);
+	phenocor[5] = cor(phenotype0, phenotype6);
+	phenocor[6] = cor(phenotype0, phenotype7);
+	phenocor[7] = cor(phenotype1, phenotype2);
+	phenocor[8] = cor(phenotype1, phenotype3);
+	phenocor[9] = cor(phenotype1, phenotype4);
+	phenocor[10] = cor(phenotype1, phenotype5);
+	phenocor[11] = cor(phenotype1, phenotype6);
+	phenocor[12] = cor(phenotype1, phenotype7);
+	phenocor[13] = cor(phenotype2, phenotype3);
+	phenocor[14] = cor(phenotype2, phenotype4);
+	phenocor[15] = cor(phenotype2, phenotype5);
+	phenocor[16] = cor(phenotype2, phenotype6);
+	phenocor[17] = cor(phenotype2, phenotype7);
+	phenocor[18] = cor(phenotype3, phenotype4);
+	phenocor[19] = cor(phenotype3, phenotype5);
+	phenocor[20] = cor(phenotype3, phenotype6);
+	phenocor[21] = cor(phenotype3, phenotype7);
+	phenocor[22] = cor(phenotype4, phenotype5);
+	phenocor[23] = cor(phenotype4, phenotype6);
+	phenocor[24] = cor(phenotype4, phenotype7);
+	phenocor[25] = cor(phenotype5, phenotype6);
+	phenocor[26] = cor(phenotype5, phenotype7);
+	phenocor[27] = cor(phenotype6, phenotype7);
+	
+	phenocor = paste(phenocor, ",");
+	
+	// Calculate Heterozygosity
+
+	meanH = paste(subpopHeterozygosity(p1, Ne), ",");
+	
+	// Stick those values in the output, along with predictors - there are a lot of predictors now... do we replace them all with modelindex aside from seed?
+	meanline = paste(c(sim.generation, ",", getSeed(), ",", modelindex, ",", rsd, ",", rwide, ",", delmu, ",", nloci, ",", paste(pleio_covs, ","), ",", Ne, ",", paste(phenomeans, ","), ",", paste(phenovars, ","), ",", phenocov, ",", phenocor, ",", meanH, ""), "");
+	file = paste(meanline, "");
+	
+	// Write the file
+	writeFile(outname, file, append = T);
+	
+	
+	// Optima are 10x the burn-in phenotype means in either the same direction or the opposite direction, due to chance.
+	if (rbinom(1, 1, 0.5) == T )		
+		defineConstant("optima", (10.0*phenomeans));
+	else
+		defineConstant("optima", (10.0*-phenomeans));
+	catn("\nTrait optima: ");
+	print(optima);
+}
+
+// Output and phenotype calculation : We get the phenotypes at the end of burn-in as well for model 2
+50001:150000 late() {
 	
 	// For each individual, grab the mutation effects and store them as a phenotype value for each phenotype, summing the effects of m3, m4, and/or, m5. This is additive!
 	
@@ -435,7 +660,7 @@ late() {
 
 	phenotype = float(8);
 	phenotype = sapply(inds, <<
-	muts = applyValue.genomes.mutationsOfType(m3); mutscount = size(muts); phenotype[0] = (mutscount ? sum(muts.getValue("e0")) else 0.0) + (applyValue.sumOfMutationsOfType(m4) + fixedfx0); phenotype[1] = (mutscount ? sum(muts.getValue("e1")) else 0.0) + (applyValue.sumOfMutationsOfType(m5) + fixedfx1); phenotype[2] = (mutscount ? sum(muts.getValue("e2")) else 0.0) + (applyValue.sumOfMutationsOfType(m6) + fixedfx2); phenotype[3] = (mutscount ? sum(muts.getValue("e3")) else 0.0) + (applyValue.sumOfMutationsOfType(m7) + fixedfx3); phenotype[4] = (mutscount ? sum(muts.getValue("e4")) else 0.0) + (applyValue.sumOfMutationsOfType(m8) + fixedfx4); phenotype[5] = (mutscount ? sum(muts.getValue("e5")) else 0.0) + (applyValue.sumOfMutationsOfType(m9) + fixedfx5); phenotype[6] = (mutscount ? sum(muts.getValue("e6")) else 0.0) + (applyValue.sumOfMutationsOfType(m10) + fixedfx6);		 phenotype[7] = (mutscount ? sum(muts.getValue("e7")) else 0.0) + (applyValue.sumOfMutationsOfType(m11) + fixedfx7); applyValue.setValue("phenotype0", phenotype[0]); applyValue.setValue("phenotype1", phenotype[1]); applyValue.setValue("phenotype2", phenotype[2]); applyValue.setValue("phenotype3", phenotype[3]); applyValue.setValue("phenotype4", phenotype[4]); applyValue.setValue("phenotype5", phenotype[5]); applyValue.setValue("phenotype6", phenotype[6]); applyValue.setValue("phenotype7", phenotype[7]); effect = float(8); for (i in phenotype) {	effect[match(i, phenotype)] = (1.0 + dnorm(optima[match(i, phenotype)] - i, 0, abs(optima[match(i, phenotype)])) * s); } applyValue.fitnessScaling = 1.0 + product(effect); phenotype;
+	muts = applyValue.genomes.mutationsOfType(m3); mutscount = size(muts); phenotype[0] = (mutscount ? sum(muts.getValue("e0")) else 0.0) + (applyValue.sumOfMutationsOfType(m4) + fixedfx0); phenotype[1] = (mutscount ? sum(muts.getValue("e1")) else 0.0) + (applyValue.sumOfMutationsOfType(m5) + fixedfx1); phenotype[2] = (mutscount ? sum(muts.getValue("e2")) else 0.0) + (applyValue.sumOfMutationsOfType(m6) + fixedfx2); phenotype[3] = (mutscount ? sum(muts.getValue("e3")) else 0.0) + (applyValue.sumOfMutationsOfType(m7) + fixedfx3); phenotype[4] = (mutscount ? sum(muts.getValue("e4")) else 0.0) + (applyValue.sumOfMutationsOfType(m8) + fixedfx4); phenotype[5] = (mutscount ? sum(muts.getValue("e5")) else 0.0) + (applyValue.sumOfMutationsOfType(m9) + fixedfx5); phenotype[6] = (mutscount ? sum(muts.getValue("e6")) else 0.0) + (applyValue.sumOfMutationsOfType(m10) + fixedfx6);		 phenotype[7] = (mutscount ? sum(muts.getValue("e7")) else 0.0) + (applyValue.sumOfMutationsOfType(m11) + fixedfx7); applyValue.setValue("phenotype0", phenotype[0]); applyValue.setValue("phenotype1", phenotype[1]); applyValue.setValue("phenotype2", phenotype[2]); applyValue.setValue("phenotype3", phenotype[3]); applyValue.setValue("phenotype4", phenotype[4]); applyValue.setValue("phenotype5", phenotype[5]); applyValue.setValue("phenotype6", phenotype[6]); applyValue.setValue("phenotype7", phenotype[7]); effect = float(8); for (i in phenotype) {	effect[match(i, phenotype)] = (dnorm(optima[match(i, phenotype)] - i, 0.0, abs(optima[match(i, phenotype)]) * wsd) * 10.0); } applyValue.fitnessScaling = 1.0 + product(effect); phenotype;
 >>);
 	
 	// Diagnostics to check fitness is working correctly

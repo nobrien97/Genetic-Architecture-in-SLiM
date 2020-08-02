@@ -75,3 +75,10 @@ When we plot heterozygosity of all sites across the genome, the trend is the sam
 
 Here, deleterious mutations have a considerably smaller effect, likely due to the large number of neutral mutations: in the previous graphs, deleterious mutations far outnumbered the sites at which heterozygosity was calculated, swamping variation. Here, all mutation types are counted (including deleterious), so although deleterious mutations reduce variability, they aren't swamping all others, so the effect is smaller.
 This can be extrapolated to further expectations: higher amounts of deleterious mutations will disproportionately affect heterozygosity at QTLs compared to neutral sites simply because they are more likely to be swamped. So, variability in trait values will fall a lot, even if the variability at neutral sites is not affected as much.
+
+
+## Conclusions
+
+From this, we can see that everything is burnt in by generation 50,000 for Ne = 10,000 so we could do a burn in period of 50,000 generations for everything and be confident that that is a good starting point. We could also do burn in as a function of population size, with it seeming to be 5Ne generations to be safe, which is close to the expected value of 4Ne. The problem with this is not all populations follow this exactly: the Ne of 500 is well equilibriated by 2500 generations, but 2500 is not but 12500 generations. So I think a hard run of 50,000 generations (which will be fast for smaller population sizes anyway) is what would be safest to ensure we are in equilibrium by the time we start.
+
+Before we start we'll also output a file with the model index, seed, and heterozygosity so we can check that for each model we are at equilibrium when we start. 

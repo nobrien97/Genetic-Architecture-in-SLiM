@@ -187,3 +187,18 @@ plot_matex_H <- ggplot(dat_matex_means,
   #    theme_classic() +
   #    theme(legend.position = "right") +
   labs(x = "Generation", y = "Mean heterozygosity")
+
+
+
+# Null Time test 3
+
+plot_nulltime3 <- ggplot(null_time3,
+                         aes(x=gen, y=time)) +
+  geom_line()
+
+
+# Recom time test 3
+
+plot_recomtime3 <- ggplot(recom_time3,
+                         aes(x=gen, y=time)) +
+  geom_line()
