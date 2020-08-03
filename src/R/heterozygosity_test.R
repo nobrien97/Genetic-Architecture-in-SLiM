@@ -202,3 +202,10 @@ plot_nulltime3 <- ggplot(null_time3,
 plot_recomtime3 <- ggplot(recom_time3,
                          aes(x=gen, y=time)) +
   geom_line()
+
+
+# Stab sel time test 2: old model format
+
+plot_stabseltime2 <- ggplot(slim_stabsel8T_timetest,
+                          aes(x=gen, y=time)) +
+  geom_line()

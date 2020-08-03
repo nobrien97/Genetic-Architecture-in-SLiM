@@ -36,6 +36,8 @@ The stabilising selection model is more concerning - it didn't finish in the 24 
 I'll need to run this thing to its finish state to determine how long it will take - if it's well under a week per model it should be fine, otherwise I'll have to consider what can be done to improve performance.
 Since SLiM's variance and covariance functions don't support matrix inputs, I can't vectorise my phenotypes, which is a huge pain and may have been a way to get some speed.  
 
+
+
 ## Optimisation
 
 *Update 20/7 4pm* I've made some minor changes to the fitness calculation which has improved the speed somewhat, although it is still relatively slow. Here is the old way of doing things:
@@ -108,3 +110,17 @@ Here I've scrapped the for loop in favour of a sapply() 'loop', and joined toget
 I also lowered the fitness multiplier to 100, which is more realistic according to the SLiM manual.
 
 I still need to do a bit of testing regarding this to ensure it is the same behaviour as before, but I'm reasonably confident it works as intended.
+
+
+
+## Update 3/8/2020
+
+After implementing my heterozygosity-based burn-in, and making some structural changes to the model (all models now have 10 chromosomes, recombination is more realistic and varies between chromosomes, varied deleterious mutations to occur on a certain number of chromosomes), I realised all models were running a bit slower than before. I did a test run of null and recom, and found a substantial difference in time to completion. Before, the null model was at 7.41 hours for a single run. This ballooned to ~45.2 hours following these chances. Similarly, AIM2's model went from 8.40 hours to 47.01 hours. Now, these models are running for an additional 50,000 generations, but this is still considerably higher than predicted than my older efforts to predict time to run. 
+Given both of these models increased in time in a similar way (a similar scale), it could be expected that the selection model will as well. However, the major problem with the selection model is the fitness function, and with more loci to add (a new treatment), this is likely to not scale in the same way. As a result, I'll need to run another test for the selection model to see how long it takes.
+
+For AIM1: Total time to run is 452000 CPU hours (10000 runs). Clearly, we will need a pretty large number of nodes to do this properly: with 100 nodes, we get - 452000/(100*24) = 188.33 hrs, or 7.85 days.
+
+For AIM2: Total time to run is 470100 CPU hours (10000 runs). With 100 nodes, we get 470100/(100*24) = 195.875 hrs or 8.16 days.
+
+If AIM3 scaled in the same way as the other two, that means it would take 416.38 hours (17.35 days!) to run - way too long I think. With 100 nodes, that would be 72.28 days of running. If we scale our models down to 50 replicates for that one, we halve the time to 36 days which might be achievable. Ideally, we could get it below a month of run-time but without a huge amount of processing power or massive cuts to the number of replicates/models I'm not sure if that is possible.
+

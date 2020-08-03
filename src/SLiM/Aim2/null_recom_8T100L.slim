@@ -177,8 +177,12 @@ function (f)chrHeterozygosity(o<Genome>$ genome1, o<Genome>$ genome2) // Chromos
 	muts1 = genome1.mutations;
 	muts2 = genome2.mutations;
 	unshared = setSymmetricDifference(muts1, muts2);
-	ends = sort(sim.chromosome.recombinationEndPositions); 
+	ends = sort(sim.chromosome.recombinationEndPositions)[1:(size(sim.chromosome.recombinationEndPositions) - 1)]; // Get rid of the first end, which starts at 0
 	pi = float(size(ends));
+
+
+	// Calculate Heterozygosity for each 'chromosome' - we get the end positions and calculate pi within that region and the last one
+	// If we are at the first chromosome, there is no last 'end', so we go from 0
 
 	for (i in ends) {
 		index = match(i, ends);
@@ -205,7 +209,7 @@ function (f)subpopHeterozygosity(o<Subpopulation>$ subpop, [i$ sampleSize=100])
 		individual_pi = chrHeterozygosity(genomes[0], genomes[1]);
 		pi_total = pi_total + individual_pi;
 	}
-	return pi_total[!isNAN(pi_total)]/sampleSize;
+	return pi_total[!isNAN(pi_total)]/sampleSize; // Cut out all the NaN values for the chromosome 'end' pairs that exist between chromosomes - 0-1, 202-203 etc.
 }
 
 
@@ -437,7 +441,7 @@ mutation(m2) {
 		return;
 		
 	meanH = paste(subpopHeterozygosity(p1, Ne), ",");
-	Hfile = paste(c(sim.generation, asString(seed), modelindex, meanH, ","));
+	Hfile = paste(c(sim.generation, asString(seed), modelindex, meanH), ",");
 	writeFile(outburn, Hfile, append = T);
 }
 

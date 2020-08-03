@@ -30,7 +30,7 @@ initialize() {
 	setCfgParam("del_mean", -0.03); // Mean used for the gamma distribution that deleterious mutations are pulled function
 	setCfgParam("del_shape", 0.2); // Shape parameter for gamma distribution used for deleterious mutations
 	setCfgParam("delmu", 1.0); // Proportion of deleterious mutations compared to others (relative to others, 0.1 compared to 1 of neutral)
-	setCfgParam("rwide", 1.346e-5); // Recombination rate across the whole genome (used as mean in rnorm)
+	setCfgParam("rwide", 1.346e-8); // Recombination rate across the whole genome (used as mean in rnorm)
 	setCfgParam("rsd", rwide*0.1); // Recombination rate standard deviation (used in rnorm)
 	setCfgParam("nloci", 100); // Number of QTL positions along the chromosome - where QTL mutations can appear, sampled from sample()
 	setCfgParam("genomelength", 20680); // Taken from my own analysis from Ensembl, and from Elliott and Gregory 2015 
@@ -39,7 +39,7 @@ initialize() {
 	setCfgParam("wsd", 1.0); // multiplier for variance term in fitness function: distribution is N(0, optimum*wsd), always relative to optimum so it scales independently to optimum size
 	
 	setCfgParam("outpositions", 'out_8T_stabsel_chr.csv'); // Output filename/path for chromosome endpoints and QTL loci positions
-	setCfgParam("outburn", 'out_8T_recom_burnin.csv'); // Output burn-in heterozygosities
+	setCfgParam("outburn", 'out_8T_stabsel_burnin.csv'); // Output burn-in heterozygosities
 	setCfgParam("outname", 'out_8T_stabsel_means.csv'); // Output filename/path for the trait means/variance
 	setCfgParam("outnamemuts", 'out_8T_stabsel_muts.csv'); //Output filename/path for the mutation information
 	setCfgParam("segsitesoutname", 'out_8T_stabsel_segsites'); // Output filename for genomes - the 0s and 1s for whether a mutation is present at a certain position
@@ -177,8 +177,12 @@ function (f)chrHeterozygosity(o<Genome>$ genome1, o<Genome>$ genome2) // Chromos
 	muts1 = genome1.mutations;
 	muts2 = genome2.mutations;
 	unshared = setSymmetricDifference(muts1, muts2);
-	ends = sort(sim.chromosome.recombinationEndPositions); 
+	ends = sort(sim.chromosome.recombinationEndPositions)[1:(size(sim.chromosome.recombinationEndPositions) - 1)]; // Get rid of the first end, which starts at 0
 	pi = float(size(ends));
+
+
+	// Calculate Heterozygosity for each 'chromosome' - we get the end positions and calculate pi within that region and the last one
+	// If we are at the first chromosome, there is no last 'end', so we go from 0
 
 	for (i in ends) {
 		index = match(i, ends);
@@ -205,7 +209,7 @@ function (f)subpopHeterozygosity(o<Subpopulation>$ subpop, [i$ sampleSize=100])
 		individual_pi = chrHeterozygosity(genomes[0], genomes[1]);
 		pi_total = pi_total + individual_pi;
 	}
-	return pi_total[!isNAN(pi_total)]/sampleSize;
+	return pi_total[!isNAN(pi_total)]/sampleSize; // Cut out all the NaN values for the chromosome 'end' pairs that exist between chromosomes - 0-1, 202-203 etc.
 }
 
 
@@ -440,7 +444,7 @@ mutation(m2) {
 		return;
 		
 	meanH = paste(subpopHeterozygosity(p1, Ne), ",");
-	Hfile = paste(c(sim.generation, asString(seed), modelindex, meanH, ","));
+	Hfile = paste(c(sim.generation, asString(seed), modelindex, meanH), ",");
 	writeFile(outburn, Hfile, append = T);
 }
 
