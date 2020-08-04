@@ -30,7 +30,7 @@ initialize() {
 	setCfgParam("del_mean", -0.03); // Mean used for the gamma distribution that deleterious mutations are pulled function
 	setCfgParam("del_shape", 0.2); // Shape parameter for gamma distribution used for deleterious mutations
 	setCfgParam("delmu", 1.0); // Proportion of deleterious mutations compared to others (relative to others, 0.1 compared to 1 of neutral)
-	setCfgParam("rwide", 1.346e-8); // Recombination rate across the whole genome (used as mean in rnorm)
+	setCfgParam("rwide", 1.346e-5); // Recombination rate across the whole genome (used as mean in rnorm)
 	setCfgParam("rsd", rwide*0.1); // Recombination rate standard deviation (used in rnorm)
 	setCfgParam("nloci", 100); // Number of QTL positions along the chromosome - where QTL mutations can appear, sampled from sample()
 	setCfgParam("genomelength", 20680); // Taken from my own analysis from Ensembl, and from Elliott and Gregory 2015 
@@ -183,7 +183,6 @@ function (f)chrHeterozygosity(o<Genome>$ genome1, o<Genome>$ genome2) // Chromos
 
 	// Calculate Heterozygosity for each 'chromosome' - we get the end positions and calculate pi within that region and the last one
 	// If we are at the first chromosome, there is no last 'end', so we go from 0
-
 	for (i in ends) {
 		index = match(i, ends);
 		if (index == 0)

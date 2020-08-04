@@ -12,7 +12,7 @@ lscombos_null_pilot <- lhs.design(
   seed = 1370976025, #sampled from 1:2147483647
   type = "optimum",
   factor.names = list(
-    Ne = c(10, 10000),
+    Ne = c(10, 5000), # Smaller population size for pilot run, just so we can get results faster
     rwide = c(0.0, 1.241e-4), 
     nloci = c(10, 500),
     locisigma = c(0.1, 10),
@@ -31,7 +31,7 @@ lscombos_sel_pilot <- lhs.design(
   seed = 1370976025, #sampled from 1:2147483647
   type = "optimum",
   factor.names = list(
-    Ne = c(10, 10000),
+    Ne = c(10, 5000), # Smaller population size so we can get pilot results faster
     rwide = c(0.0, 1.241e-4), 
     nloci = c(10, 500),
     locisigma = c(0.1, 10),

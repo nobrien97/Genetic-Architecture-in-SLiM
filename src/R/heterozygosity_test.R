@@ -190,9 +190,15 @@ plot_matex_H <- ggplot(dat_matex_means,
 
 
 
-# Null Time test 3
+# Null Time test 3 - recombination rate 1.241e-4
 
 plot_nulltime3 <- ggplot(null_time3,
+                         aes(x=gen, y=time)) +
+  geom_line()
+
+# Null Time test 4 - recombination rate 1.346e-5
+
+plot_nulltime4 <- ggplot(null_time3_lowerrecom,
                          aes(x=gen, y=time)) +
   geom_line()
 

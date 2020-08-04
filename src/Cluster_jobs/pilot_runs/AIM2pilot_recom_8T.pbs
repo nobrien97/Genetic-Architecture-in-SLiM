@@ -1,0 +1,24 @@
+#!/bin/bash -l
+#PBS -q workq
+#PBS -A qris-uq
+#PBS -N slim_recom8T_pilot
+#PBS -l walltime=110:00:00
+#PBS -l select=1:ncpus=24:mem=120G
+
+cd $TMPDIR
+
+mkdir -p ./matrices/model{1..8}
+
+module load R/3.5.0
+
+R --file=/home/$USER/SLiM/Scripts/Pilot/AIM2_pilot_unix.R
+
+zip -r /30days/$USER/matrices_recom_pilot.zip /$TMPDIR/matrices
+
+cat /$TMPDIR/out_8T_recom_means.csv >> /30days/$USER/out_8T_recom_means.csv
+
+cat /$TMPDIR/out_8T_recom_muts.csv >> /30days/$USER/out_8T_recom_muts.csv
+
+cat /$TMPDIR/out_8T_recom_chr.csv >> /30days/$USER/out_8T_recom_chr.csv
+
+cat /$TMPDIR/out_8T_recom_burnin.csv >> /30days/$USER/out_8T_recom_burnin.csv
