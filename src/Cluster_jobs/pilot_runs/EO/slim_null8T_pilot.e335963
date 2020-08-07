@@ -1,0 +1,110 @@
+########################### Execution Started #############################
+JobId:335963.tinmgr2
+UserName:s4395747
+GroupName:qris-uq
+ExecutionHost:tn125b
+###############################################################################
+Loading required package: iterators
+Loading required package: parallel
+ERROR (Eidos_ExecuteFunction_rnorm): function rnorm() requires sd >= 0.0 (-0.0949265 supplied).
+
+Error on script line 144, character 31:
+
+   ERROR (Eidos_ExecuteFunction_rnorm): function rnorm() requires sd >= 0.0 (   deERROR (Eidos_ExecuteFunction_rnorm): function rnorm() requires sd >= 0.0 (f-0.0101735i supplied).n
+-0.197976e supplied).C
+onstan
+tError on script line (144", character 
+p31Error on script line l:144e
+, character i
+31o   :_   
+cd
+oe   vf   sid"ne,ef CironnneosCrtoman(ns2tt8(a,"n ptpl(le"eipiolo_e_cicooov_vsc,"o ,vp slr"en,io orr_mnc(oo2rv8m/,(2 2)p8)l,;e    ip   ol/_e/ci ooIv_f,c  owpvel, e sipeolt_e ciooouv_r/c 2op)vl)/e;2i   )o   )_/;c/   o    vI/ f/t  owI efs  oswmeeet t shoeiutnr g o puolrte hipeolr_e citoohv_a cnto ov0  .st0oo m (esstoohmmieent ghd iionrtgeh ceotrti hoteERROR (Eidos_ExecuteFunction_rnorm): function rnorm() requires sd >= 0.0 (nhraa -0.0949265lnt supplied).i h
+t0ay.n 0 t 0
+o(.Error on script line  s0144, character to 31hm(:ees
+  o
+cdm   oie   vr daedercifitriaiennocecntCeaio)lon,ins tatuylas inettt oy(a  " ttpnholoe er timcho oe_dv ciacosrovtivsraa"inr,bci ueart)nni,coERROR (Eidos_ExecuteFunction_rnorm): function rnorm() requires sd >= 0.0 (o ernu)-0.0949265m s, supplied).(te 
+2o u8 as,r e 
+an pError on script line noal144dr e, character omni31m oo:idr_
+simc
+es o    tdv   eri,dfis efbtpfeurlictientibiesouoC nt_oa icnrtoosoonvtau  /nnrt2tdao)( n )"tdr;phoa   lamn   etid/i so/ovem _a iIclesfoufe vef ws,eee" cf ,stfs oseer  ctnwat oersor o umauar(rnr 2edop8n ul,'tne thdip a olatt_es hcisvaoouatv_ml  ciuvtoneaovg,l ,  us eseopvo,mle  eerwstiyeoho   i_cawncoregove  vanao/r'rt2iteh)a ne)na'r;cst    es t    uah/vmsa/aisn lnu Iugm0fe i.  en0wivg ese (  ressiyvoed emtecre noy otv duiacircror aiveplaacl
+nrte   ciii   eaoo  nn_ vcac aelo l iv uvt  eayt  l o iut  seos    o iitm dshe e eth ni i tdcn ieog cnv  atao lirt 
+cih    aae    lnr  
+c      et     )h   ,a    n   u    s0^  e.^   0^  a ^   (^  ns
+  oo  rm  me      dd  ii  sr  te  rc  it  bi  uo  tn  ia  ol  ni   ty^ t ^ ot^  o^^r ^^at
+^nh^de^o 
+mciosvea reifafneccet)s,  aursoeu nad  ntohramt  dviaslturei,b ustoi owne  taor erna'ntd oamsissuem ienfgf eecvtesr ya rcoouvnadr itahnacte  vvaalluuee,  isso  iwdee natriecna'lt
+    a   s s u m i n g   e v e r y   c o v a r i a n c e   v a l u e^ ^i^s^ ^i
+dentical
+                                   ^^^^^
+ERROR (Eidos_ExecuteFunction_rnorm): function rnorm() requires sd >= 0.0 (ERROR (Eidos_ExecuteFunction_rnorm): function rnorm() requires sd >= 0.0 (-0.197976-0.0101735 supplied). supplied).
+
+
+Error on script line 
+144Error on script line , character 14431, character :31
+:
+
+   
+      d   edfeifnienCeoCnosntsatnatn(t"(p"lpelieoi_oc_ocvosv"s," ,r nronromr(m2(82,8 ,p lpelieoi_oc_ocvo,v ,p lpelieoi_oc_ocvo/v2/)2));)   ;      /   // /I fI fw ew es este to uoru rp lpelieoi_oc_ocvo vt ot os osmoemtehtihnign go tohtehre rt htahna n0 .00. 0( s(osmoem ed idriercetcitoinoanlailtiyt yt ot ot hteh ec ocvoavrairainacnec)e,) ,u sues ea  an onromr md idsitsrtirbiubtuitoino nt ot or arnadnodmoimsies ee feffefcetcst sa raoruonudn dt htahta tv avlauleu,e ,s os ow ew ea raerne'nt' ta sassusmuimnign ge veevreyr yc ocvoavrairancei avnacleu ev ailsu ei diesn tiidceanlt
+i   c   a l 
+                                                          ^ ^ ^ ^ ^^
+^^^^
+ERROR (Eidos_ExecuteFunction_rnorm): function rnorm() requires sd >= 0.0 (-0.126183 supplied).
+
+Error on script line 144, character 31:
+
+      defineConstant("pleio_covs", rnorm(28, pleio_cov, pleio_cov/2));      // If we set our pleio_cov to something other than 0.0 (some directionality to the covariance), use a norm distribution to randomise effects around that value, so we aren't assuming every covariance value isERROR (Eidos_ExecuteFunction_rnorm): function rnorm() requires sd >= 0.0 ( ident-0.126183i supplied).c
+al
+           ERROR (Eidos_ExecuteFunction_rnorm): function rnorm() requires sd >= 0.0 (  
+ Error on script line ERROR (Eidos_ExecuteFunction_rnorm): function rnorm() requires sd >= 0.0 (-0.0101735 144 supplied). -0.126183, character 
+  supplied).31 
+: 
+ 
+
+ Error on script line     144
+    , character Error on script line d 31144e :, character f 
+31i 
+:n    
+e    
+C d   o e   n fds iet nfa ein^Cnt^oe(^nC"^sop^tnl
+asentitao(n_"tcp(ol"vepsil"oe,_i coro_nvcosor"vm,s( "2r,8n , pleio_cov,o plerimo_cov/2()2);      /8/,  pIlfe wieo _sceto ovu, rpl epiloei_oc_ocv/o2v)) ;t      o/ /s oImfe twrhein nosgre mto( t2oh8ue,rr   pptllheeaiinoo __0cc.oo0vv , ( tspool meseio omd_eictrohevic/nt2gi) o)on;ta   hl   ei/rt/ y t Ihtfao n w te0h .es0 e ct(o svooaumrrei  apdnlicereie)oc,_t ciuoosvne a tlaoi  tnsyoo rmtmeo t dhtiihsnetg r cioobtvuhateririo antn hctaeon)  ,r0 a.un0sd eo( msaio smneeo  redmfi frdeeiccstttsir oianbrauoltuiintodyn   ttthooa  ttr havena ERROR (Eidos_ExecuteFunction_rnorm): function rnorm() requires sd >= 0.0 (dlcou-0.197976ome supplied).vi,
+as resi oae
+ nfError on script line wcf144eee, character  )c31a,t:r s
+eu 
+nsa   'er   t od auea nfsndiso nurtemmhCi aondtngi s svtetaavrlneiutrbe(yu," t pcisloooevn ia worte_io ca aonrrvcaesenn" d',vot am rlianussoeesr  umiem(sfi2 fn8ieg,dc  etepnsvlt eeiaricryoao _lucc
+noo   dvv    ar, ti  hap anl tce  ei v o av_ lac ulo euv ,e/   2 si) os)   ; wi    ed     e/ an/ rt  eiI ncf 'a  tlw  
+e a     s   s s e u t^m  ^i o^n u^g r^   
+e pv le er iy o  _c co ov va  r ti oa  n sc oe m  ev ta hl iu ne g ^ i^os^t ^hi^ed
+re ntthiacna l0
+.   0     ( s o m e   d i r e c t i o n a l i t y   t o   t h e   c^o^v^a^r^i
+ance), use a norm distribution to randomise effects around that value, so we aren't assuming every covariance value is identical
+                                   ^^^^^
+ERROR (Eidos_ExecuteFunction_rmvnorm): function rmvnorm() requires that sigma, the variance-covariance matrix, be positive-definite.
+
+Error on script line 281, character 14:
+
+            effects = rmvnorm(1, pleio_mu, pleio_sigma);      // Calculate effects for m3 here since a mutation callback won't be called since it isn't autogenerated
+                      ^^^^^^^
+ERROR (Eidos_ExecuteFunction_rmvnorm): function rmvnorm() requires that sigma, the variance-covariance matrix, be positive-definite.
+
+Error on script line 281, character 14:
+
+            effects = rmvnorm(1, pleio_mu, pleio_sigma);      // Calculate effects for m3 here since a mutation callback won't be called since it isn't autogenerated
+                      ^^^^^^^
+ERROR (Eidos_ExecuteFunction_rmvnorm): function rmvnorm() requires that sigma, the variance-covariance matrix, be positive-definite.
+
+Error on script line 281, character 14:
+
+            effects = rmvnorm(1, pleio_mu, pleio_sigma);      // Calculate effects for m3 here since a mutation callback won't be called since it isn't autogenerated
+                      ^^^^^^^
+########################### Job Execution History #############################
+JobId:335963.tinmgr2
+UserName:s4395747
+GroupName:qris-uq
+JobName:slim_null8T_pilot
+SessionId:32630
+ResourcesRequested:mem=120gb,ncpus=24,place=free,walltime=100:00:00
+ResourcesUsed:cpupercent=900,cput=54:11:30,mem=4624824kb,ncpus=24,vmem=12433452kb,walltime=10:40:10
+QueueUsed:Single
+AccountString:qris-uq
+ExitStatus:0
+###############################################################################

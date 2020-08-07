@@ -1,0 +1,24 @@
+########################### Execution Started #############################
+JobId:308922.tinmgr2
+UserName:s4395747
+GroupName:qris-uq
+ExecutionHost:fl014
+###############################################################################
+ERROR (EidosCallSignature::CheckArguments): argument 1 (key) cannot be type float for method getValue().
+
+Error on script line 531, character 124:
+
+         mutsLine = paste(c(sim.generation, ",", getSeed(), ",", modelindex, ",", rregion, ",", rwide, ",", delmu, ",", paste(sim.getValue(pleio_covs), ","), ",", Ne, ",", mutType, ",", mut.id, ",", mut.position, ",", mut.originGeneration, ",", mutValues, ",", mutFreq, ",", "N/A", "\n"), "");
+                                                                                                                                  ^^^^^^^^
+########################### Job Execution History #############################
+JobId:308922.tinmgr2
+UserName:s4395747
+GroupName:qris-uq
+JobName:slim_null8T_timetest
+SessionId:2886
+ResourcesRequested:mem=24gb,ncpus=1,place=free,walltime=24:00:00
+ResourcesUsed:cpupercent=95,cput=01:23:01,mem=1144952kb,ncpus=1,vmem=1628180kb,walltime=01:23:02
+QueueUsed:Short
+AccountString:qris-uq
+ExitStatus:0
+###############################################################################

@@ -1,0 +1,19 @@
+########################### Execution Started #############################
+JobId:308923.tinmgr2
+UserName:s4395747
+GroupName:qris-uq
+ExecutionHost:fl014
+###############################################################################
+=>> PBS: job killed: walltime 86506 exceeded limit 86400
+########################### Job Execution History #############################
+JobId:308923.tinmgr2
+UserName:s4395747
+GroupName:qris-uq
+JobName:slim_stabsel8T_timetest
+SessionId:3617
+ResourcesRequested:mem=24gb,ncpus=1,place=free,walltime=24:00:00
+ResourcesUsed:cpupercent=94,cput=24:01:38,mem=1468088kb,ncpus=1,vmem=1953512kb,walltime=24:01:46
+QueueUsed:Short
+AccountString:qris-uq
+ExitStatus:271
+###############################################################################

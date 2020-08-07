@@ -1,0 +1,104 @@
+########################### Execution Started #############################
+JobId:335965.tinmgr2
+UserName:s4395747
+GroupName:qris-uq
+ExecutionHost:tn127b
+###############################################################################
+Loading required package: iterators
+Loading required package: parallel
+ERROR (Eidos_ExecuteFunction_rnorm): function rnorm() requires sd >= 0.0 (-0.0425125 supplied).
+
+Error on script line 136, character 31:
+
+      defineConstant("pleio_covs", rnorm(28, pleio_cov, pleio_cov/2));      // If we set our pleio_covs to something other than 0.0 (some directionality to the covariance), use a norm distribution to randomise effects around that value, so we aren't assuming every covariance value is identical
+                                   ^^^^^
+ERROR (Eidos_ExecuteFunction_rnorm): function rnorm() requires sd >= 0.0 (-0.151968 supplied).
+
+Error on script line 136, character 31:
+
+      defineConstant("pleio_covs", rnorm(28, pleio_cov, pleio_cov/2));      // If we set our pleio_covs to something other than 0.0 (some directiERROR (Eidos_ExecuteFunction_rnorm): function rnorm() requires sd >= 0.0 (onality-0.201374  supplied).t
+o the covariance
+)Error on script line ,136 , character u31s:e
+ 
+a       ndoerfmi ndeiCsotnrsitbauntti(o"np lteoi or_acnodvosm"i,s er neofrfme(c2t8s,  aprloeuinod_ ctohva,t  pvlaeliuoe_,c osvo/ 2w)e) ;a   r   e/n/' tI fa swseu msientg  oeuvre rpyl ecioov_acroivasn cteo  vsaolmueet hiisn gi doetnhteirc atlh
+a   n     0 . 0   ( s o m e   d i r e c t i o n a l i t y   t o   t^h^e^ ^c^o
+variance), usERROR (Eidos_ExecuteFunction_rnorm): function rnorm() requires sd >= 0.0 (eERROR (Eidos_ExecuteFunction_rnorm): function rnorm() requires sd >= 0.0 ( a n-0.126944o supplied).-0.0425125r
+ supplied).m
+ distribution t
+oError on script line 
+ 136Error on script line r, character 136a31, character n:31d
+:o
+
+m   
+i      sd   eed feeiffnifeneCecoCtnossn tsaatrnaotnu(tn"(dp" lptelhieaoit_o c_vocavolsvu"se,", , r snroon rowmre(m 2(a82r,8e ,np 'lptel ieaois_osc_uocmvoi,vn ,gp  lpeelvieeoir_oyc_ occvoo/vv2/a)2r))i;)a   ;n      c/   e//  /vI afIl fuw eew  eis ses tei tdo euonrut rip clpaellie
+oi   _o   c_ oc vo sv  s t  ot  o s  os mo em te ht ih ni gn  g o  to ht eh re  r t  ht ah na  n 0 ^.0^0.^ 0^( ^s(
+osmoem ed idriercetcitoinoanlailtiyt yt ot ot hteh ec ocvoavrairainacnec)e,) ,u sues ea  an onromr md idsitsrtirbiubtuitoino nt ot or arnadnodmoimsies ee feffefcetcst sa raoruonudn dt htahta tv avlauleu,e ,s os ow ew ea raerne'nt' ta sassusmuimnign ge veevreyr yc ocvoavrairainacnec ev avlauleu ei si si diednetnitciacla
+l   
+                                                                  ^ ^^^^^^^^
+^
+ERROR (Eidos_ExecuteFunction_rnorm): function rnorm() requires sd >= 0.0 (-0.126944 supplied).
+
+Error on script line 136, character 31:
+
+      defineConstant("pleio_covs", rnorm(28, pleio_cov, pleio_cov/2));      // If we set our pleio_covs to something other than 0.0 (some directionality to the covariance), use a norm distribution to randomise effects around that value, so we aren't assuming every covariance value is identical
+                                   ^^^^^
+ERROR (Eidos_ExecuteFunction_rnorm): function rnorm() requires sd >= 0.0 (-0.201374 supplied).
+
+Error on script line 136, character 31:
+
+      defineConstant("pleio_covs", rnorm(28, pleio_cov, pleio_cov/2));      // If we set our pleio_covs to something other than 0.0 (some directionality to the covariance), use a norm distribution to randomise effects around that value, so we aren't assuming every covariance value is identical
+                                   ^^^^^
+ERROR (Eidos_ExecuteFunction_rnorm): function rnorm() requires sd >= 0.0 (-0.151968 supplied).
+
+Error on script line 136, character 31:
+
+      defineConstant("pleio_covs", rnorm(28, pleio_cov, pleio_cov/2));      // If we set our pleio_covs to something other than 0.0 (some directionality to the covariance), use a norm distribution to randomise effects around that value, so we aren't assuming every covariance value is identical
+                                   ^^^^^
+ERROR (Eidos_ExecuteFunction_rnorm): function rnorm() requires sd >= 0.0 (-0.126944 supplied).
+
+Error on script line 136, character 31:
+
+      defineConstant("pleio_covs", rnorm(28, pleio_cov, pleio_cov/2));      // If we set our pleio_covs to something other than 0.0 (some directionality to the covariance), use a norm distribution to randomise effects around that value, so we aren't assuming every covariance value is identical
+                                   ^^^^^
+ERROR (Eidos_ExecuteFunction_rnorm): function rnorm() requires sd >= 0.0 (-0.0425125 supplied).
+
+Error on script line 136, character 31:
+
+      defineConstant("pleio_covs", rnorm(28, pleio_cov, pleio_cov/2));      // If we set our pleio_covs to something other than 0.0 (some directionality to the covariance), use a norm distribution to randomise effects around that value, so we aren't assuming every covariance value is identical
+                                   ^^^^^
+ERROR (Eidos_ExecuteFunction_rmvnorm): function rmvnorm() requires that sigma, the variance-covariance matrix, be positive-definite.
+
+Error on script line 309, character 14:
+
+            effects = rmvnorm(1, pleio_mu, pleio_sigma);      // Calculate effects for m3 here since a mutation callback won't be called since it isn't autogenerated
+                      ^^^^^^^
+ERROR (Eidos_ExecuteFunction_rmvnorm): function rmvnorm() requires that sigma, the variance-covariance matrix, be positive-definite.
+
+Error on script line 309, character 14:
+
+            effects = rmvnorm(1, pleio_mu, pleio_sigma);      // Calculate effects for m3 here since a mutation callback won't be called since it isn't autogenerated
+                      ^^^^^^^
+ERROR (Eidos_ExecuteFunction_rnorm): function rnorm() requires sd >= 0.0 (-0.151968 supplied).
+
+Error on script line 136, character 31:
+
+      defineConstant("pleio_covs", rnorm(28, pleio_cov, pleio_cov/2));      // If we set our pleio_covs to something other than 0.0 (some directionality to the covariance), use a norm distribution to randomise effects around that value, so we aren't assuming every covariance value is identical
+                                   ^^^^^
+ERROR (Eidos_ExecuteFunction_rnorm): function rnorm() requires sd >= 0.0 (-0.201374 supplied).
+
+Error on script line 136, character 31:
+
+      defineConstant("pleio_covs", rnorm(28, pleio_cov, pleio_cov/2));      // If we set our pleio_covs to something other than 0.0 (some directionality to the covariance), use a norm distribution to randomise effects around that value, so we aren't assuming every covariance value is identical
+                                   ^^^^^
+########################### Job Execution History #############################
+JobId:335965.tinmgr2
+UserName:s4395747
+GroupName:qris-uq
+JobName:slim_sel8T_pilot
+SessionId:11975
+ResourcesRequested:mem=120gb,ncpus=24,place=free,walltime=336:00:00
+ResourcesUsed:cpupercent=1247,cput=69:56:17,mem=3557676kb,ncpus=24,vmem=11308360kb,walltime=16:48:57
+QueueUsed:Long
+AccountString:qris-uq
+ExitStatus:0
+###############################################################################

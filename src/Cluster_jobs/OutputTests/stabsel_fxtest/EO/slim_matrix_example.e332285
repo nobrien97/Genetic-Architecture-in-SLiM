@@ -1,0 +1,18 @@
+########################### Execution Started #############################
+JobId:332285.tinmgr2
+UserName:s4395747
+GroupName:qris-uq
+ExecutionHost:tn225a
+###############################################################################
+########################### Job Execution History #############################
+JobId:332285.tinmgr2
+UserName:s4395747
+GroupName:qris-uq
+JobName:slim_matrix_example
+SessionId:25715
+ResourcesRequested:mem=24gb,ncpus=1,place=free,walltime=48:00:00
+ResourcesUsed:cpupercent=95,cput=01:17:16,mem=105904kb,ncpus=1,vmem=585884kb,walltime=01:17:23
+QueueUsed:Single
+AccountString:qris-uq
+ExitStatus:0
+###############################################################################

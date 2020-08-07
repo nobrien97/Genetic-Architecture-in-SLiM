@@ -21,7 +21,7 @@ initialize() {
 	}
 	else {
 		setSeed(asInteger(round(runif(1, 1, 2^62 - 1))));			// sets the seed from either a command line input, -s, or from the above CfgParam
-		setCfgParam("seed", getSeed());
+		setCfgParam("seed", 1560546259280855040);//getSeed());
 		catn("Actual seed: " + asInteger(seed));
 	}
 	setCfgParam("mu", 6.3e-6); // Genome-wide mutation rate per locus, Schug et al. 1996, as above
@@ -34,7 +34,7 @@ initialize() {
 	setCfgParam("rsd", rwide*0.1); // Recombination rate standard deviation (used in rnorm)
 	setCfgParam("nloci", 100); // Number of QTL positions along the chromosome - where QTL mutations can appear, sampled from sample()
 	setCfgParam("genomelength", 20680); // Taken from my own analysis from Ensembl, and from Elliott and Gregory 2015 
-	setCfgParam("locisigma", 1.0); // Variance used for normal disttribution pulls - effectively the additive effect size
+	setCfgParam("locisigma", 1.0); // Variance used for normal distribution pulls - effectively the additive effect size
 	setCfgParam("delchr", 5); // Number of chromosomes to harbour deleterious mutations
 	
 	setCfgParam("outpositions", 'out_8T_recom_chr.csv'); // Output filename/path for chromosome endpoints and QTL loci positions
@@ -130,21 +130,71 @@ initialize() {
 	// QTL constants - UNIVERSAL PLEIOTROPY assumed!
 	
 	setCfgParam("pleio_mu", float(8)); // mean distribution value for multivariate normal we are pulling effects of all 8 traits from
-	setCfgParam("pleio_cov", 0.0); // Default covariance term for use in pleio_covs - 0 is our null: pleiotropy, but with no direction
+	setCfgParam("pleio_cov", -0.1); // Default covariance term for use in pleio_covs - 0 is our null: pleiotropy, but with no direction
 	if (pleio_cov != 0.0) {
-		defineConstant("pleio_covs", rnorm(28, pleio_cov, pleio_cov/2));		// If we set our pleio_cov to something other than 0.0 (some directionality to the covariance), use a norm distribution to randomise effects around that value, so we aren't assuming every covariance value is identical
+		
+//	if (pleio_cov < 0.0) {
+//		while (any(pleiogen > -1/7)) { 
+//			for (i in pleiogen[pleiogen > -1/7]) {			
+//				pleiogen[match(i, pleiogen[pleiogen > -1/7])] = rnorm(1, pleio_cov*locisigma, abs(pleio_cov*locisigma/5));
+//				}
+//		}
+//		}
+		defineConstant("pleio_covs", rnorm(28, pleio_cov*locisigma, abs(pleio_cov/5)*locisigma));		// If we set our pleio_cov to something other than 0.0 (some directionality to the covariance), use a norm distribution to randomise effects around that value, so we aren't assuming every covariance value is identical
 	}
 	else {
 		defineConstant("pleio_covs", rep(pleio_cov, 28)); // If pleio_cov is 0, expand that to a full vector of all covariance terms
 	}
-	setCfgParam("pleio_sigma", matrix(c(locisigma, pleio_covs[0], pleio_covs[1], pleio_covs[2], pleio_covs[3], pleio_covs[4], pleio_covs[5], pleio_covs[6],
+		
+									
+	sigma = matrix(c(			locisigma, pleio_covs[0], pleio_covs[1], pleio_covs[2], pleio_covs[3], pleio_covs[4], pleio_covs[5], pleio_covs[6],
 									pleio_covs[0], locisigma, pleio_covs[7], pleio_covs[8], pleio_covs[9], pleio_covs[10], pleio_covs[11], pleio_covs[12],
 									pleio_covs[1], pleio_covs[7], locisigma, pleio_covs[13], pleio_covs[14], pleio_covs[15], pleio_covs[16], pleio_covs[17],
 									pleio_covs[2], pleio_covs[8], pleio_covs[13], locisigma, pleio_covs[18], pleio_covs[19], pleio_covs[20], pleio_covs[21],
 									pleio_covs[3], pleio_covs[9], pleio_covs[14], pleio_covs[18], locisigma, pleio_covs[22], pleio_covs[23], pleio_covs[24],
 									pleio_covs[4], pleio_covs[10], pleio_covs[15], pleio_covs[19], pleio_covs[22], locisigma, pleio_covs[25], pleio_covs[26],
 									pleio_covs[5], pleio_covs[11], pleio_covs[16], pleio_covs[20], pleio_covs[23], pleio_covs[25], locisigma, pleio_covs[27],
-									pleio_covs[6], pleio_covs[12], pleio_covs[17], pleio_covs[21], pleio_covs[24], pleio_covs[26], pleio_covs[27], locisigma), nrow=8)); // sigma used in multivariate normal pull - variance covariance matrix, where variance of each trait = locisigma
+									pleio_covs[6], pleio_covs[12], pleio_covs[17], pleio_covs[21], pleio_covs[24], pleio_covs[26], pleio_covs[27], locisigma), nrow=8); // sigma used in multivariate normal pull - variance covariance matrix, where variance of each trait = locisigma
+
+
+
+	if (any(pleio_covs < -0.1428 | pleio_covs > 0.99*locisigma)) { // Need to ensure we are positive-definite: using Sylvester's criterion, says covariance values can be > -1/(n-1), where n is the number of traits; also must be < 1
+
+	defineConstant("PDpath", writeTempFile("PD_", ".txt", ""));
+	
+	sigPath = writeTempFile("sig_", ".csv", paste(sigma, ","));
+	
+	defineConstant("sigPathT", readFile(sigPath));
+	
+	writeFile("sig.csv", paste(paste(sigma, ","), "\n"));
+	
+	rstr = paste(c( '{', 
+							'library(MASS)',
+							'library(Matrix)', 
+							's <- as.vector(t(read.csv("' + sigPath + '", header = F)))',
+							'sigma <- matrix(c(s), nrow=8)',
+							'sigma_PD <- nearPD(sigma, keepDiag = T)$mat',
+							'write.matrix(sigma_PD, file = "' + PDpath + '")',
+							 '}'), sep="\n");
+							 
+	writeFile("sigma_PD", rstr);
+	
+	scriptPath = writeTempFile("sigma_", ".R", rstr);
+	
+	
+	system("/opt/R/lib64/R/bin/Rscript", args=scriptPath); // On HPC: /opt/R/lib64/R/bin/Rscript, On home: /usr/lib/R/bin/Rscript
+	deleteFile(scriptPath);
+	deleteFile(sigPath);
+	sigma_PD = strsplit(paste(readFile(PDpath)));
+	sigma_PD = asFloat(sigma_PD[sigma_PD != ""]);
+	
+	deleteFile(PDpath);
+
+	defineConstant("pleio_sigma", matrix(c(sigma_PD), nrow = 8));
+	
+	}
+
+	else { defineConstant("pleio_sigma", sigma); }
 	
 	catn("\nPleiotropic QTL DFE means: ");
 	print(pleio_mu);

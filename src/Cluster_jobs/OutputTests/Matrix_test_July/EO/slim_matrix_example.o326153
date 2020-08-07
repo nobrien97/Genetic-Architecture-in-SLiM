@@ -1,0 +1,4 @@
+Fatal error: cannot open file '/home/s4395747/SLiM/Scripts/matrix_example_unix.R': No such file or directory
+  adding: tmpdir/pbs.326153.tinmgr2/matrices/ (stored 0%)
+  adding: tmpdir/pbs.326153.tinmgr2/matrices/model0/ (stored 0%)
+  adding: tmpdir/pbs.326153.tinmgr2/matrices/model1/ (stored 0%)
