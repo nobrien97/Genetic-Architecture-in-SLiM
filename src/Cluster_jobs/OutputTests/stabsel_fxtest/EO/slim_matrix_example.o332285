@@ -1,0 +1,76 @@
+
+R version 3.5.0 (2018-04-23) -- "Joy in Playing"
+Copyright (C) 2018 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> 
+> # Worst case scenario test run for 8T Selection
+> 
+> system("/home/$USER/SLiM/slim -s 123 -d Ne=1000 -d QTL_cov=0.5 -d nloci=100 -d locisigma=10.0 -d pleiorate=1.0 -d delmu=1.0 -d rwide=1.907e-3 -d pleio_cov=0.5 -d delchr=10 /home/$USER/SLiM/Scripts/stabsel_recom_8T100L.slim")
+// Initial random seed:
+123
+
+// RunInitializeCallbacks():
+initializeMutationRate(6.3e-06);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(2, 0.5, "g", -0.03, 0.2);
+initializeMutationType(3, 0.5, "f", 0);
+initializeMutationType(4, 0.5, "n", 0, 10);
+initializeMutationType(5, 0.5, "n", 0, 10);
+initializeMutationType(6, 0.5, "n", 0, 10);
+initializeMutationType(7, 0.5, "n", 0, 10);
+initializeMutationType(8, 0.5, "n", 0, 10);
+initializeMutationType(9, 0.5, "n", 0, 10);
+initializeMutationType(10, 0.5, "n", 0, 10);
+initializeMutationType(11, 0.5, "n", 0, 10);
+initializeGenomicElementType(1, c(m1, m2), c(1, 1));
+initializeGenomicElementType(2, m1, 1);
+initializeGenomicElement(g1, 0, 3362);
+initializeGenomicElement(g1, 3363, 4779);
+initializeGenomicElement(g1, 4780, 5075);
+initializeGenomicElement(g1, 5076, 6179);
+initializeGenomicElement(g1, 6180, 8204);
+initializeGenomicElement(g1, 8205, 11312);
+initializeGenomicElement(g1, 11313, 16009);
+initializeGenomicElement(g1, 16010, 16577);
+initializeGenomicElement(g1, 16578, 17670);
+initializeGenomicElement(g1, 17671, 20679);
+initializeRecombinationRate(0);
+
+Pleiotropic QTL DFE means: 
+0 0 0 0 0 0 0 0
+
+Pleiotropic QTL DFE variance-covariance matrix (M matrix): 
+         [,0]     [,1]     [,2]     [,3]     [,4]     [,5]     [,6]     [,7]
+[0,]       10 0.692466 0.706226 0.749167  0.68345 0.394154 0.386308 0.799922
+[1,] 0.692466       10 0.350496 0.181118 0.534213 0.939432 0.588902 0.710919
+[2,] 0.706226 0.350496       10 0.375188 0.278802 0.795834 0.357102 0.333294
+[3,] 0.749167 0.181118 0.375188       10 0.483449 0.691617 0.486847  0.90023
+[4,]  0.68345 0.534213 0.278802 0.483449       10 0.346384 0.254585 0.649824
+[5,] 0.394154 0.939432 0.795834 0.691617 0.346384       10 0.249811 0.480096
+[6,] 0.386308 0.588902 0.357102 0.486847 0.254585 0.249811       10 0.275176
+[7,] 0.799922 0.710919 0.333294  0.90023 0.649824 0.480096 0.275176       10
+
+// Starting run at generation <start>:
+1 
+
+
+Trait optima: 
+-328.806 32.3142 -143.879 -76.5226 150.762 82.0893 21.5236 98.5793
+> 
+zip I/O error: No such file or directory
+zip error: Could not create output file (/30days/s4395747/matrix_example/matrices.zip)

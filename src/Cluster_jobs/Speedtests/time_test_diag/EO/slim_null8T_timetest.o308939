@@ -1,0 +1,63 @@
+
+R version 3.5.0 (2018-04-23) -- "Joy in Playing"
+Copyright (C) 2018 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> 
+> # Worst case scenario test run for 8T Null
+> 
+> system.time(system("/home/$USER/SLiM/slim -s 123 -d rregion=0.5 -d Ne=10000 -d QTL_cov=0.5 -d pleiorate=1.0 -d delmu=0.0 -d rwide=1.346e-5 /home/$USER/SLiM/Scripts/null8T100L_nowrite.slim"))
+// Initial random seed:
+123
+
+// RunInitializeCallbacks():
+initializeMutationRate(6.3e-06);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(2, 0.5, "g", -0.03, 0.2);
+initializeMutationType(3, 0.5, "f", 0);
+initializeMutationType(4, 0.5, "n", 0, 1);
+initializeMutationType(5, 0.5, "n", 0, 1);
+initializeMutationType(6, 0.5, "n", 0, 1);
+initializeMutationType(7, 0.5, "n", 0, 1);
+initializeMutationType(8, 0.5, "n", 0, 1);
+initializeMutationType(9, 0.5, "n", 0, 1);
+initializeMutationType(10, 0.5, "n", 0, 1);
+initializeMutationType(11, 0.5, "n", 0, 1);
+initializeGenomicElementType(1, c(m1, m2), c(1, 0));
+initializeGenomicElement(g1, 0, 20679);
+initializeRecombinationRate(c(1.346e-05, 0.5, 1.346e-05, 0.5, 1.346e-05, 0.5, 1.346e-05, 0.5, 1.346e-05, 0.5, 1.346e-05, 0.5, 1.346e-05, 0.5, 1.346e-05, 0.5, 1.346e-05, 0.5, 1.346e-05), c(2068, 2069, 4136, 4137, 6204, 6205, 8272, 8273, 10340, 10341, 12408, 12409, 14476, 14477, 16544, 16545, 18612, 18613, 20680));
+
+Pleiotropic QTL DFE means: 
+0 0 0 0 0 0 0 0
+
+Pleiotropic QTL DFE variance-covariance matrix (M matrix): 
+     [,0] [,1] [,2] [,3] [,4] [,5] [,6] [,7]
+[0,]    1    0    0    0    0    0    0    0
+[1,]    0    1    0    0    0    0    0    0
+[2,]    0    0    1    0    0    0    0    0
+[3,]    0    0    0    1    0    0    0    0
+[4,]    0    0    0    0    1    0    0    0
+[5,]    0    0    0    0    0    1    0    0
+[6,]    0    0    0    0    0    0    1    0
+[7,]    0    0    0    0    0    0    0    1
+
+// Starting run at generation <start>:
+1 
+
+     user    system   elapsed 
+26628.283    24.966 26655.862 
+> 

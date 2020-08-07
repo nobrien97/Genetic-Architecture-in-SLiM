@@ -1,0 +1,383 @@
+
+R version 3.5.0 (2018-04-23) -- "Joy in Playing"
+Copyright (C) 2018 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> 
+> # Worst case scenario test run for 8T Selection
+> 
+> 
+> TMPDIR <- Sys.getenv('TMPDIR')
+> USER <- Sys.getenv('USER')
+> PBSIND <- as.numeric(Sys.getenv("PBS_ARRAY_INDEX"))
+> 
+> 
+> 
+> 
+> if (PBSIND == 1) {
++ 	system.time(system("/home/$USER/SLiM/slim -s 123 -d Ne=8000 -d nloci=500 -d locisigma=10.0 -d pleiorate=1.0 -d delmu=1.0 -d rwide=1.346e-5 -d pleio_cov=0.5 -d delchr=10 /home/$USER/SLiM/Scripts/null8T100L_nowrite.slim"))
++ } else {
++ 	system.time(system("/home/$USER/SLiM/slim -s 123 -d Ne=8000 -d nloci=500 -d locisigma=10.0 -d pleiorate=1.0 -d delmu=1.0 -d rwide=1.346e-5 -d pleio_cov=0.5 -d delchr=10 -d wsd=10.0 /home/$USER/SLiM/Scripts/stabsel_recom_8T100L_nowrite.slim"))
++ }
+// Initial random seed:
+123
+
+// RunInitializeCallbacks():
+initializeMutationRate(6.3e-06);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(2, 0.5, "g", -0.03, 0.2);
+initializeMutationType(3, 0.5, "f", 0);
+initializeMutationType(4, 0.5, "n", 0, 10);
+initializeMutationType(5, 0.5, "n", 0, 10);
+initializeMutationType(6, 0.5, "n", 0, 10);
+initializeMutationType(7, 0.5, "n", 0, 10);
+initializeMutationType(8, 0.5, "n", 0, 10);
+initializeMutationType(9, 0.5, "n", 0, 10);
+initializeMutationType(10, 0.5, "n", 0, 10);
+initializeMutationType(11, 0.5, "n", 0, 10);
+initializeGenomicElementType(1, c(m1, m2), c(1, 1));
+initializeGenomicElementType(2, m1, 1);
+initializeGenomicElement(g1, 0, 3362);
+initializeGenomicElement(g1, 3363, 4779);
+initializeGenomicElement(g1, 4780, 5075);
+initializeGenomicElement(g1, 5076, 6179);
+initializeGenomicElement(g1, 6180, 8204);
+initializeGenomicElement(g1, 8205, 11312);
+initializeGenomicElement(g1, 11313, 16009);
+initializeGenomicElement(g1, 16010, 16577);
+initializeGenomicElement(g1, 16578, 17670);
+initializeGenomicElement(g1, 17671, 20679);
+initializeRecombinationRate(0);
+
+Pleiotropic QTL DFE means: 
+0 0 0 0 0 0 0 0
+
+Pleiotropic QTL DFE variance-covariance matrix (M matrix): 
+         [,0]     [,1]     [,2]     [,3]     [,4]     [,5]     [,6]     [,7]
+[0,]       10 0.692466 0.706226 0.749167  0.68345 0.394154 0.386308 0.799922
+[1,] 0.692466       10 0.350496 0.181118 0.534213 0.939432 0.588902 0.710919
+[2,] 0.706226 0.350496       10 0.375188 0.278802 0.795834 0.357102 0.333294
+[3,] 0.749167 0.181118 0.375188       10 0.483449 0.691617 0.486847  0.90023
+[4,]  0.68345 0.534213 0.278802 0.483449       10 0.346384 0.254585 0.649824
+[5,] 0.394154 0.939432 0.795834 0.691617 0.346384       10 0.249811 0.480096
+[6,] 0.386308 0.588902 0.357102 0.486847 0.254585 0.249811       10 0.275176
+[7,] 0.799922 0.710919 0.333294  0.90023 0.649824 0.480096 0.275176       10
+
+// Starting run at generation <start>:
+1 
+
+500 27.48
+1000 73.2
+1500 123.75
+2000 183.76
+2500 253.39
+3000 334.12
+3500 426.35
+4000 529.88
+4500 644.19
+5000 769.4
+5500 911.57
+6000 1068.02
+6500 1230.44
+
+R version 3.5.0 (2018-04-23) -- "Joy in Playing"
+Copyright (C) 2018 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> 
+> # Worst case scenario test run for 8T Selection
+> 
+> 
+> TMPDIR <- Sys.getenv('TMPDIR')
+> USER <- Sys.getenv('USER')
+> PBSIND <- as.numeric(Sys.getenv("PBS_ARRAY_INDEX"))
+> 
+> 
+> 
+> 
+> if (PBSIND == 1) {
++ 	system.time(system("/home/$USER/SLiM/slim -s 123 -d Ne=8000 -d nloci=500 -d locisigma=10.0 -d pleiorate=1.0 -d delmu=1.0 -d rwide=1.346e-5 -d pleio_cov=0.5 -d delchr=10 /home/$USER/SLiM/Scripts/null8T100L_nowrite.slim"))
++ } else {
++ 	system.time(system("/home/$USER/SLiM/slim -s 123 -d Ne=8000 -d nloci=500 -d locisigma=10.0 -d pleiorate=1.0 -d delmu=1.0 -d rwide=1.346e-5 -d pleio_cov=0.5 -d delchr=10 -d wsd=10.0 /home/$USER/SLiM/Scripts/stabsel_recom_8T100L_nowrite.slim"))
++ }
+// Initial random seed:
+123
+
+// RunInitializeCallbacks():
+initializeMutationRate(6.3e-06);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(2, 0.5, "g", -0.03, 0.2);
+initializeMutationType(3, 0.5, "f", 0);
+initializeMutationType(4, 0.5, "n", 0, 10);
+initializeMutationType(5, 0.5, "n", 0, 10);
+initializeMutationType(6, 0.5, "n", 0, 10);
+initializeMutationType(7, 0.5, "n", 0, 10);
+initializeMutationType(8, 0.5, "n", 0, 10);
+initializeMutationType(9, 0.5, "n", 0, 10);
+initializeMutationType(10, 0.5, "n", 0, 10);
+initializeMutationType(11, 0.5, "n", 0, 10);
+initializeGenomicElementType(1, c(m1, m2), c(1, 1));
+initializeGenomicElementType(2, m1, 1);
+initializeGenomicElement(g1, 0, 3362);
+initializeGenomicElement(g1, 3363, 4779);
+initializeGenomicElement(g1, 4780, 5075);
+initializeGenomicElement(g1, 5076, 6179);
+initializeGenomicElement(g1, 6180, 8204);
+initializeGenomicElement(g1, 8205, 11312);
+initializeGenomicElement(g1, 11313, 16009);
+initializeGenomicElement(g1, 16010, 16577);
+initializeGenomicElement(g1, 16578, 17670);
+initializeGenomicElement(g1, 17671, 20679);
+initializeRecombinationRate(0);
+
+Pleiotropic QTL DFE means: 
+0 0 0 0 0 0 0 0
+
+Pleiotropic QTL DFE variance-covariance matrix (M matrix): 
+         [,0]     [,1]     [,2]     [,3]     [,4]     [,5]     [,6]     [,7]
+[0,]       10 0.692466 0.706226 0.749167  0.68345 0.394154 0.386308 0.799922
+[1,] 0.692466       10 0.350496 0.181118 0.534213 0.939432 0.588902 0.710919
+[2,] 0.706226 0.350496       10 0.375188 0.278802 0.795834 0.357102 0.333294
+[3,] 0.749167 0.181118 0.375188       10 0.483449 0.691617 0.486847  0.90023
+[4,]  0.68345 0.534213 0.278802 0.483449       10 0.346384 0.254585 0.649824
+[5,] 0.394154 0.939432 0.795834 0.691617 0.346384       10 0.249811 0.480096
+[6,] 0.386308 0.588902 0.357102 0.486847 0.254585 0.249811       10 0.275176
+[7,] 0.799922 0.710919 0.333294  0.90023 0.649824 0.480096 0.275176       10
+
+// Starting run at generation <start>:
+1 
+
+500 22.07
+1000 63.3
+1500 116.89
+2000 181.31
+2500 255.43
+3000 337.25
+3500 434.57
+4000 544.96
+4500 666.57
+5000 800.45
+5500 948.13
+6000 1099.45
+6500 1266.52
+7000 1446.59
+7500 1627.78
+8000 1831.05
+8500 2037.72
+9000 2259.15
+9500 2492.05
+10000 2734.16
+10500 2990.45
+11000 3241.93
+11500 3517.81
+12000 3807.77
+12500 4108.62
+13000 4422.25
+13500 4739.69
+14000 5007.78
+14500 5336.33
+15000 5664.46
+15500 6017.47
+16000 6376.33
+16500 6747.36
+17000 7129.79
+17500 7515.52
+18000 7897.96
+18500 8205.42
+19000 8469.89
+19500 8737.99
+20000 9003.58
+20500 9267.29
+21000 9535.2
+21500 9808.54
+22000 10095.8
+22500 10380
+23000 10666.6
+23500 10952.8
+24000 11238.4
+24500 11522.5
+25000 11799.8
+25500 12052.6
+26000 12298.8
+26500 12544.7
+27000 12780.2
+27500 13033.2
+28000 13287.7
+28500 13546.1
+29000 13784.5
+29500 14043.4
+30000 14300.1
+30500 14567.6
+31000 14829.4
+31500 15101.4
+32000 15360.6
+32500 15619
+33000 15882.1
+33500 16144
+34000 16401.1
+34500 16659.9
+35000 16927.9
+35500 17197.1
+36000 17461.7
+36500 17732.1
+37000 18001.2
+37500 18269.6
+38000 18540
+38500 18814.4
+39000 19085.9
+39500 19357
+40000 19631.3
+40500 19907.8
+41000 20177.9
+41500 20458.6
+42000 20737.3
+42500 21000.5
+43000 21248.3
+43500 21498.2
+44000 21750
+44500 22003.7
+45000 22258.2
+45500 22511.2
+46000 22766
+46500 23020.6
+47000 23283.6
+47500 23564
+48000 23840.6
+48500 24123.1
+49000 24403.3
+49500 24682
+50000 24959.9
+
+Trait optima: 
+108.435 372.419 -337.986 17.5562 -309.016 -346.334 40.8519 109.429
+50500 26109.2
+51000 27190.2
+51500 28263.3
+52000 29277.3
+52500 30276.9
+53000 31269
+53500 32260.1
+54000 33298.7
+54500 34386.9
+55000 35477.2
+55500 36565.3
+56000 37661.7
+56500 38756.9
+57000 39851.1
+57500 40959.3
+58000 42065.1
+58500 43156.3
+59000 44162.6
+59500 45141.6
+60000 46096.4
+60500 47060
+61000 48031
+61500 48998.5
+62000 49964.3
+62500 50929.4
+63000 51892.6
+63500 52845.3
+64000 53796.1
+64500 54750.4
+65000 55690.8
+65500 56620.6
+66000 57549.6
+66500 58472.7
+67000 59396.4
+67500 60316.4
+68000 61240.4
+68500 62158.6
+69000 63081.3
+69500 63991.6
+70000 64897.6
+70500 65798.2
+71000 66702
+71500 67604.8
+72000 68511.3
+72500 69413.9
+73000 70314.1
+73500 71221.7
+74000 72128.2
+74500 73038.6
+75000 73945.4
+75500 74898.4
+76000 75800.3
+76500 76760.6
+77000 77714.2
+77500 78658.2
+78000 79617.4
+78500 80576.5
+79000 81540.8
+79500 82511.5
+80000 83480.2
+80500 84449.5
+81000 85420.3
+81500 86391
+82000 87368.2
+82500 88356.8
+83000 89359.1
+83500 90359.5
+84000 91354.6
+84500 92350.7
+85000 93348.8
+85500 94333.2
+86000 95308.6
+86500 96284.2
+87000 97247.2
+87500 98197.1
+88000 99140.4
+88500 100092
+89000 101043
+89500 102002
+90000 103077
+90500 104140
+91000 105164
+91500 106178
+92000 107291
+92500 108458
+93000 109603
+93500 110768
+94000 111938
+94500 113103
+95000 114265
+95500 115428
+96000 116593
+96500 117765
+97000 118916
+97500 120011
+98000 121095
+98500 122179
+99000 123309
+99500 124464
+100000 125633
+      user     system    elapsed 
+125795.081     96.519 125894.842 
+> 

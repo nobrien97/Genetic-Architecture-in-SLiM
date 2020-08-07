@@ -1,0 +1,18 @@
+########################### Execution Started #############################
+JobId:335011.tinmgr2
+UserName:s4395747
+GroupName:qris-uq
+ExecutionHost:tn507d
+###############################################################################
+########################### Job Execution History #############################
+JobId:335011.tinmgr2
+UserName:s4395747
+GroupName:qris-uq
+JobName:recom_time3
+SessionId:46198
+ResourcesRequested:mem=5gb,ncpus=1,place=free,walltime=120:00:00
+ResourcesUsed:cpupercent=95,cput=45:24:39,mem=3759324kb,ncpus=1,vmem=4285492kb,walltime=45:25:04
+QueueUsed:Single
+AccountString:qris-uq
+ExitStatus:0
+###############################################################################
