@@ -190,44 +190,4 @@ plot_matex_H <- ggplot(dat_matex_means,
 
 
 
-# Null Time test 3 - recombination rate 1.241e-4
 
-plot_nulltime3 <- ggplot(null_time3,
-                         aes(x=gen, y=time)) +
-  geom_line()
-
-# Null Time test 4 - recombination rate 1.346e-5
-
-plot_nulltime4 <- ggplot(null_time3_lowerrecom,
-                         aes(x=gen, y=time)) +
-  geom_line()
-
-
-# Recom time test 3
-
-plot_recomtime3 <- ggplot(recom_time3,
-                         aes(x=gen, y=time)) +
-  geom_line()
-
-
-# Stab sel time test Ne = 8000
-
-plot_stabseltimeN8000 <- ggplot(stabsel_N8000,
-                          aes(x=gen, y=time)) +
-  geom_line()
-
-
-sel8000 <- subset(stabsel_N8000, gen > 50000)
-
-lm(time ~ gen, data = sel8000)
-# 1.954x + -71957.555
-# for 150,000 gens = 61.428 hours - assumes first 50,000 gens were this slow, they aren't
-
-recom8000 <- subset(stabsel_N8000, gen <= 50000)
-
-lm(time ~ gen, data = recom8000)
-# 0.5371x + -1892.6575
-# for 50,000 gens = 24962.3425 seconds, actual time 24959.9
-
-# for total estimated time: (lm(sel8000(150,000) - lm(sel8000(50,000) ) + burnin time
-# (221142.445 - 25742.445) + 24959.9 = 220349.9 = 61.21 hours
