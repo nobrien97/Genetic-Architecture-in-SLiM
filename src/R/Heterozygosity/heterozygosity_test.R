@@ -6,7 +6,11 @@ library(doParallel)
 library(future)
 
 rsample <- as.character(runif(20, 1, (2^62 - 1)))
-write.table(rbind(rsample), file = "seeds.csv", row.names = FALSE, col.names = FALSE, sep=",")
+write.table(cbind(rsample), file = "seeds.csv", row.names = FALSE, col.names = FALSE, sep=",")
+
+rsample <- read.csv("seeds.csv", header = F)
+rsample <- as.character(as.vector(t(rsample)))
+
 
 cl <- makeCluster(future::availableCores())
 registerDoParallel(cl)

@@ -38,6 +38,8 @@ names(d_null)[81:108] <- c(paste0("phenocor_0", 1:7), paste0("phenocor_1", 2:7),
 
 names(d_null)[109:118] <- paste0("H_chr", 0:9)
 
+d_null$seed <- as.factor(d_null$seed)
+
 # Organise data for G matrix construction
 
 library(dplyr)
@@ -46,12 +48,10 @@ d_sbstfinal_null <- as_tibble(d_null[d_null$gen == 150000,])
 
 d_null_mat <- select(d_sbstfinal_null, gen, seed, modelindex, paste0("var", 0:7), c(paste0("phenocov_0", 1:7), paste0("phenocov_1", 2:7), paste0("phenocov_2", 3:7), paste0("phenocov_3", 4:7), paste0("phenocov_4", 5:7), paste0("phenocov_5", 6:7), paste0("phenocov_6", 7)))
 
-d_null_mat <- d_null_mat %>%
-  group_by(gen, modelindex) %>%
-  summarise_all(list(groupmean = mean, se = std.error))
 
 
-# Data coercion to matrix function: expects a single row of 39 variables, gen, seed, modelindex, 8 variances, 28 covariances
+
+# Data coercion to matrix function: expects a single row of 39 variables: gen, seed, modelindex, 8 variances, 28 covariances
 
 dat_to_mat <- function(dat) {
   dat <- as.vector(t(dat))
@@ -67,6 +67,7 @@ dat_to_mat <- function(dat) {
     covs[c(6, 12, 17, 21, 24, 26)], vars[7], covs[28],
     covs[c(7, 13, 18, 22, 25, 27, 28)], vars[8]), nrow = 8, byrow = T
     )
+  mode(M) = "numeric"
   M
 }
 
@@ -82,7 +83,7 @@ mat_gen <- function(dat) {
 
 mat_mean <- function(mats) {
   n <- length(mats)
-  mats <- array(unlist(mats), c(8, 8, n))
+  mats <- array(as.numeric(unlist(mats)), c(8, 8, n))
   rowMeans(mats, dims = 2)
 }
 
@@ -94,24 +95,40 @@ mat_se <- function(mats) {
   apply(mats, 1:2, std.error)
 }
 
+# Function to combine these so we put in a full data set, we split it into seeds, calculate a mean for each model
+# and put them all in a list
 
-# Ideal way to use these functions: subset data by model index (or groups of them) and generation, 
-# construct G matrices for each replicate via mat_gen
-# then construct mean G matrix and CIs around them of each
+matmean_construct <- function(dat) {
+  datm <- group_split(dat, modelindex)
+  matlist <- lapply(datm, mat_gen) # mat_gen splits each model into its seed rows, stores them as a list
+  lapply(matlist, mat_mean) # apply mat_mean to each model
+}
 
-# E.g. Model Index 2, gen 150,000
 
-G_null_mat_mi2 <- mat_mean(mat_gen(d_null_mat[1:3,]))
-G_null_mat_mi6 <- mat_mean(mat_gen(d_null_mat[4:6,]))
-G_null_mat_mi8 <- mat_mean(mat_gen(d_null_mat[7:9,]))
+# Function to do as above, but for an se instead of mean
 
-G_null_mat <- array(data = c(G_null_mat_mi2, G_null_mat_mi6, G_null_mat_mi8), c(8, 8, 3))
+matse_construct <- function(dat) {
+  datm <- group_split(dat, modelindex)
+  matlist <- lapply(datm, mat_gen) # mat_gen splits each model into its seed rows, stores them as a list
+  lapply(matlist, mat_se) # apply mat_mean to each model
+}
+
+
+
+# E.g. with d_null_mat
+
+G_null_mean <- as.array(matmean_construct(d_null_mat))
+
+G_null_se <- as.array(matse_construct(d_null_mat))
+
+
+
 
 # Eigentensor analysis: Using evolqg EigenTensorDecomposition()
 
 library(evolqg)
 
-EigenTensorDecomposition(G_null_mat)
+EigenTensorDecomposition(G_null_mean)
 
 
 # RandomSkewers analysis: also using evolqg, RandomSkewers()
