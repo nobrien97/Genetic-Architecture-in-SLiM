@@ -27,7 +27,6 @@ src/Cluster_jobs/pilot_runs/Output/matrices_pilot_null.zip
 src/Cluster_jobs/pilot_runs/Output/matrices_recom_pilot.zip
 src/Cluster_jobs/pilot_runs/Output/matrices_sel_pilot.zip
 *.zip
-src/Cluster_jobs/pilot_runs/Output/matrices_pilot_null.zip
 src/Cluster_jobs/pilot_runs/Output/Old/out_8T_stabsel_muts.csv
 src/Cluster_jobs/pilot_runs/Output/Old/out_8T_recom_muts.csv
 src/Cluster_jobs/pilot_runs/Output/Old/out_8T_null_muts.csv
@@ -45,4 +44,7 @@ src/Cluster_jobs/pilot_runs/Output/out_8T_null_muts.csv
 src/Cluster_jobs/pilot_runs/Output/out_8T_stabsel_muts.csv
 src/Cluster_jobs/pilot_runs/Output/out_8T_recom_muts.csv
 src/Cluster_jobs/pilot_runs/Output/out_8T_null_muts.csv
+src/Cluster_jobs/pilot_runs/Output/out_8T_stabsel_muts.csv
+src/Cluster_jobs/pilot_runs/Output/out_8T_null_muts.csv
+src/Cluster_jobs/pilot_runs/Output/out_8T_recom_muts.csv
 src/Cluster_jobs/pilot_runs/Output/out_8T_stabsel_muts.csv
