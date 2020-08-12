@@ -137,5 +137,10 @@ G_null_mat <- list(G_null_mat_mi2, G_null_mat_mi6, G_null_mat_mi8)
 
 RandomSkewers(G_null_mat)
 
+# rPCA
+library(vcvComp)
 
 
+# VFA
+library(Matrix)
+library(rARPACK)
