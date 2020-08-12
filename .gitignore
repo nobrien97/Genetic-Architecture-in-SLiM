@@ -48,3 +48,4 @@ src/Cluster_jobs/pilot_runs/Output/out_8T_stabsel_muts.csv
 src/Cluster_jobs/pilot_runs/Output/out_8T_null_muts.csv
 src/Cluster_jobs/pilot_runs/Output/out_8T_recom_muts.csv
 src/Cluster_jobs/pilot_runs/Output/out_8T_stabsel_muts.csv
+src/Cluster_jobs/Speedtests/stabsel8000_speedtest/stabsel_recom_8T100L.slim
