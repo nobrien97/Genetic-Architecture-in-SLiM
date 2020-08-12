@@ -701,7 +701,7 @@ mutation(m2) {
 	sizefxfile = NULL;
 	
 	if (length(subs) == 0 & length(c(genomes.positionsOfMutationsOfType(m3), genomes.positionsOfMutationsOfType(m4))) == 0) {		// Skip the loop if there are no mutations to put in
-		segsitesline = (rep(0, length(positions)) + ',');
+		segsitesline = (c('t1', rep(0, length(positions))) + ',');
 		segsitesline = c(segsitesline[0:(size(segsitesline) - 2)], substr(segsitesline[size(segsitesline) - 1], 0, nchar(segsitesline[size(segsitesline) - 1]) - 2)); // Here we do some hacky stuff to remove the comma from the last entry in our segsitesline vector (using substr to take off the last entry (nchar - 2) of the last element of segsitesline (size(segsitesline) - 1)
 		segsitesfile = paste0(c(rep(paste0(c(segsitesline, "\n")), length(genomes) - 1), paste0(segsitesline)));
 		// Since if there are no mutations table 1 and 2 will just be 0s and identical, set sizefxfile = segsitesfile
@@ -740,9 +740,9 @@ mutation(m2) {
 	
 	}
 	
-	//writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, ".csv"))), segsitesfile, append = T); // append is true so we can stick trait values together
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, ".csv"))), segsitesfile, append = T); // append is true so we can stick trait values together
 	//	// This is ~/model{modelindex}/seed_segsitesoutname.csv
-	//writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, ".csv"))), sizefxfile, append = T);
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, ".csv"))), sizefxfile, append = T);
 	
 	
 	
@@ -755,7 +755,7 @@ mutation(m2) {
 	zygosfile = NULL;
 	
 	if (length(subs) == 0 & length(c(inds.genomes.positionsOfMutationsOfType(m3), inds.genomes.positionsOfMutationsOfType(m4))) == 0) {		// Skip the loop if there are no mutations to put in	
-		zygosline = (rep(0, length(positions)) + ',');
+		zygosline = (c('t1', rep(0, length(positions))) + ',');
 		zygosline = c(zygosline[0:(size(zygosline) - 2)], substr(zygosline[(size(zygosline) - 1)], 0, nchar(zygosline[size(zygosline) - 1]) - 2));
 		zygosfile = paste0(c(rep(paste0(c(zygosline, "\n")), length(inds) - 1), paste0(zygosline)));
 	}
@@ -768,7 +768,7 @@ mutation(m2) {
 	
 	
 	}
-	//writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, ".csv"))), zygosfile, append = T);
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, ".csv"))), zygosfile, append = T);
 }
 
 
@@ -783,7 +783,7 @@ mutation(m2) {
 	sizefxfile = NULL;
 	
 	if (length(subs) == 0 & length(c(genomes.positionsOfMutationsOfType(m3), genomes.positionsOfMutationsOfType(m5))) == 0) {		// Skip the loop if there are no mutations to put in
-		segsitesline = (rep(0, length(positions)) + ',');
+		segsitesline = (c('t2', rep(0, length(positions))) + ',');
 		segsitesline = c(segsitesline[0:(size(segsitesline) - 2)], substr(segsitesline[size(segsitesline) - 1], 0, nchar(segsitesline[size(segsitesline) - 1]) - 2)); // Here we do some hacky stuff to remove the comma from the last entry in our segsitesline vector (using substr to take off the last entry (nchar - 2) of the last element of segsitesline (size(segsitesline) - 1)
 		segsitesfile = paste0(c(rep(paste0(c(segsitesline, "\n")), length(genomes) - 1), paste0(segsitesline)));
 		// Since if there are no mutations table 1 and 2 will just be 0s and identical, set sizefxfile = segsitesfile
@@ -804,9 +804,9 @@ mutation(m2) {
 	
 	}
 	
-	//writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, ".csv"))), segsitesfile, append = T);
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, ".csv"))), segsitesfile, append = T);
 	
-	//writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, ".csv"))), sizefxfile, append = T);
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, ".csv"))), sizefxfile, append = T);
 	
 	
 	
@@ -818,7 +818,7 @@ mutation(m2) {
 	zygosfile = NULL;
 	
 	if (length(subs) == 0 & length(c(inds.genomes.positionsOfMutationsOfType(m3), inds.genomes.positionsOfMutationsOfType(m5))) == 0) {		// Skip the loop if there are no mutations to put in	
-		zygosline = (rep(0, length(positions)) + ',');
+		zygosline = (c('t2', rep(0, length(positions))) + ',');
 		zygosline = c(zygosline[0:(size(zygosline) - 2)], substr(zygosline[(size(zygosline) - 1)], 0, nchar(zygosline[size(zygosline) - 1]) - 2));
 		zygosfile = paste0(c(rep(paste0(c(zygosline, "\n")), length(inds) - 1), paste0(zygosline)));
 	}
@@ -832,7 +832,7 @@ mutation(m2) {
 	
 	}
 	
-	//writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, ".csv"))), zygosfile, append = T);
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, ".csv"))), zygosfile, append = T);
 }
 
 // Trait 3: m3, m6; e2
@@ -846,7 +846,7 @@ mutation(m2) {
 	sizefxfile = NULL;
 	
 	if (length(subs) == 0 & length(c(genomes.positionsOfMutationsOfType(m3), genomes.positionsOfMutationsOfType(m6))) == 0) {		// Skip the loop if there are no mutations to put in
-		segsitesline = (rep(0, length(positions)) + ',');
+		segsitesline = (c('t3', rep(0, length(positions))) + ',');
 		segsitesline = c(segsitesline[0:(size(segsitesline) - 2)], substr(segsitesline[size(segsitesline) - 1], 0, nchar(segsitesline[size(segsitesline) - 1]) - 2)); // Here we do some hacky stuff to remove the comma from the last entry in our segsitesline vector (using substr to take off the last entry (nchar - 2) of the last element of segsitesline (size(segsitesline) - 1)
 		segsitesfile = paste0(c(rep(paste0(c(segsitesline, "\n")), length(genomes) - 1), paste0(segsitesline)));
 		// Since if there are no mutations table 1 and 2 will just be 0s and identical, set sizefxfile = segsitesfile
@@ -867,9 +867,9 @@ mutation(m2) {
 	
 	}
 	
-	//writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, ".csv"))), segsitesfile, append = T);
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, ".csv"))), segsitesfile, append = T);
 	
-	//writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, ".csv"))), sizefxfile, append = T);
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, ".csv"))), sizefxfile, append = T);
 	
 	
 	
@@ -881,7 +881,7 @@ mutation(m2) {
 	zygosfile = NULL;
 	
 	if (length(subs) == 0 & length(c(inds.genomes.positionsOfMutationsOfType(m3), inds.genomes.positionsOfMutationsOfType(m6))) == 0) {		// Skip the loop if there are no mutations to put in	
-		zygosline = (rep(0, length(positions)) + ',');
+		zygosline = (c('t3', rep(0, length(positions))) + ',');
 		zygosline = c(zygosline[0:(size(zygosline) - 2)], substr(zygosline[(size(zygosline) - 1)], 0, nchar(zygosline[size(zygosline) - 1]) - 2));
 		zygosfile = paste0(c(rep(paste0(c(zygosline, "\n")), length(inds) - 1), paste0(zygosline)));
 	}
@@ -893,7 +893,7 @@ mutation(m2) {
 		zygosfile = paste0(zygoslines);
 	
 	}
-	//writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, ".csv"))), zygosfile, append = T);
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, ".csv"))), zygosfile, append = T);
 }
 
 // Trait 4: m3, m7; e3
@@ -907,7 +907,7 @@ mutation(m2) {
 	sizefxfile = NULL;
 	
 	if (length(subs) == 0 & length(c(genomes.positionsOfMutationsOfType(m3), genomes.positionsOfMutationsOfType(m7))) == 0) {		// Skip the loop if there are no mutations to put in
-		segsitesline = (rep(0, length(positions)) + ',');
+		segsitesline = (c('t4', rep(0, length(positions))) + ',');
 		segsitesline = c(segsitesline[0:(size(segsitesline) - 2)], substr(segsitesline[size(segsitesline) - 1], 0, nchar(segsitesline[size(segsitesline) - 1]) - 2)); // Here we do some hacky stuff to remove the comma from the last entry in our segsitesline vector (using substr to take off the last entry (nchar - 2) of the last element of segsitesline (size(segsitesline) - 1)
 		segsitesfile = paste0(c(rep(paste0(c(segsitesline, "\n")), length(genomes) - 1), paste0(segsitesline)));
 		// Since if there are no mutations table 1 and 2 will just be 0s and identical, set sizefxfile = segsitesfile
@@ -929,9 +929,9 @@ mutation(m2) {
 	
 	}
 	
-	//writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, ".csv"))), segsitesfile, append = T);
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, ".csv"))), segsitesfile, append = T);
 	
-	//writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, ".csv"))), sizefxfile, append = T);
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, ".csv"))), sizefxfile, append = T);
 	
 	
 	
@@ -943,7 +943,7 @@ mutation(m2) {
 	zygosfile = NULL;
 	
 	if (length(subs) == 0 & length(c(inds.genomes.positionsOfMutationsOfType(m3), inds.genomes.positionsOfMutationsOfType(m7))) == 0) {		// Skip the loop if there are no mutations to put in	
-		zygosline = (rep(0, length(positions)) + ',');
+		zygosline = (c('t4', rep(0, length(positions))) + ',');
 		zygosline = c(zygosline[0:(size(zygosline) - 2)], substr(zygosline[(size(zygosline) - 1)], 0, nchar(zygosline[size(zygosline) - 1]) - 2));
 		zygosfile = paste0(c(rep(paste0(c(zygosline, "\n")), length(inds) - 1), paste0(zygosline)));
 	}
@@ -956,7 +956,7 @@ mutation(m2) {
 	
 	
 	}
-	//writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, ".csv"))), zygosfile, append = T);
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, ".csv"))), zygosfile, append = T);
 }
 
 
@@ -972,7 +972,7 @@ mutation(m2) {
 	sizefxfile = NULL;
 	
 	if (length(subs) == 0 & length(c(genomes.positionsOfMutationsOfType(m3), genomes.positionsOfMutationsOfType(m8))) == 0) {		// Skip the loop if there are no mutations to put in
-		segsitesline = (rep(0, length(positions)) + ',');
+		segsitesline = (c('t5', rep(0, length(positions))) + ',');
 		segsitesline = c(segsitesline[0:(size(segsitesline) - 2)], substr(segsitesline[size(segsitesline) - 1], 0, nchar(segsitesline[size(segsitesline) - 1]) - 2)); // Here we do some hacky stuff to remove the comma from the last entry in our segsitesline vector (using substr to take off the last entry (nchar - 2) of the last element of segsitesline (size(segsitesline) - 1)
 		segsitesfile = paste0(c(rep(paste0(c(segsitesline, "\n")), length(genomes) - 1), paste0(segsitesline)));
 		// Since if there are no mutations table 1 and 2 will just be 0s and identical, set sizefxfile = segsitesfile
@@ -1006,9 +1006,9 @@ mutation(m2) {
 	
 	}
 	
-	//writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, ".csv"))), segsitesfile, append = T); // append is true so we can stick outputs from different model/seed runs into the same file
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, ".csv"))), segsitesfile, append = T); // append is true so we can stick outputs from different model/seed runs into the same file
 	//	// This is ~/model{modelindex}/seed_segsitesoutname_trait1.csv
-	//writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, ".csv"))), sizefxfile, append = T);
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, ".csv"))), sizefxfile, append = T);
 	
 	
 	
@@ -1021,7 +1021,7 @@ mutation(m2) {
 	zygosfile = NULL;
 	
 	if (length(subs) == 0 & length(c(inds.genomes.positionsOfMutationsOfType(m3), inds.genomes.positionsOfMutationsOfType(m8))) == 0) {		// Skip the loop if there are no mutations to put in	
-		zygosline = (rep(0, length(positions)) + ',');
+		zygosline = (c('t5', rep(0, length(positions))) + ',');
 		zygosline = c(zygosline[0:(size(zygosline) - 2)], substr(zygosline[(size(zygosline) - 1)], 0, nchar(zygosline[size(zygosline) - 1]) - 2));
 		zygosfile = paste0(c(rep(paste0(c(zygosline, "\n")), length(inds) - 1), paste0(zygosline)));
 	}
@@ -1034,7 +1034,7 @@ mutation(m2) {
 	
 	
 	}
-	//writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, ".csv"))), zygosfile, append = T);
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, ".csv"))), zygosfile, append = T);
 }
 
 // Trait 6: m3, m9; e5
@@ -1049,7 +1049,7 @@ mutation(m2) {
 	sizefxfile = NULL;
 	
 	if (length(subs) == 0 & length(c(genomes.positionsOfMutationsOfType(m3), genomes.positionsOfMutationsOfType(m9))) == 0) {		// Skip the loop if there are no mutations to put in
-		segsitesline = (rep(0, length(positions)) + ',');
+		segsitesline = (c('t6', rep(0, length(positions))) + ',');
 		segsitesline = c(segsitesline[0:(size(segsitesline) - 2)], substr(segsitesline[size(segsitesline) - 1], 0, nchar(segsitesline[size(segsitesline) - 1]) - 2)); // Here we do some hacky stuff to remove the comma from the last entry in our segsitesline vector (using substr to take off the last entry (nchar - 2) of the last element of segsitesline (size(segsitesline) - 1)
 		segsitesfile = paste0(c(rep(paste0(c(segsitesline, "\n")), length(genomes) - 1), paste0(segsitesline)));
 		// Since if there are no mutations table 1 and 2 will just be 0s and identical, set sizefxfile = segsitesfile
@@ -1083,9 +1083,9 @@ mutation(m2) {
 	
 	}
 	
-	//writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, ".csv"))), segsitesfile, append = T); // append is true so we can stick outputs from different model/seed runs into the same file
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, ".csv"))), segsitesfile, append = T); // append is true so we can stick outputs from different model/seed runs into the same file
 	//	// This is ~/model{modelindex}/seed_segsitesoutname_trait1.csv
-	//writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, ".csv"))), sizefxfile, append = T);
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, ".csv"))), sizefxfile, append = T);
 	
 	
 	
@@ -1098,7 +1098,7 @@ mutation(m2) {
 	zygosfile = NULL;
 	
 	if (length(subs) == 0 & length(c(inds.genomes.positionsOfMutationsOfType(m3), inds.genomes.positionsOfMutationsOfType(m9))) == 0) {		// Skip the loop if there are no mutations to put in	
-		zygosline = (rep(0, length(positions)) + ',');
+		zygosline = (c('t6', rep(0, length(positions))) + ',');
 		zygosline = c(zygosline[0:(size(zygosline) - 2)], substr(zygosline[(size(zygosline) - 1)], 0, nchar(zygosline[size(zygosline) - 1]) - 2));
 		zygosfile = paste0(c(rep(paste0(c(zygosline, "\n")), length(inds) - 1), paste0(zygosline)));
 	}
@@ -1111,7 +1111,7 @@ mutation(m2) {
 	
 	
 	}
-	//writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, ".csv"))), zygosfile, append = T);
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, ".csv"))), zygosfile, append = T);
 }
 
 // Trait 7: m3, m10; e6
@@ -1126,7 +1126,7 @@ mutation(m2) {
 	sizefxfile = NULL;
 	
 	if (length(subs) == 0 & length(c(genomes.positionsOfMutationsOfType(m3), genomes.positionsOfMutationsOfType(m10))) == 0) {		// Skip the loop if there are no mutations to put in
-		segsitesline = (rep(0, length(positions)) + ',');
+		segsitesline = (c('t7', rep(0, length(positions))) + ',');
 		segsitesline = c(segsitesline[0:(size(segsitesline) - 2)], substr(segsitesline[size(segsitesline) - 1], 0, nchar(segsitesline[size(segsitesline) - 1]) - 2)); // Here we do some hacky stuff to remove the comma from the last entry in our segsitesline vector (using substr to take off the last entry (nchar - 2) of the last element of segsitesline (size(segsitesline) - 1)
 		segsitesfile = paste0(c(rep(paste0(c(segsitesline, "\n")), length(genomes) - 1), paste0(segsitesline)));
 		// Since if there are no mutations table 1 and 2 will just be 0s and identical, set sizefxfile = segsitesfile
@@ -1160,9 +1160,9 @@ mutation(m2) {
 	
 	}
 	
-	//writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, ".csv"))), segsitesfile, append = T); // append is true so we can stick outputs from different model/seed runs into the same file
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, ".csv"))), segsitesfile, append = T); // append is true so we can stick outputs from different model/seed runs into the same file
 	//	// This is ~/model{modelindex}/seed_segsitesoutname_trait1.csv
-	//writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, ".csv"))), sizefxfile, append = T);
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, ".csv"))), sizefxfile, append = T);
 	
 	
 	
@@ -1175,7 +1175,7 @@ mutation(m2) {
 	zygosfile = NULL;
 	
 	if (length(subs) == 0 & length(c(inds.genomes.positionsOfMutationsOfType(m3), inds.genomes.positionsOfMutationsOfType(m10))) == 0) {		// Skip the loop if there are no mutations to put in	
-		zygosline = (rep(0, length(positions)) + ',');
+		zygosline = (c('t7', rep(0, length(positions))) + ',');
 		zygosline = c(zygosline[0:(size(zygosline) - 2)], substr(zygosline[(size(zygosline) - 1)], 0, nchar(zygosline[size(zygosline) - 1]) - 2));
 		zygosfile = paste0(c(rep(paste0(c(zygosline, "\n")), length(inds) - 1), paste0(zygosline)));
 	}
@@ -1188,7 +1188,7 @@ mutation(m2) {
 	
 	
 	}
-	//writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, ".csv"))), zygosfile, append = T);
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, ".csv"))), zygosfile, append = T);
 }
 
 // Trait 8: m3, m11; e7
@@ -1203,7 +1203,7 @@ mutation(m2) {
 	sizefxfile = NULL;
 	
 	if (length(subs) == 0 & length(c(genomes.positionsOfMutationsOfType(m3), genomes.positionsOfMutationsOfType(m11))) == 0) {		// Skip the loop if there are no mutations to put in
-		segsitesline = (rep(0, length(positions)) + ',');
+		segsitesline = (c('t8', rep(0, length(positions))) + ',');
 		segsitesline = c(segsitesline[0:(size(segsitesline) - 2)], substr(segsitesline[size(segsitesline) - 1], 0, nchar(segsitesline[size(segsitesline) - 1]) - 2)); // Here we do some hacky stuff to remove the comma from the last entry in our segsitesline vector (using substr to take off the last entry (nchar - 2) of the last element of segsitesline (size(segsitesline) - 1)
 		segsitesfile = paste0(c(rep(paste0(c(segsitesline, "\n")), length(genomes) - 1), paste0(segsitesline)));
 		// Since if there are no mutations table 1 and 2 will just be 0s and identical, set sizefxfile = segsitesfile
@@ -1237,9 +1237,9 @@ mutation(m2) {
 	
 	}
 	
-	//writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, ".csv"))), segsitesfile, append = T); // append is true so we can stick outputs from different model/seed runs into the same file
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, ".csv"))), segsitesfile, append = T); // append is true so we can stick outputs from different model/seed runs into the same file
 	//	// This is ~/model{modelindex}/seed_segsitesoutname_trait1.csv
-	//writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, ".csv"))), sizefxfile, append = T);
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, ".csv"))), sizefxfile, append = T);
 	
 	
 	
@@ -1252,7 +1252,7 @@ mutation(m2) {
 	zygosfile = NULL;
 	
 	if (length(subs) == 0 & length(c(inds.genomes.positionsOfMutationsOfType(m3), inds.genomes.positionsOfMutationsOfType(m11))) == 0) {		// Skip the loop if there are no mutations to put in	
-		zygosline = (rep(0, length(positions)) + ',');
+		zygosline = (c('t8', rep(0, length(positions))) + ',');
 		zygosline = c(zygosline[0:(size(zygosline) - 2)], substr(zygosline[(size(zygosline) - 1)], 0, nchar(zygosline[size(zygosline) - 1]) - 2));
 		zygosfile = paste0(c(rep(paste0(c(zygosline, "\n")), length(inds) - 1), paste0(zygosline)));
 	}
@@ -1265,7 +1265,7 @@ mutation(m2) {
 	
 	
 	}
-	//writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, ".csv"))), zygosfile, append = T);
+	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, ".csv"))), zygosfile, append = T);
 }
 
 
