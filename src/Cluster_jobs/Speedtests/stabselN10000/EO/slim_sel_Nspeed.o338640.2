@@ -1,0 +1,266 @@
+
+R version 3.5.0 (2018-04-23) -- "Joy in Playing"
+Copyright (C) 2018 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> 
+> # Worst case scenario test run for 8T Selection
+> 
+> 
+> TMPDIR <- Sys.getenv('TMPDIR')
+> USER <- Sys.getenv('USER')
+> PBSIND <- as.numeric(Sys.getenv("PBS_ARRAY_INDEX"))
+> 
+> 
+> 
+> 
+> if (PBSIND == 1) {
++ 	system.time(system("/home/$USER/SLiM/slim -s 123 -d Ne=8000 -d nloci=500 -d locisigma=10.0 -d pleiorate=1.0 -d delmu=1.0 -d rwide=1.241e-4 -d pleio_cov=-0.5 -d delchr=10 -d wsd=10.0 /home/$USER/SLiM/Scripts/stabsel_recom_8T100L_nowrite.slim"))
++ } else {
++ 	system.time(system("/home/$USER/SLiM/slim -s 123 -d Ne=10000 -d nloci=500 -d locisigma=10.0 -d pleiorate=1.0 -d delmu=1.0 -d rwide=1.241e-4 -d pleio_cov=-0.5 -d delchr=10 -d wsd=10.0 /home/$USER/SLiM/Scripts/stabsel_recom_8T100L_nowrite.slim"))
++ }
+// Initial random seed:
+123
+
+// RunInitializeCallbacks():
+initializeMutationRate(6.3e-06);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(2, 0.5, "g", -0.03, 0.2);
+initializeMutationType(3, 0.5, "f", 0);
+initializeMutationType(4, 0.5, "n", 0, 10);
+initializeMutationType(5, 0.5, "n", 0, 10);
+initializeMutationType(6, 0.5, "n", 0, 10);
+initializeMutationType(7, 0.5, "n", 0, 10);
+initializeMutationType(8, 0.5, "n", 0, 10);
+initializeMutationType(9, 0.5, "n", 0, 10);
+initializeMutationType(10, 0.5, "n", 0, 10);
+initializeMutationType(11, 0.5, "n", 0, 10);
+initializeGenomicElementType(1, c(m1, m2), c(1, 1));
+initializeGenomicElementType(2, m1, 1);
+initializeGenomicElement(g1, 0, 3362);
+initializeGenomicElement(g1, 3363, 4779);
+initializeGenomicElement(g1, 4780, 5075);
+initializeGenomicElement(g1, 5076, 6179);
+initializeGenomicElement(g1, 6180, 8204);
+initializeGenomicElement(g1, 8205, 11312);
+initializeGenomicElement(g1, 11313, 16009);
+initializeGenomicElement(g1, 16010, 16577);
+initializeGenomicElement(g1, 16578, 17670);
+initializeGenomicElement(g1, 17671, 20679);
+initializeRecombinationRate(0);
+
+Pleiotropic QTL DFE means: 
+0 0 0 0 0 0 0 0
+
+Pleiotropic QTL DFE variance-covariance matrix (M matrix): 
+           [,0]       [,1]       [,2]       [,3]       [,4]       [,5]       [,6]       [,7]
+[0,]         10   -1.20152    -0.8296   -0.91866   -0.92381   -2.35398    -1.8798  -0.811334
+[1,]   -1.20152         10   -2.06843   -3.02112   -1.33684 -0.0039692  -0.872698   -1.00287
+[2,]    -0.8296   -2.06843         10   -1.90432   -1.98951  -0.239526   -1.40526   -2.18341
+[3,]   -0.91866   -3.02112   -1.90432         10   -1.47461  -0.935285    -1.2111  -0.187256
+[4,]   -0.92381   -1.33684   -1.98951   -1.47461         10   -2.04065    -1.8192  -0.920533
+[5,]   -2.35398 -0.0039692  -0.239526  -0.935285   -2.04065         10   -2.17826   -1.88369
+[6,]    -1.8798  -0.872698   -1.40526    -1.2111    -1.8192   -2.17826         10   -2.17696
+[7,]  -0.811334   -1.00287   -2.18341  -0.187256  -0.920533   -1.88369   -2.17696         10
+
+// Starting run at generation <start>:
+1 
+
+500 29
+1000 72.08
+1500 131.12
+2000 205.91
+2500 289.45
+3000 390.35
+3500 507.89
+4000 640.3
+4500 786.65
+5000 944.74
+5500 1109.67
+6000 1289.67
+6500 1484.11
+7000 1692.35
+7500 1911.4
+8000 2149.79
+8500 2403.57
+9000 2661.99
+9500 2935.28
+10000 3223.12
+10500 3524.81
+11000 3847.35
+11500 4182.63
+12000 4523.79
+12500 4887.98
+13000 5256.44
+13500 5648.45
+14000 6047.45
+14500 6463.32
+15000 6885.84
+15500 7326.76
+16000 7768.04
+16500 8233.2
+17000 8702.48
+17500 9181.9
+18000 9661.33
+18500 10153.5
+19000 10613.5
+19500 10983.6
+20000 11371.8
+20500 11764.8
+21000 12164.7
+21500 12641.1
+22000 13056.2
+22500 13481.6
+23000 13942.2
+23500 14381.5
+24000 14831.9
+24500 15288.5
+25000 15738.3
+25500 16194.5
+26000 16659.8
+26500 17141.7
+27000 17627.9
+27500 18118.4
+28000 18626.2
+28500 19140
+29000 19667.4
+29500 20169
+30000 20666.3
+30500 21176.6
+31000 21680.1
+31500 22214.5
+32000 22742
+32500 23258.3
+33000 23759.7
+33500 24284.2
+34000 24832.7
+34500 25430.6
+35000 26044
+35500 26664.4
+36000 27306.1
+36500 27958.2
+37000 28596.2
+37500 29244.1
+38000 29890.6
+38500 30536.8
+39000 31176.3
+39500 31838.4
+40000 32507.9
+40500 33199.2
+41000 33888.6
+41500 34581.7
+42000 35267.6
+42500 35963.4
+43000 36646.2
+43500 37315.1
+44000 37931.2
+44500 38536.6
+45000 39145.3
+45500 39760.3
+46000 40302.5
+46500 40871.6
+47000 41411.9
+47500 41977
+48000 42523.3
+48500 43079.6
+49000 43659.1
+49500 44207.6
+50000 44743.3
+
+Trait optima: 
+-191.173 -151.036 -113.851 609.893 -690.343 630.48 -186.809 182.668
+50500 47011.7
+51000 49058.4
+51500 51024.8
+52000 52970.1
+52500 54881.6
+53000 56915.4
+53500 58842.7
+54000 60804.7
+54500 62706.9
+55000 64610.2
+55500 66515.1
+56000 68424.9
+56500 70343.9
+57000 72505.4
+57500 74636.8
+58000 76742
+58500 78839.3
+59000 80954.1
+59500 83050.2
+60000 85132.1
+60500 87224.8
+61000 89307.7
+61500 91378.2
+62000 93454.9
+62500 95487.9
+63000 97523.5
+63500 99534.6
+64000 101553
+64500 103559
+65000 105530
+65500 107537
+66000 109449
+66500 111375
+67000 113815
+67500 118046
+68000 122204
+68500 126440
+69000 129125
+69500 131219
+70000 133358
+70500 135474
+71000 137551
+71500 139656
+72000 141711
+72500 143719
+73000 145788
+73500 147882
+74000 149956
+74500 152058
+75000 153980
+75500 155957
+76000 157944
+76500 159913
+77000 161832
+77500 163802
+78000 165722
+78500 167622
+79000 169506
+79500 171410
+80000 173338
+80500 175267
+81000 177234
+81500 179179
+82000 181120
+82500 183094
+83000 185073
+83500 187061
+84000 189095
+84500 191042
+85000 193025
+85500 195015
+86000 197053
+86500 199051
+87000 201025
+87500 202995
+88000 204949
+88500 207056
+89000 210000
+89500 214989
+90000 219350
+90500 223765

@@ -162,37 +162,32 @@ initialize() {
 	
 	if (any(pleio_covs < -0.1428 | pleio_covs > 0.99*locisigma)) { // Need to ensure we are positive-definite: using Sylvester's criterion, says covariance values can be > -1/(n-1), where n is the number of traits; also must be < 1
 		
-		defineConstant("PDpath", writeTempFile("PD_", ".txt", ""));
-		
-		sigPath = writeTempFile("sig_", ".csv", paste(sigma, ","));
-		
-		defineConstant("sigPathT", readFile(sigPath));
-		
-		writeFile("sig.csv", paste(paste(sigma, ","), "\n"));
-		
-		rstr = paste(c( '{',
-			'library(MASS)',
-			'library(Matrix)',
-			's <- as.vector(t(read.csv("' + sigPath + '", header = F)))',
-			'sigma <- matrix(c(s), nrow=8)',
-			'sigma_PD <- nearPD(sigma, keepDiag = T)$mat',
-			'write.matrix(sigma_PD, file = "' + PDpath + '")',
-			'}'), sep="\n");
-		
-		writeFile("sigma_PD", rstr);
-		
-		scriptPath = writeTempFile("sigma_", ".R", rstr);
-		
-		
-		system("/opt/R/lib64/R/bin/Rscript", args=scriptPath); // On HPC: /opt/R/lib64/R/bin/Rscript, On home: /usr/lib/R/bin/Rscript
-		deleteFile(scriptPath);
-		deleteFile(sigPath);
-		sigma_PD = strsplit(paste(readFile(PDpath)));
-		sigma_PD = asFloat(sigma_PD[sigma_PD != ""]);
-		
-		deleteFile(PDpath);
-		
-		defineConstant("pleio_sigma", matrix(c(sigma_PD), nrow = 8));
+	defineConstant("PDpath", writeTempFile("PD_", ".txt", ""));
+	
+	sigPath = writeTempFile("sig_", ".csv", paste(sigma, ","));
+	
+	rstr = paste(c( '{', 
+							'library(MASS)',
+							'library(Matrix)', 
+							's <- as.vector(t(read.csv("' + sigPath + '", header = F)))',
+							'sigma <- matrix(c(s), nrow=8)',
+							'sigma_PD <- nearPD(sigma, keepDiag = T)$mat',
+							'write.matrix(sigma_PD, file = "' + PDpath + '")',
+							 '}'), sep="\n");
+							 
+	
+	scriptPath = writeTempFile("sigma_", ".R", rstr);
+	
+	
+	system("/opt/R/lib64/R/bin/Rscript", args=scriptPath); // On HPC: /opt/R/lib64/R/bin/Rscript, On home: /usr/lib/R/bin/Rscript
+	deleteFile(scriptPath);
+	deleteFile(sigPath);
+	sigma_PD = strsplit(paste(readFile(PDpath)));
+	sigma_PD = asFloat(sigma_PD[sigma_PD != ""]);
+	
+	deleteFile(PDpath);
+
+	defineConstant("pleio_sigma", matrix(c(sigma_PD), nrow = 8));
 	
 	}
 	

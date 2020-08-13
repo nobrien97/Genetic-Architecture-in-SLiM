@@ -7,8 +7,7 @@
 # The nimexec command will parse it into what is required.
 
 #Fix up Account String
-#PBS -A UQ-RCC
-# PBS -A UQ-SCI-SMP
+#PBS -A qris-uq
 #
 #Use more resources if you need.
 #PBS -l select=2:ncpus=24:mem=120GB:ompthreads=2

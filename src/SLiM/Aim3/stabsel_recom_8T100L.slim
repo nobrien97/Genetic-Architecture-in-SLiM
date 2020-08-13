@@ -158,10 +158,6 @@ initialize() {
 	
 	sigPath = writeTempFile("sig_", ".csv", paste(sigma, ","));
 	
-	defineConstant("sigPathT", readFile(sigPath));
-	
-	writeFile("sig.csv", paste(paste(sigma, ","), "\n"));
-	
 	rstr = paste(c( '{', 
 							'library(MASS)',
 							'library(Matrix)', 
@@ -171,7 +167,6 @@ initialize() {
 							'write.matrix(sigma_PD, file = "' + PDpath + '")',
 							 '}'), sep="\n");
 							 
-	writeFile("sigma_PD", rstr);
 	
 	scriptPath = writeTempFile("sigma_", ".R", rstr);
 	
