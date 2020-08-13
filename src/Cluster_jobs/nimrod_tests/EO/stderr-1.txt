@@ -1,0 +1,6 @@
+
+ERROR (main): could not open input file: /home/s4395747/SLiM/Scripts/Nimrod/Pilot/AIM1/Inputs/null_8T100L.slim.
+cat: //state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/agent-70fcb95f-6c19-4386-bea6-ce67fc6e6c16/cf750fe1-cd5d-49a7-90a4-9a2e74e89320/tmp/out_8T_null_means.csv: No such file or directory
+cat: //state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/agent-70fcb95f-6c19-4386-bea6-ce67fc6e6c16/cf750fe1-cd5d-49a7-90a4-9a2e74e89320/tmp/out_8T_null_muts.csv: No such file or directory
+cat: //state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/agent-70fcb95f-6c19-4386-bea6-ce67fc6e6c16/cf750fe1-cd5d-49a7-90a4-9a2e74e89320/tmp/out_8T_null_chr.csv: No such file or directory
+cat: //state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/agent-70fcb95f-6c19-4386-bea6-ce67fc6e6c16/cf750fe1-cd5d-49a7-90a4-9a2e74e89320/tmp/out_8T_null_burnin.csv: No such file or directory

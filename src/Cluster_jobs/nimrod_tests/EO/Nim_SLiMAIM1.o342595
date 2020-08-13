@@ -1,0 +1,660 @@
+[Broker] BRK-1006 : Using configuration : N/A
+[Broker] BRK-1001 : Startup : Version: 7.1.2 Build: c2b15b0fb024985c94574dc04c474118fe296948
+[Broker] BRK-1010 : Platform : JVM : AdoptOpenJDK version: 11.0.8+10 OS : Linux version: 3.10.0-693.5.2.el7.x86_64 arch: amd64 cores: 24
+[Broker] BRK-1011 : Maximum Memory : Heap : 536,870,912 bytes Direct : 1,610,612,736 bytes
+[Broker] BRK-1017 : Process : PID : 17542
+[Broker] BRK-1002 : Starting : Listening on SSL port 44191
+[Broker] BRK-1004 : Qpid Broker Ready
+2020-08-13 15:19:30,646 main INFO Registered Log4j as the java.util.logging.LogManager.
+[13/08/2020 15:19:31:448 |               a.e.u.r.n.m.Master |  INFO] Configuration 'nimrod.master.run_rescan_interval' initialised to '60'
+[13/08/2020 15:19:31:450 |               a.e.u.r.n.m.Master |  INFO] Configuration 'nimrod.sched.default.job_buf_size' initialised to '10000'
+[13/08/2020 15:19:31:450 |               a.e.u.r.n.m.Master |  INFO] Configuration 'nimrod.master.heart.interval' initialised to '0'
+[13/08/2020 15:19:31:451 |               a.e.u.r.n.m.Master |  INFO] Configuration 'nimrod.master.amqp.tls_protocol' initialised to 'TLSv1.2'
+[13/08/2020 15:19:31:451 |               a.e.u.r.n.m.Master |  INFO] Configuration 'nimrod.sched.default.job_buf_refill_threshold' initialised to '1000'
+[13/08/2020 15:19:31:451 |               a.e.u.r.n.m.Master |  INFO] Configuration 'nimrod.master.heart.missed_threshold' initialised to '5'
+[13/08/2020 15:19:31:451 |               a.e.u.r.n.m.Master |  INFO] Configuration 'nimrod.master.heart.expiry_retry_count' initialised to '5'
+[13/08/2020 15:19:31:451 |               a.e.u.r.n.m.Master |  INFO] Configuration 'nimrod.sched.default.launch_penalty' initialised to '-10'
+[13/08/2020 15:19:31:451 |               a.e.u.r.n.m.Master |  INFO] Configuration 'nimrod.sched.default.spawn_cap' initialised to '2147483647'
+[13/08/2020 15:19:31:452 |               a.e.u.r.n.m.Master |  INFO] Configuration 'nimrod.master.heart.expiry_retry_interval' initialised to '5'
+[13/08/2020 15:19:31:500 |        a.e.u.r.n.s.OpenSSHClient | TRACE] OpenSSH: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control tn107c --
+[13/08/2020 15:19:31:502 | .e.u.r.n.m.s.DefaultJobScheduler |  INFO] Scheduling job 'localexp/1'
+[13/08/2020 15:19:31:502 | .e.u.r.n.m.s.DefaultJobScheduler |  INFO] Scheduling job 'localexp/2'
+[13/08/2020 15:19:31:502 | .e.u.r.n.m.s.DefaultJobScheduler |  INFO] Scheduling job 'localexp/3'
+[13/08/2020 15:19:31:502 | .e.u.r.n.m.s.DefaultJobScheduler |  INFO] Scheduling job 'localexp/4'
+[13/08/2020 15:19:31:502 | .e.u.r.n.m.s.DefaultJobScheduler |  INFO] Scheduling job 'localexp/5'
+[13/08/2020 15:19:31:502 |        a.e.u.r.n.s.OpenSSHClient | TRACE] Executing command: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control tn107c -- env
+[13/08/2020 15:19:31:502 | .e.u.r.n.m.s.DefaultJobScheduler |  INFO] Scheduling job 'localexp/6'
+[13/08/2020 15:19:31:502 | .e.u.r.n.m.s.DefaultJobScheduler |  INFO] Scheduling job 'localexp/7'
+[13/08/2020 15:19:31:503 | .e.u.r.n.m.s.DefaultJobScheduler |  INFO] Scheduling job 'localexp/8'
+[13/08/2020 15:19:31:503 | .e.u.r.n.m.s.DefaultJobScheduler |  INFO] Scheduling job 'localexp/9'
+[13/08/2020 15:19:31:503 | .e.u.r.n.m.s.DefaultJobScheduler |  INFO] Scheduling job 'localexp/10'
+[13/08/2020 15:19:31:503 | .e.u.r.n.m.s.DefaultJobScheduler |  INFO] Scheduling job 'localexp/11'
+[13/08/2020 15:19:31:503 | .e.u.r.n.m.s.DefaultJobScheduler |  INFO] Scheduling job 'localexp/12'
+[13/08/2020 15:19:31:503 | .e.u.r.n.m.s.DefaultJobScheduler |  INFO] Scheduling job 'localexp/13'
+[13/08/2020 15:19:31:503 | .e.u.r.n.m.s.DefaultJobScheduler |  INFO] Scheduling job 'localexp/14'
+[13/08/2020 15:19:31:503 | .e.u.r.n.m.s.DefaultJobScheduler |  INFO] Scheduling job 'localexp/15'
+[13/08/2020 15:19:31:503 | .e.u.r.n.m.s.DefaultJobScheduler |  INFO] Scheduling job 'localexp/16'
+[13/08/2020 15:19:31:504 | .e.u.r.n.m.s.DefaultJobScheduler |  INFO] Scheduling job 'localexp/17'
+[13/08/2020 15:19:31:504 | .e.u.r.n.m.s.DefaultJobScheduler |  INFO] Scheduling job 'localexp/18'
+[13/08/2020 15:19:31:504 | .e.u.r.n.m.s.DefaultJobScheduler |  INFO] Scheduling job 'localexp/19'
+[13/08/2020 15:19:31:504 | .e.u.r.n.m.s.DefaultJobScheduler |  INFO] Scheduling job 'localexp/20'
+[13/08/2020 15:19:31:504 | .e.u.r.n.m.s.DefaultJobScheduler |  INFO] Scheduling job 'localexp/21'
+[13/08/2020 15:19:31:504 | .e.u.r.n.m.s.DefaultJobScheduler |  INFO] Scheduling job 'localexp/22'
+[13/08/2020 15:19:31:504 | .e.u.r.n.m.s.DefaultJobScheduler |  INFO] Scheduling job 'localexp/23'
+[13/08/2020 15:19:31:504 | .e.u.r.n.m.s.DefaultJobScheduler |  INFO] Scheduling job 'localexp/24'
+[13/08/2020 15:19:31:787 | e.u.r.n.m.s.AgentDemandHeuristic |  INFO] Agent Demands:
+[13/08/2020 15:19:31:787 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] 24 pending jobs
+[13/08/2020 15:19:31:787 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] 0 held jobs
+[13/08/2020 15:19:31:883 |        a.e.u.r.n.s.OpenSSHClient | TRACE] Executing command: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control tn107c -- mkdir -p /home/s4395747/.nimrod/act-tn107c-RemoteActuator-1396827730
+[13/08/2020 15:19:32:188 |        a.e.u.r.n.s.OpenSSHClient | TRACE] Executing command: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control tn107c -- scp -q -p -t /home/s4395747/.nimrod/act-tn107c-RemoteActuator-1396827730/agent-x86_64-pc-linux-musl
+[13/08/2020 15:19:32:374 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] 0 pending jobs
+[13/08/2020 15:19:32:374 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] 24 held jobs
+[13/08/2020 15:19:32:377 |        a.e.u.r.n.s.OpenSSHClient | TRACE] Executing command: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control tn107c -- scp -q -p -t /home/s4395747/.nimrod/act-tn107c-RemoteActuator-1396827730/cacert.pem
+[13/08/2020 15:19:32:518 |        a.e.u.r.n.s.OpenSSHClient | TRACE] Executing command: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control -O exit tn107c
+[13/08/2020 15:19:33:380 |        a.e.u.r.n.s.OpenSSHClient | TRACE] OpenSSH: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control tn107c --
+[13/08/2020 15:19:33:381 |        a.e.u.r.n.s.OpenSSHClient | TRACE] Executing command: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control tn107c -- mkdir -p /state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/agent-efaa1b8b-d750-437d-a7c5-fa4276f027e4
+[13/08/2020 15:19:33:671 |        a.e.u.r.n.s.OpenSSHClient | TRACE] Executing command: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control tn107c -- scp -q -p -t /state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/agent-efaa1b8b-d750-437d-a7c5-fa4276f027e4/cert.pem
+[13/08/2020 15:19:33:814 |        a.e.u.r.n.s.OpenSSHClient | TRACE] Executing command: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control tn107c -- /home/s4395747/.nimrod/act-tn107c-RemoteActuator-1396827730/agent-x86_64-pc-linux-musl -c -
+[13/08/2020 15:19:33:948 |        a.e.u.r.n.s.OpenSSHClient | TRACE] Executing command: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control tn107c -- mkdir -p /state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/agent-70fcb95f-6c19-4386-bea6-ce67fc6e6c16
+[13/08/2020 15:19:34:081 |        a.e.u.r.n.s.OpenSSHClient | TRACE] Executing command: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control tn107c -- scp -q -p -t /state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/agent-70fcb95f-6c19-4386-bea6-ce67fc6e6c16/cert.pem
+[13/08/2020 15:19:34:216 |        a.e.u.r.n.s.OpenSSHClient | TRACE] Executing command: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control tn107c -- /home/s4395747/.nimrod/act-tn107c-RemoteActuator-1396827730/agent-x86_64-pc-linux-musl -c -
+[13/08/2020 15:19:34:351 |        a.e.u.r.n.s.OpenSSHClient | TRACE] Executing command: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control tn107c -- mkdir -p /state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/agent-d60a7703-8e9e-4f4b-b525-51cee3dd4df0
+[13/08/2020 15:19:34:485 |        a.e.u.r.n.s.OpenSSHClient | TRACE] Executing command: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control tn107c -- scp -q -p -t /state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/agent-d60a7703-8e9e-4f4b-b525-51cee3dd4df0/cert.pem
+[13/08/2020 15:19:34:487 |      a.e.u.r.n.r.a.LocalActuator |  INFO] Launched agent 2ee422b4-3999-4a64-89b8-52dad5d77495 with PID 17987
+[13/08/2020 15:19:34:488 |      a.e.u.r.n.r.a.LocalActuator |  INFO] Launched agent 685ac7ba-40aa-4748-9aa7-535fca5e0ef6 with PID 17989
+[13/08/2020 15:19:34:489 |      a.e.u.r.n.r.a.LocalActuator |  INFO] Launched agent e28f68dc-4c50-42d1-8aa3-ea550289e816 with PID 17993
+[13/08/2020 15:19:34:489 |      a.e.u.r.n.r.a.LocalActuator |  INFO] Launched agent 769e77b0-9390-4395-8813-b9d6fb61bf5c with PID 17997
+[13/08/2020 15:19:34:490 |      a.e.u.r.n.r.a.LocalActuator |  INFO] Launched agent 4c12d434-e393-4405-9fbd-2638d84c4e32 with PID 18001
+[13/08/2020 15:19:34:491 |      a.e.u.r.n.r.a.LocalActuator |  INFO] Launched agent d3ac66b8-de31-4a33-a20a-632e81e21889 with PID 18005
+[13/08/2020 15:19:34:491 |      a.e.u.r.n.r.a.LocalActuator |  INFO] Launched agent e28b390b-c83e-4fb6-a8cd-a2081818c60c with PID 18009
+[13/08/2020 15:19:34:492 |      a.e.u.r.n.r.a.LocalActuator |  INFO] Launched agent e0a064f4-bab6-4332-b285-299ce2b3bcde with PID 18013
+[13/08/2020 15:19:34:493 |      a.e.u.r.n.r.a.LocalActuator |  INFO] Launched agent d7efc56c-59ca-4fa4-bec7-765e4d1aa433 with PID 18017
+[13/08/2020 15:19:34:493 |      a.e.u.r.n.r.a.LocalActuator |  INFO] Launched agent f0488bf4-9cf2-4970-8c75-66f85f8b17fe with PID 18021
+[13/08/2020 15:19:34:494 |      a.e.u.r.n.r.a.LocalActuator |  INFO] Launched agent b0223b86-c61a-4c0e-987a-7314b7b2dd08 with PID 18025
+[13/08/2020 15:19:34:495 |      a.e.u.r.n.r.a.LocalActuator |  INFO] Launched agent 79b8776b-42aa-4584-9d6c-17179634db87 with PID 18029
+[13/08/2020 15:19:34:618 |        a.e.u.r.n.s.OpenSSHClient | TRACE] Executing command: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control tn107c -- /home/s4395747/.nimrod/act-tn107c-RemoteActuator-1396827730/agent-x86_64-pc-linux-musl -c -
+[13/08/2020 15:19:34:629 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(efaa1b8b-d750-437d-a7c5-fa4276f027e4, agent.hello)
+[13/08/2020 15:19:34:630 |               a.e.u.r.n.m.Master | DEBUG] Agent efaa1b8b-d750-437d-a7c5-fa4276f027e4: State change from WAITING_FOR_HELLO -> READY
+[13/08/2020 15:19:34:729 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(70fcb95f-6c19-4386-bea6-ce67fc6e6c16, agent.hello)
+[13/08/2020 15:19:34:730 |               a.e.u.r.n.m.Master | DEBUG] Agent 70fcb95f-6c19-4386-bea6-ce67fc6e6c16: State change from WAITING_FOR_HELLO -> READY
+[13/08/2020 15:19:34:750 |        a.e.u.r.n.s.OpenSSHClient | TRACE] Executing command: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control tn107c -- mkdir -p /state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/agent-765bfb94-bfed-4aeb-9fab-f42420443d40
+[13/08/2020 15:19:34:885 |        a.e.u.r.n.s.OpenSSHClient | TRACE] Executing command: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control tn107c -- scp -q -p -t /state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/agent-765bfb94-bfed-4aeb-9fab-f42420443d40/cert.pem
+[13/08/2020 15:19:35:033 |        a.e.u.r.n.s.OpenSSHClient | TRACE] Executing command: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control tn107c -- /home/s4395747/.nimrod/act-tn107c-RemoteActuator-1396827730/agent-x86_64-pc-linux-musl -c -
+[13/08/2020 15:19:35:165 |        a.e.u.r.n.s.OpenSSHClient | TRACE] Executing command: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control tn107c -- mkdir -p /state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/agent-dbe03615-536e-4e4a-bdd6-3e5d56a9a9df
+[13/08/2020 15:19:35:296 |        a.e.u.r.n.s.OpenSSHClient | TRACE] Executing command: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control tn107c -- scp -q -p -t /state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/agent-dbe03615-536e-4e4a-bdd6-3e5d56a9a9df/cert.pem
+[13/08/2020 15:19:35:430 |        a.e.u.r.n.s.OpenSSHClient | TRACE] Executing command: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control tn107c -- /home/s4395747/.nimrod/act-tn107c-RemoteActuator-1396827730/agent-x86_64-pc-linux-musl -c -
+[13/08/2020 15:19:35:564 |        a.e.u.r.n.s.OpenSSHClient | TRACE] Executing command: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control tn107c -- mkdir -p /state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/agent-c59a19f3-cd70-4de7-ae8a-f1246c7003a1
+[13/08/2020 15:19:35:699 |        a.e.u.r.n.s.OpenSSHClient | TRACE] Executing command: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control tn107c -- scp -q -p -t /state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/agent-c59a19f3-cd70-4de7-ae8a-f1246c7003a1/cert.pem
+[13/08/2020 15:19:35:835 |        a.e.u.r.n.s.OpenSSHClient | TRACE] Executing command: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control tn107c -- /home/s4395747/.nimrod/act-tn107c-RemoteActuator-1396827730/agent-x86_64-pc-linux-musl -c -
+[13/08/2020 15:19:35:968 |        a.e.u.r.n.s.OpenSSHClient | TRACE] Executing command: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control tn107c -- mkdir -p /state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/agent-a37217c0-c70b-43fb-8c30-18993fd97371
+[13/08/2020 15:19:36:103 |        a.e.u.r.n.s.OpenSSHClient | TRACE] Executing command: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control tn107c -- scp -q -p -t /state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/agent-a37217c0-c70b-43fb-8c30-18993fd97371/cert.pem
+[13/08/2020 15:19:36:154 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(efaa1b8b-d750-437d-a7c5-fa4276f027e4, tn107c, WAITING_FOR_HELLO, READY)
+[13/08/2020 15:19:36:154 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE] Node 'tn107c' successfully launched agent.
+[13/08/2020 15:19:36:154 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE]     Demand: 0 -> 0
+[13/08/2020 15:19:36:154 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE]   Spawning: 12 -> 11
+[13/08/2020 15:19:36:154 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(70fcb95f-6c19-4386-bea6-ce67fc6e6c16, tn107c, WAITING_FOR_HELLO, READY)
+[13/08/2020 15:19:36:154 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE] Node 'tn107c' successfully launched agent.
+[13/08/2020 15:19:36:155 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE]     Demand: 0 -> 0
+[13/08/2020 15:19:36:155 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE]   Spawning: 11 -> 10
+[13/08/2020 15:19:36:155 | e.u.r.n.m.s.AgentDemandHeuristic |  INFO] Agent Demands:
+[13/08/2020 15:19:36:155 | e.u.r.n.m.s.AgentDemandHeuristic |  INFO]             tn107c: Spawning: 10, Demand: 0
+[13/08/2020 15:19:36:155 | e.u.r.n.m.s.AgentDemandHeuristic |  INFO]             tn109d: Spawning: 12, Demand: 0
+[13/08/2020 15:19:36:156 |               a.e.u.r.n.m.Master |  INFO] Run job 'localexp/1' on agent '70fcb95f-6c19-4386-bea6-ce67fc6e6c16'
+[13/08/2020 15:19:36:160 |               a.e.u.r.n.m.Master | DEBUG] Agent 70fcb95f-6c19-4386-bea6-ce67fc6e6c16: State change from READY -> BUSY
+[13/08/2020 15:19:36:237 |        a.e.u.r.n.s.OpenSSHClient | TRACE] Executing command: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control tn107c -- /home/s4395747/.nimrod/act-tn107c-RemoteActuator-1396827730/agent-x86_64-pc-linux-musl -c -
+[13/08/2020 15:19:36:257 |               a.e.u.r.n.m.Master |  INFO] Run job 'localexp/2' on agent 'efaa1b8b-d750-437d-a7c5-fa4276f027e4'
+[13/08/2020 15:19:36:258 |               a.e.u.r.n.m.Master | DEBUG] Agent efaa1b8b-d750-437d-a7c5-fa4276f027e4: State change from READY -> BUSY
+[13/08/2020 15:19:36:368 |        a.e.u.r.n.s.OpenSSHClient | TRACE] Executing command: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control tn107c -- mkdir -p /state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/agent-aaa3e33a-c82d-4175-8b3f-cef05c3841b3
+[13/08/2020 15:19:36:503 |        a.e.u.r.n.s.OpenSSHClient | TRACE] Executing command: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control tn107c -- scp -q -p -t /state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/agent-aaa3e33a-c82d-4175-8b3f-cef05c3841b3/cert.pem
+[13/08/2020 15:19:36:539 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(769e77b0-9390-4395-8813-b9d6fb61bf5c, agent.hello)
+[13/08/2020 15:19:36:539 |               a.e.u.r.n.m.Master | DEBUG] Agent 769e77b0-9390-4395-8813-b9d6fb61bf5c: State change from WAITING_FOR_HELLO -> READY
+[13/08/2020 15:19:36:645 |        a.e.u.r.n.s.OpenSSHClient | TRACE] Executing command: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control tn107c -- /home/s4395747/.nimrod/act-tn107c-RemoteActuator-1396827730/agent-x86_64-pc-linux-musl -c -
+[13/08/2020 15:19:36:672 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(2ee422b4-3999-4a64-89b8-52dad5d77495, agent.hello)
+[13/08/2020 15:19:36:673 |               a.e.u.r.n.m.Master | DEBUG] Agent 2ee422b4-3999-4a64-89b8-52dad5d77495: State change from WAITING_FOR_HELLO -> READY
+[13/08/2020 15:19:36:784 |        a.e.u.r.n.s.OpenSSHClient | TRACE] Executing command: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control tn107c -- mkdir -p /state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/agent-d6b3d8b0-27b6-4fb8-890b-8b4add8ba826
+[13/08/2020 15:19:36:787 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(e28b390b-c83e-4fb6-a8cd-a2081818c60c, agent.hello)
+[13/08/2020 15:19:36:788 |               a.e.u.r.n.m.Master | DEBUG] Agent e28b390b-c83e-4fb6-a8cd-a2081818c60c: State change from WAITING_FOR_HELLO -> READY
+[13/08/2020 15:19:36:904 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(685ac7ba-40aa-4748-9aa7-535fca5e0ef6, agent.hello)
+[13/08/2020 15:19:36:904 |               a.e.u.r.n.m.Master | DEBUG] Agent 685ac7ba-40aa-4748-9aa7-535fca5e0ef6: State change from WAITING_FOR_HELLO -> READY
+[13/08/2020 15:19:36:927 |        a.e.u.r.n.s.OpenSSHClient | TRACE] Executing command: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control tn107c -- scp -q -p -t /state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/agent-d6b3d8b0-27b6-4fb8-890b-8b4add8ba826/cert.pem
+[13/08/2020 15:19:36:997 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(e28f68dc-4c50-42d1-8aa3-ea550289e816, agent.hello)
+[13/08/2020 15:19:36:998 |               a.e.u.r.n.m.Master | DEBUG] Agent e28f68dc-4c50-42d1-8aa3-ea550289e816: State change from WAITING_FOR_HELLO -> READY
+[13/08/2020 15:19:37:073 |        a.e.u.r.n.s.OpenSSHClient | TRACE] Executing command: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control tn107c -- /home/s4395747/.nimrod/act-tn107c-RemoteActuator-1396827730/agent-x86_64-pc-linux-musl -c -
+[13/08/2020 15:19:37:087 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(d3ac66b8-de31-4a33-a20a-632e81e21889, agent.hello)
+[13/08/2020 15:19:37:088 |               a.e.u.r.n.m.Master | DEBUG] Agent d3ac66b8-de31-4a33-a20a-632e81e21889: State change from WAITING_FOR_HELLO -> READY
+[13/08/2020 15:19:37:162 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(e0a064f4-bab6-4332-b285-299ce2b3bcde, agent.hello)
+[13/08/2020 15:19:37:163 |               a.e.u.r.n.m.Master | DEBUG] Agent e0a064f4-bab6-4332-b285-299ce2b3bcde: State change from WAITING_FOR_HELLO -> READY
+[13/08/2020 15:19:37:217 |        a.e.u.r.n.s.OpenSSHClient | TRACE] Executing command: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control tn107c -- mkdir -p /state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/agent-e7271f21-2a70-4b61-8bcf-db491c48ff9e
+[13/08/2020 15:19:37:254 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(4c12d434-e393-4405-9fbd-2638d84c4e32, agent.hello)
+[13/08/2020 15:19:37:254 |               a.e.u.r.n.m.Master | DEBUG] Agent 4c12d434-e393-4405-9fbd-2638d84c4e32: State change from WAITING_FOR_HELLO -> READY
+[13/08/2020 15:19:37:337 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(b0223b86-c61a-4c0e-987a-7314b7b2dd08, agent.hello)
+[13/08/2020 15:19:37:338 |               a.e.u.r.n.m.Master | DEBUG] Agent b0223b86-c61a-4c0e-987a-7314b7b2dd08: State change from WAITING_FOR_HELLO -> READY
+[13/08/2020 15:19:37:359 |        a.e.u.r.n.s.OpenSSHClient | TRACE] Executing command: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control tn107c -- scp -q -p -t /state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/agent-e7271f21-2a70-4b61-8bcf-db491c48ff9e/cert.pem
+[13/08/2020 15:19:37:454 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(f0488bf4-9cf2-4970-8c75-66f85f8b17fe, agent.hello)
+[13/08/2020 15:19:37:455 |               a.e.u.r.n.m.Master | DEBUG] Agent f0488bf4-9cf2-4970-8c75-66f85f8b17fe: State change from WAITING_FOR_HELLO -> READY
+[13/08/2020 15:19:37:501 |        a.e.u.r.n.s.OpenSSHClient | TRACE] Executing command: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control tn107c -- /home/s4395747/.nimrod/act-tn107c-RemoteActuator-1396827730/agent-x86_64-pc-linux-musl -c -
+[13/08/2020 15:19:37:538 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(d7efc56c-59ca-4fa4-bec7-765e4d1aa433, agent.hello)
+[13/08/2020 15:19:37:538 |               a.e.u.r.n.m.Master | DEBUG] Agent d7efc56c-59ca-4fa4-bec7-765e4d1aa433: State change from WAITING_FOR_HELLO -> READY
+[13/08/2020 15:19:37:621 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(79b8776b-42aa-4584-9d6c-17179634db87, agent.hello)
+[13/08/2020 15:19:37:621 |               a.e.u.r.n.m.Master | DEBUG] Agent 79b8776b-42aa-4584-9d6c-17179634db87: State change from WAITING_FOR_HELLO -> READY
+[13/08/2020 15:19:37:643 |        a.e.u.r.n.s.OpenSSHClient | TRACE] Executing command: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control tn107c -- mkdir -p /state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/agent-cb9017e2-fc3d-4268-8f94-663ddecccc44
+[13/08/2020 15:19:37:704 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(d60a7703-8e9e-4f4b-b525-51cee3dd4df0, agent.hello)
+[13/08/2020 15:19:37:705 |               a.e.u.r.n.m.Master | DEBUG] Agent d60a7703-8e9e-4f4b-b525-51cee3dd4df0: State change from WAITING_FOR_HELLO -> READY
+[13/08/2020 15:19:37:785 |        a.e.u.r.n.s.OpenSSHClient | TRACE] Executing command: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control tn107c -- scp -q -p -t /state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/agent-cb9017e2-fc3d-4268-8f94-663ddecccc44/cert.pem
+[13/08/2020 15:19:37:806 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(765bfb94-bfed-4aeb-9fab-f42420443d40, agent.hello)
+[13/08/2020 15:19:37:806 |               a.e.u.r.n.m.Master | DEBUG] Agent 765bfb94-bfed-4aeb-9fab-f42420443d40: State change from WAITING_FOR_HELLO -> READY
+[13/08/2020 15:19:37:921 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(dbe03615-536e-4e4a-bdd6-3e5d56a9a9df, agent.hello)
+[13/08/2020 15:19:37:921 |               a.e.u.r.n.m.Master | DEBUG] Agent dbe03615-536e-4e4a-bdd6-3e5d56a9a9df: State change from WAITING_FOR_HELLO -> READY
+[13/08/2020 15:19:37:927 |        a.e.u.r.n.s.OpenSSHClient | TRACE] Executing command: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control tn107c -- /home/s4395747/.nimrod/act-tn107c-RemoteActuator-1396827730/agent-x86_64-pc-linux-musl -c -
+[13/08/2020 15:19:38:004 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(c59a19f3-cd70-4de7-ae8a-f1246c7003a1, agent.hello)
+[13/08/2020 15:19:38:005 |               a.e.u.r.n.m.Master | DEBUG] Agent c59a19f3-cd70-4de7-ae8a-f1246c7003a1: State change from WAITING_FOR_HELLO -> READY
+[13/08/2020 15:19:38:064 |        a.e.u.r.n.s.OpenSSHClient | TRACE] Executing command: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control tn107c -- mkdir -p /state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/agent-474040f6-8245-4dd4-af77-4d0ce8102b75
+[13/08/2020 15:19:38:087 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(70fcb95f-6c19-4386-bea6-ce67fc6e6c16, agent.update)
+[13/08/2020 15:19:38:088 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(70fcb95f-6c19-4386-bea6-ce67fc6e6c16, agent.update)
+[13/08/2020 15:19:38:088 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(70fcb95f-6c19-4386-bea6-ce67fc6e6c16, tn107c, READY, BUSY)
+[13/08/2020 15:19:38:171 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(efaa1b8b-d750-437d-a7c5-fa4276f027e4, tn107c, READY, BUSY)
+[13/08/2020 15:19:38:201 |        a.e.u.r.n.s.OpenSSHClient | TRACE] Executing command: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control tn107c -- scp -q -p -t /state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/agent-474040f6-8245-4dd4-af77-4d0ce8102b75/cert.pem
+[13/08/2020 15:19:38:272 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(769e77b0-9390-4395-8813-b9d6fb61bf5c, tn109d, WAITING_FOR_HELLO, READY)
+[13/08/2020 15:19:38:272 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE] Node 'tn109d' successfully launched agent.
+[13/08/2020 15:19:38:272 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE]     Demand: 0 -> 0
+[13/08/2020 15:19:38:272 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE]   Spawning: 12 -> 11
+[13/08/2020 15:19:38:272 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(2ee422b4-3999-4a64-89b8-52dad5d77495, tn109d, WAITING_FOR_HELLO, READY)
+[13/08/2020 15:19:38:272 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE] Node 'tn109d' successfully launched agent.
+[13/08/2020 15:19:38:273 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE]     Demand: 0 -> 0
+[13/08/2020 15:19:38:273 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE]   Spawning: 11 -> 10
+[13/08/2020 15:19:38:273 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(e28b390b-c83e-4fb6-a8cd-a2081818c60c, tn109d, WAITING_FOR_HELLO, READY)
+[13/08/2020 15:19:38:273 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE] Node 'tn109d' successfully launched agent.
+[13/08/2020 15:19:38:273 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE]     Demand: 0 -> 0
+[13/08/2020 15:19:38:273 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE]   Spawning: 10 -> 9
+[13/08/2020 15:19:38:273 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(685ac7ba-40aa-4748-9aa7-535fca5e0ef6, tn109d, WAITING_FOR_HELLO, READY)
+[13/08/2020 15:19:38:273 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE] Node 'tn109d' successfully launched agent.
+[13/08/2020 15:19:38:273 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE]     Demand: 0 -> 0
+[13/08/2020 15:19:38:273 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE]   Spawning: 9 -> 8
+[13/08/2020 15:19:38:273 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(e28f68dc-4c50-42d1-8aa3-ea550289e816, tn109d, WAITING_FOR_HELLO, READY)
+[13/08/2020 15:19:38:273 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE] Node 'tn109d' successfully launched agent.
+[13/08/2020 15:19:38:273 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE]     Demand: 0 -> 0
+[13/08/2020 15:19:38:274 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE]   Spawning: 8 -> 7
+[13/08/2020 15:19:38:274 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(d3ac66b8-de31-4a33-a20a-632e81e21889, tn109d, WAITING_FOR_HELLO, READY)
+[13/08/2020 15:19:38:274 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE] Node 'tn109d' successfully launched agent.
+[13/08/2020 15:19:38:274 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE]     Demand: 0 -> 0
+[13/08/2020 15:19:38:274 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE]   Spawning: 7 -> 6
+[13/08/2020 15:19:38:274 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(e0a064f4-bab6-4332-b285-299ce2b3bcde, tn109d, WAITING_FOR_HELLO, READY)
+[13/08/2020 15:19:38:274 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE] Node 'tn109d' successfully launched agent.
+[13/08/2020 15:19:38:274 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE]     Demand: 0 -> 0
+[13/08/2020 15:19:38:274 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE]   Spawning: 6 -> 5
+[13/08/2020 15:19:38:274 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(4c12d434-e393-4405-9fbd-2638d84c4e32, tn109d, WAITING_FOR_HELLO, READY)
+[13/08/2020 15:19:38:274 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE] Node 'tn109d' successfully launched agent.
+[13/08/2020 15:19:38:274 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE]     Demand: 0 -> 0
+[13/08/2020 15:19:38:274 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE]   Spawning: 5 -> 4
+[13/08/2020 15:19:38:274 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(b0223b86-c61a-4c0e-987a-7314b7b2dd08, tn109d, WAITING_FOR_HELLO, READY)
+[13/08/2020 15:19:38:274 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE] Node 'tn109d' successfully launched agent.
+[13/08/2020 15:19:38:274 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE]     Demand: 0 -> 0
+[13/08/2020 15:19:38:275 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE]   Spawning: 4 -> 3
+[13/08/2020 15:19:38:275 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(f0488bf4-9cf2-4970-8c75-66f85f8b17fe, tn109d, WAITING_FOR_HELLO, READY)
+[13/08/2020 15:19:38:275 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE] Node 'tn109d' successfully launched agent.
+[13/08/2020 15:19:38:275 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE]     Demand: 0 -> 0
+[13/08/2020 15:19:38:275 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE]   Spawning: 3 -> 2
+[13/08/2020 15:19:38:275 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(d7efc56c-59ca-4fa4-bec7-765e4d1aa433, tn109d, WAITING_FOR_HELLO, READY)
+[13/08/2020 15:19:38:275 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE] Node 'tn109d' successfully launched agent.
+[13/08/2020 15:19:38:275 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE]     Demand: 0 -> 0
+[13/08/2020 15:19:38:275 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE]   Spawning: 2 -> 1
+[13/08/2020 15:19:38:275 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(79b8776b-42aa-4584-9d6c-17179634db87, tn109d, WAITING_FOR_HELLO, READY)
+[13/08/2020 15:19:38:275 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE] Node 'tn109d' successfully launched agent.
+[13/08/2020 15:19:38:275 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE]     Demand: 0 -> 0
+[13/08/2020 15:19:38:275 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE]   Spawning: 1 -> 0
+[13/08/2020 15:19:38:276 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(d60a7703-8e9e-4f4b-b525-51cee3dd4df0, tn107c, WAITING_FOR_HELLO, READY)
+[13/08/2020 15:19:38:276 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE] Node 'tn107c' successfully launched agent.
+[13/08/2020 15:19:38:276 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE]     Demand: 0 -> 0
+[13/08/2020 15:19:38:276 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE]   Spawning: 10 -> 9
+[13/08/2020 15:19:38:276 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(765bfb94-bfed-4aeb-9fab-f42420443d40, tn107c, WAITING_FOR_HELLO, READY)
+[13/08/2020 15:19:38:276 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE] Node 'tn107c' successfully launched agent.
+[13/08/2020 15:19:38:276 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE]     Demand: 0 -> 0
+[13/08/2020 15:19:38:276 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE]   Spawning: 9 -> 8
+[13/08/2020 15:19:38:276 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(dbe03615-536e-4e4a-bdd6-3e5d56a9a9df, tn107c, WAITING_FOR_HELLO, READY)
+[13/08/2020 15:19:38:276 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE] Node 'tn107c' successfully launched agent.
+[13/08/2020 15:19:38:276 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE]     Demand: 0 -> 0
+[13/08/2020 15:19:38:276 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE]   Spawning: 8 -> 7
+[13/08/2020 15:19:38:276 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(c59a19f3-cd70-4de7-ae8a-f1246c7003a1, tn107c, WAITING_FOR_HELLO, READY)
+[13/08/2020 15:19:38:277 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE] Node 'tn107c' successfully launched agent.
+[13/08/2020 15:19:38:277 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE]     Demand: 0 -> 0
+[13/08/2020 15:19:38:277 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE]   Spawning: 7 -> 6
+[13/08/2020 15:19:38:347 |        a.e.u.r.n.s.OpenSSHClient | TRACE] Executing command: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control tn107c -- /home/s4395747/.nimrod/act-tn107c-RemoteActuator-1396827730/agent-x86_64-pc-linux-musl -c -
+[13/08/2020 15:19:38:463 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] 0 pending jobs
+[13/08/2020 15:19:38:463 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] 22 held jobs
+[13/08/2020 15:19:38:464 |               a.e.u.r.n.m.Master |  INFO] Run job 'localexp/3' on agent 'd7efc56c-59ca-4fa4-bec7-765e4d1aa433'
+[13/08/2020 15:19:38:464 |               a.e.u.r.n.m.Master | DEBUG] Agent d7efc56c-59ca-4fa4-bec7-765e4d1aa433: State change from READY -> BUSY
+[13/08/2020 15:19:38:487 |        a.e.u.r.n.s.OpenSSHClient | TRACE] Executing command: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control -O exit tn107c
+[13/08/2020 15:19:38:564 |               a.e.u.r.n.m.Master |  INFO] Run job 'localexp/4' on agent '765bfb94-bfed-4aeb-9fab-f42420443d40'
+[13/08/2020 15:19:38:565 |               a.e.u.r.n.m.Master | DEBUG] Agent 765bfb94-bfed-4aeb-9fab-f42420443d40: State change from READY -> BUSY
+[13/08/2020 15:19:38:656 |               a.e.u.r.n.m.Master |  INFO] Run job 'localexp/5' on agent 'dbe03615-536e-4e4a-bdd6-3e5d56a9a9df'
+[13/08/2020 15:19:38:656 |               a.e.u.r.n.m.Master | DEBUG] Agent dbe03615-536e-4e4a-bdd6-3e5d56a9a9df: State change from READY -> BUSY
+[13/08/2020 15:19:38:782 |               a.e.u.r.n.m.Master |  INFO] Run job 'localexp/6' on agent '4c12d434-e393-4405-9fbd-2638d84c4e32'
+[13/08/2020 15:19:38:782 |               a.e.u.r.n.m.Master | DEBUG] Agent 4c12d434-e393-4405-9fbd-2638d84c4e32: State change from READY -> BUSY
+[13/08/2020 15:19:38:923 |               a.e.u.r.n.m.Master |  INFO] Run job 'localexp/7' on agent '2ee422b4-3999-4a64-89b8-52dad5d77495'
+[13/08/2020 15:19:38:924 |               a.e.u.r.n.m.Master | DEBUG] Agent 2ee422b4-3999-4a64-89b8-52dad5d77495: State change from READY -> BUSY
+[13/08/2020 15:19:39:048 |               a.e.u.r.n.m.Master |  INFO] Run job 'localexp/8' on agent 'd3ac66b8-de31-4a33-a20a-632e81e21889'
+[13/08/2020 15:19:39:048 |               a.e.u.r.n.m.Master | DEBUG] Agent d3ac66b8-de31-4a33-a20a-632e81e21889: State change from READY -> BUSY
+[13/08/2020 15:19:39:199 |               a.e.u.r.n.m.Master |  INFO] Run job 'localexp/9' on agent 'e0a064f4-bab6-4332-b285-299ce2b3bcde'
+[13/08/2020 15:19:39:199 |               a.e.u.r.n.m.Master | DEBUG] Agent e0a064f4-bab6-4332-b285-299ce2b3bcde: State change from READY -> BUSY
+[13/08/2020 15:19:39:348 |               a.e.u.r.n.m.Master |  INFO] Run job 'localexp/10' on agent 'c59a19f3-cd70-4de7-ae8a-f1246c7003a1'
+[13/08/2020 15:19:39:349 |               a.e.u.r.n.m.Master | DEBUG] Agent c59a19f3-cd70-4de7-ae8a-f1246c7003a1: State change from READY -> BUSY
+[13/08/2020 15:19:39:482 |               a.e.u.r.n.m.Master |  INFO] Run job 'localexp/11' on agent '685ac7ba-40aa-4748-9aa7-535fca5e0ef6'
+[13/08/2020 15:19:39:483 |               a.e.u.r.n.m.Master | DEBUG] Agent 685ac7ba-40aa-4748-9aa7-535fca5e0ef6: State change from READY -> BUSY
+[13/08/2020 15:19:39:615 |               a.e.u.r.n.m.Master |  INFO] Run job 'localexp/12' on agent 'd60a7703-8e9e-4f4b-b525-51cee3dd4df0'
+[13/08/2020 15:19:39:615 |               a.e.u.r.n.m.Master | DEBUG] Agent d60a7703-8e9e-4f4b-b525-51cee3dd4df0: State change from READY -> BUSY
+[13/08/2020 15:19:39:740 |               a.e.u.r.n.m.Master |  INFO] Run job 'localexp/13' on agent '769e77b0-9390-4395-8813-b9d6fb61bf5c'
+[13/08/2020 15:19:39:740 |               a.e.u.r.n.m.Master | DEBUG] Agent 769e77b0-9390-4395-8813-b9d6fb61bf5c: State change from READY -> BUSY
+[13/08/2020 15:19:39:882 |               a.e.u.r.n.m.Master |  INFO] Run job 'localexp/14' on agent 'e28f68dc-4c50-42d1-8aa3-ea550289e816'
+[13/08/2020 15:19:39:882 |               a.e.u.r.n.m.Master | DEBUG] Agent e28f68dc-4c50-42d1-8aa3-ea550289e816: State change from READY -> BUSY
+[13/08/2020 15:19:40:115 |               a.e.u.r.n.m.Master |  INFO] Run job 'localexp/15' on agent '79b8776b-42aa-4584-9d6c-17179634db87'
+[13/08/2020 15:19:40:115 |               a.e.u.r.n.m.Master | DEBUG] Agent 79b8776b-42aa-4584-9d6c-17179634db87: State change from READY -> BUSY
+[13/08/2020 15:19:40:249 |               a.e.u.r.n.m.Master |  INFO] Run job 'localexp/16' on agent 'e28b390b-c83e-4fb6-a8cd-a2081818c60c'
+[13/08/2020 15:19:40:249 |               a.e.u.r.n.m.Master | DEBUG] Agent e28b390b-c83e-4fb6-a8cd-a2081818c60c: State change from READY -> BUSY
+[13/08/2020 15:19:40:365 |               a.e.u.r.n.m.Master |  INFO] Run job 'localexp/17' on agent 'f0488bf4-9cf2-4970-8c75-66f85f8b17fe'
+[13/08/2020 15:19:40:365 |               a.e.u.r.n.m.Master | DEBUG] Agent f0488bf4-9cf2-4970-8c75-66f85f8b17fe: State change from READY -> BUSY
+[13/08/2020 15:19:40:499 |               a.e.u.r.n.m.Master |  INFO] Run job 'localexp/18' on agent 'b0223b86-c61a-4c0e-987a-7314b7b2dd08'
+[13/08/2020 15:19:40:499 |               a.e.u.r.n.m.Master | DEBUG] Agent b0223b86-c61a-4c0e-987a-7314b7b2dd08: State change from READY -> BUSY
+[13/08/2020 15:19:40:781 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(70fcb95f-6c19-4386-bea6-ce67fc6e6c16, agent.update)
+[13/08/2020 15:19:40:782 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(efaa1b8b-d750-437d-a7c5-fa4276f027e4, agent.update)
+[13/08/2020 15:19:40:782 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(a37217c0-c70b-43fb-8c30-18993fd97371, agent.hello)
+[13/08/2020 15:19:40:782 |               a.e.u.r.n.m.Master | DEBUG] Agent a37217c0-c70b-43fb-8c30-18993fd97371: State change from WAITING_FOR_HELLO -> READY
+[13/08/2020 15:19:40:897 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(efaa1b8b-d750-437d-a7c5-fa4276f027e4, agent.update)
+[13/08/2020 15:19:40:897 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(efaa1b8b-d750-437d-a7c5-fa4276f027e4, agent.update)
+[13/08/2020 15:19:40:898 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(aaa3e33a-c82d-4175-8b3f-cef05c3841b3, agent.hello)
+[13/08/2020 15:19:40:898 |               a.e.u.r.n.m.Master | DEBUG] Agent aaa3e33a-c82d-4175-8b3f-cef05c3841b3: State change from WAITING_FOR_HELLO -> READY
+[13/08/2020 15:19:41:081 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(d6b3d8b0-27b6-4fb8-890b-8b4add8ba826, agent.hello)
+[13/08/2020 15:19:41:081 |               a.e.u.r.n.m.Master | DEBUG] Agent d6b3d8b0-27b6-4fb8-890b-8b4add8ba826: State change from WAITING_FOR_HELLO -> READY
+[13/08/2020 15:19:41:222 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(e7271f21-2a70-4b61-8bcf-db491c48ff9e, agent.hello)
+[13/08/2020 15:19:41:223 |               a.e.u.r.n.m.Master | DEBUG] Agent e7271f21-2a70-4b61-8bcf-db491c48ff9e: State change from WAITING_FOR_HELLO -> READY
+[13/08/2020 15:19:41:348 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(cb9017e2-fc3d-4268-8f94-663ddecccc44, agent.hello)
+[13/08/2020 15:19:41:348 |               a.e.u.r.n.m.Master | DEBUG] Agent cb9017e2-fc3d-4268-8f94-663ddecccc44: State change from WAITING_FOR_HELLO -> READY
+[13/08/2020 15:19:41:472 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(474040f6-8245-4dd4-af77-4d0ce8102b75, agent.hello)
+[13/08/2020 15:19:41:473 |               a.e.u.r.n.m.Master | DEBUG] Agent 474040f6-8245-4dd4-af77-4d0ce8102b75: State change from WAITING_FOR_HELLO -> READY
+[13/08/2020 15:19:41:606 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(d7efc56c-59ca-4fa4-bec7-765e4d1aa433, agent.update)
+[13/08/2020 15:19:41:606 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(765bfb94-bfed-4aeb-9fab-f42420443d40, agent.update)
+[13/08/2020 15:19:41:606 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(d7efc56c-59ca-4fa4-bec7-765e4d1aa433, agent.update)
+[13/08/2020 15:19:41:606 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(765bfb94-bfed-4aeb-9fab-f42420443d40, agent.update)
+[13/08/2020 15:19:41:606 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(d7efc56c-59ca-4fa4-bec7-765e4d1aa433, agent.update)
+[13/08/2020 15:19:41:606 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(765bfb94-bfed-4aeb-9fab-f42420443d40, agent.update)
+[13/08/2020 15:19:41:607 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(dbe03615-536e-4e4a-bdd6-3e5d56a9a9df, agent.update)
+[13/08/2020 15:19:41:607 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(dbe03615-536e-4e4a-bdd6-3e5d56a9a9df, agent.update)
+[13/08/2020 15:19:41:607 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(4c12d434-e393-4405-9fbd-2638d84c4e32, agent.update)
+[13/08/2020 15:19:41:607 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(dbe03615-536e-4e4a-bdd6-3e5d56a9a9df, agent.update)
+[13/08/2020 15:19:41:607 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(4c12d434-e393-4405-9fbd-2638d84c4e32, agent.update)
+[13/08/2020 15:19:41:607 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(4c12d434-e393-4405-9fbd-2638d84c4e32, agent.update)
+[13/08/2020 15:19:41:607 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(2ee422b4-3999-4a64-89b8-52dad5d77495, agent.update)
+[13/08/2020 15:19:41:607 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(d3ac66b8-de31-4a33-a20a-632e81e21889, agent.update)
+[13/08/2020 15:19:41:607 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(2ee422b4-3999-4a64-89b8-52dad5d77495, agent.update)
+[13/08/2020 15:19:41:607 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(efaa1b8b-d750-437d-a7c5-fa4276f027e4, agent.update)
+[13/08/2020 15:19:41:607 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(d3ac66b8-de31-4a33-a20a-632e81e21889, agent.update)
+[13/08/2020 15:19:41:607 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(70fcb95f-6c19-4386-bea6-ce67fc6e6c16, agent.update)
+[13/08/2020 15:19:41:607 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(2ee422b4-3999-4a64-89b8-52dad5d77495, agent.update)
+[13/08/2020 15:19:41:607 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(d3ac66b8-de31-4a33-a20a-632e81e21889, agent.update)
+[13/08/2020 15:19:41:607 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(efaa1b8b-d750-437d-a7c5-fa4276f027e4, agent.update)
+[13/08/2020 15:19:41:608 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(70fcb95f-6c19-4386-bea6-ce67fc6e6c16, agent.update)
+[13/08/2020 15:19:42:981 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(d7efc56c-59ca-4fa4-bec7-765e4d1aa433, tn109d, READY, BUSY)
+[13/08/2020 15:19:43:082 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(765bfb94-bfed-4aeb-9fab-f42420443d40, tn107c, READY, BUSY)
+[13/08/2020 15:19:43:190 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(dbe03615-536e-4e4a-bdd6-3e5d56a9a9df, tn107c, READY, BUSY)
+[13/08/2020 15:19:43:298 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(4c12d434-e393-4405-9fbd-2638d84c4e32, tn109d, READY, BUSY)
+[13/08/2020 15:19:43:398 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(2ee422b4-3999-4a64-89b8-52dad5d77495, tn109d, READY, BUSY)
+[13/08/2020 15:19:43:498 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(d3ac66b8-de31-4a33-a20a-632e81e21889, tn109d, READY, BUSY)
+[13/08/2020 15:19:43:598 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(e0a064f4-bab6-4332-b285-299ce2b3bcde, tn109d, READY, BUSY)
+[13/08/2020 15:19:43:698 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(c59a19f3-cd70-4de7-ae8a-f1246c7003a1, tn107c, READY, BUSY)
+[13/08/2020 15:19:43:807 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(685ac7ba-40aa-4748-9aa7-535fca5e0ef6, tn109d, READY, BUSY)
+[13/08/2020 15:19:43:915 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(d60a7703-8e9e-4f4b-b525-51cee3dd4df0, tn107c, READY, BUSY)
+[13/08/2020 15:19:44:032 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(769e77b0-9390-4395-8813-b9d6fb61bf5c, tn109d, READY, BUSY)
+[13/08/2020 15:19:44:157 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(e28f68dc-4c50-42d1-8aa3-ea550289e816, tn109d, READY, BUSY)
+[13/08/2020 15:19:44:307 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(79b8776b-42aa-4584-9d6c-17179634db87, tn109d, READY, BUSY)
+[13/08/2020 15:19:44:432 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(e28b390b-c83e-4fb6-a8cd-a2081818c60c, tn109d, READY, BUSY)
+[13/08/2020 15:19:44:557 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(f0488bf4-9cf2-4970-8c75-66f85f8b17fe, tn109d, READY, BUSY)
+[13/08/2020 15:19:44:674 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(b0223b86-c61a-4c0e-987a-7314b7b2dd08, tn109d, READY, BUSY)
+[13/08/2020 15:19:45:041 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(a37217c0-c70b-43fb-8c30-18993fd97371, tn107c, WAITING_FOR_HELLO, READY)
+[13/08/2020 15:19:45:041 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE] Node 'tn107c' successfully launched agent.
+[13/08/2020 15:19:45:041 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE]     Demand: 0 -> 0
+[13/08/2020 15:19:45:041 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE]   Spawning: 6 -> 5
+[13/08/2020 15:19:45:274 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(aaa3e33a-c82d-4175-8b3f-cef05c3841b3, tn107c, WAITING_FOR_HELLO, READY)
+[13/08/2020 15:19:45:274 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE] Node 'tn107c' successfully launched agent.
+[13/08/2020 15:19:45:274 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE]     Demand: 0 -> 0
+[13/08/2020 15:19:45:274 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE]   Spawning: 5 -> 4
+[13/08/2020 15:19:45:274 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(d6b3d8b0-27b6-4fb8-890b-8b4add8ba826, tn107c, WAITING_FOR_HELLO, READY)
+[13/08/2020 15:19:45:274 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE] Node 'tn107c' successfully launched agent.
+[13/08/2020 15:19:45:274 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE]     Demand: 0 -> 0
+[13/08/2020 15:19:45:274 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE]   Spawning: 4 -> 3
+[13/08/2020 15:19:45:275 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(e7271f21-2a70-4b61-8bcf-db491c48ff9e, tn107c, WAITING_FOR_HELLO, READY)
+[13/08/2020 15:19:45:275 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE] Node 'tn107c' successfully launched agent.
+[13/08/2020 15:19:45:275 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE]     Demand: 0 -> 0
+[13/08/2020 15:19:45:275 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE]   Spawning: 3 -> 2
+[13/08/2020 15:19:45:275 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(cb9017e2-fc3d-4268-8f94-663ddecccc44, tn107c, WAITING_FOR_HELLO, READY)
+[13/08/2020 15:19:45:275 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE] Node 'tn107c' successfully launched agent.
+[13/08/2020 15:19:45:275 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE]     Demand: 0 -> 0
+[13/08/2020 15:19:45:275 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE]   Spawning: 2 -> 1
+[13/08/2020 15:19:45:275 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(474040f6-8245-4dd4-af77-4d0ce8102b75, tn107c, WAITING_FOR_HELLO, READY)
+[13/08/2020 15:19:45:275 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE] Node 'tn107c' successfully launched agent.
+[13/08/2020 15:19:45:275 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE]     Demand: 0 -> 0
+[13/08/2020 15:19:45:275 | e.u.r.n.m.s.AgentDemandHeuristic | TRACE]   Spawning: 1 -> 0
+[13/08/2020 15:19:47:208 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] 0 pending jobs
+[13/08/2020 15:19:47:208 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] 6 held jobs
+[13/08/2020 15:19:47:209 |               a.e.u.r.n.m.Master |  INFO] Run job 'localexp/19' on agent 'aaa3e33a-c82d-4175-8b3f-cef05c3841b3'
+[13/08/2020 15:19:47:210 |               a.e.u.r.n.m.Master | DEBUG] Agent aaa3e33a-c82d-4175-8b3f-cef05c3841b3: State change from READY -> BUSY
+[13/08/2020 15:19:47:293 |               a.e.u.r.n.m.Master |  INFO] Run job 'localexp/20' on agent 'a37217c0-c70b-43fb-8c30-18993fd97371'
+[13/08/2020 15:19:47:293 |               a.e.u.r.n.m.Master | DEBUG] Agent a37217c0-c70b-43fb-8c30-18993fd97371: State change from READY -> BUSY
+[13/08/2020 15:19:47:376 |               a.e.u.r.n.m.Master |  INFO] Run job 'localexp/21' on agent '474040f6-8245-4dd4-af77-4d0ce8102b75'
+[13/08/2020 15:19:47:377 |               a.e.u.r.n.m.Master | DEBUG] Agent 474040f6-8245-4dd4-af77-4d0ce8102b75: State change from READY -> BUSY
+[13/08/2020 15:19:47:477 |               a.e.u.r.n.m.Master |  INFO] Run job 'localexp/22' on agent 'cb9017e2-fc3d-4268-8f94-663ddecccc44'
+[13/08/2020 15:19:47:477 |               a.e.u.r.n.m.Master | DEBUG] Agent cb9017e2-fc3d-4268-8f94-663ddecccc44: State change from READY -> BUSY
+[13/08/2020 15:19:47:615 |               a.e.u.r.n.m.Master |  INFO] Run job 'localexp/23' on agent 'e7271f21-2a70-4b61-8bcf-db491c48ff9e'
+[13/08/2020 15:19:47:615 |               a.e.u.r.n.m.Master | DEBUG] Agent e7271f21-2a70-4b61-8bcf-db491c48ff9e: State change from READY -> BUSY
+[13/08/2020 15:19:47:756 |               a.e.u.r.n.m.Master |  INFO] Run job 'localexp/24' on agent 'd6b3d8b0-27b6-4fb8-890b-8b4add8ba826'
+[13/08/2020 15:19:47:756 |               a.e.u.r.n.m.Master | DEBUG] Agent d6b3d8b0-27b6-4fb8-890b-8b4add8ba826: State change from READY -> BUSY
+[13/08/2020 15:19:48:050 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(e0a064f4-bab6-4332-b285-299ce2b3bcde, agent.update)
+[13/08/2020 15:19:48:050 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(efaa1b8b-d750-437d-a7c5-fa4276f027e4, agent.update)
+[13/08/2020 15:19:48:050 |               a.e.u.r.n.m.Master | DEBUG] Agent efaa1b8b-d750-437d-a7c5-fa4276f027e4: State change from BUSY -> READY
+[13/08/2020 15:19:48:200 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(70fcb95f-6c19-4386-bea6-ce67fc6e6c16, agent.update)
+[13/08/2020 15:19:48:200 |               a.e.u.r.n.m.Master | DEBUG] Agent 70fcb95f-6c19-4386-bea6-ce67fc6e6c16: State change from BUSY -> READY
+[13/08/2020 15:19:48:341 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(c59a19f3-cd70-4de7-ae8a-f1246c7003a1, agent.update)
+[13/08/2020 15:19:48:341 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(e0a064f4-bab6-4332-b285-299ce2b3bcde, agent.update)
+[13/08/2020 15:19:48:342 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(e0a064f4-bab6-4332-b285-299ce2b3bcde, agent.update)
+[13/08/2020 15:19:48:342 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(c59a19f3-cd70-4de7-ae8a-f1246c7003a1, agent.update)
+[13/08/2020 15:19:48:342 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(c59a19f3-cd70-4de7-ae8a-f1246c7003a1, agent.update)
+[13/08/2020 15:19:48:342 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(765bfb94-bfed-4aeb-9fab-f42420443d40, agent.update)
+[13/08/2020 15:19:48:342 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(685ac7ba-40aa-4748-9aa7-535fca5e0ef6, agent.update)
+[13/08/2020 15:19:48:342 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(d60a7703-8e9e-4f4b-b525-51cee3dd4df0, agent.update)
+[13/08/2020 15:19:48:342 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(765bfb94-bfed-4aeb-9fab-f42420443d40, agent.update)
+[13/08/2020 15:19:48:342 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(685ac7ba-40aa-4748-9aa7-535fca5e0ef6, agent.update)
+[13/08/2020 15:19:48:342 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(d60a7703-8e9e-4f4b-b525-51cee3dd4df0, agent.update)
+[13/08/2020 15:19:48:342 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(dbe03615-536e-4e4a-bdd6-3e5d56a9a9df, agent.update)
+[13/08/2020 15:19:48:342 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(769e77b0-9390-4395-8813-b9d6fb61bf5c, agent.update)
+[13/08/2020 15:19:48:342 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(765bfb94-bfed-4aeb-9fab-f42420443d40, agent.update)
+[13/08/2020 15:19:48:342 |               a.e.u.r.n.m.Master | DEBUG] Agent 765bfb94-bfed-4aeb-9fab-f42420443d40: State change from BUSY -> READY
+[13/08/2020 15:19:48:488 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(685ac7ba-40aa-4748-9aa7-535fca5e0ef6, agent.update)
+[13/08/2020 15:19:48:488 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(dbe03615-536e-4e4a-bdd6-3e5d56a9a9df, agent.update)
+[13/08/2020 15:19:48:488 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(d60a7703-8e9e-4f4b-b525-51cee3dd4df0, agent.update)
+[13/08/2020 15:19:48:488 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(769e77b0-9390-4395-8813-b9d6fb61bf5c, agent.update)
+[13/08/2020 15:19:48:488 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(dbe03615-536e-4e4a-bdd6-3e5d56a9a9df, agent.update)
+[13/08/2020 15:19:48:488 |               a.e.u.r.n.m.Master | DEBUG] Agent dbe03615-536e-4e4a-bdd6-3e5d56a9a9df: State change from BUSY -> READY
+[13/08/2020 15:19:48:629 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(769e77b0-9390-4395-8813-b9d6fb61bf5c, agent.update)
+[13/08/2020 15:19:48:630 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(e28f68dc-4c50-42d1-8aa3-ea550289e816, agent.update)
+[13/08/2020 15:19:48:630 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(e28f68dc-4c50-42d1-8aa3-ea550289e816, agent.update)
+[13/08/2020 15:19:48:630 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(79b8776b-42aa-4584-9d6c-17179634db87, agent.update)
+[13/08/2020 15:19:48:630 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(e28f68dc-4c50-42d1-8aa3-ea550289e816, agent.update)
+[13/08/2020 15:19:48:630 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(79b8776b-42aa-4584-9d6c-17179634db87, agent.update)
+[13/08/2020 15:19:48:630 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(79b8776b-42aa-4584-9d6c-17179634db87, agent.update)
+[13/08/2020 15:19:48:630 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(e28b390b-c83e-4fb6-a8cd-a2081818c60c, agent.update)
+[13/08/2020 15:19:48:630 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(f0488bf4-9cf2-4970-8c75-66f85f8b17fe, agent.update)
+[13/08/2020 15:19:48:630 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(e28b390b-c83e-4fb6-a8cd-a2081818c60c, agent.update)
+[13/08/2020 15:19:48:630 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(c59a19f3-cd70-4de7-ae8a-f1246c7003a1, agent.update)
+[13/08/2020 15:19:48:630 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(f0488bf4-9cf2-4970-8c75-66f85f8b17fe, agent.update)
+[13/08/2020 15:19:48:630 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(e28b390b-c83e-4fb6-a8cd-a2081818c60c, agent.update)
+[13/08/2020 15:19:48:631 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(f0488bf4-9cf2-4970-8c75-66f85f8b17fe, agent.update)
+[13/08/2020 15:19:48:631 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(c59a19f3-cd70-4de7-ae8a-f1246c7003a1, agent.update)
+[13/08/2020 15:19:48:631 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(b0223b86-c61a-4c0e-987a-7314b7b2dd08, agent.update)
+[13/08/2020 15:19:48:631 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(c59a19f3-cd70-4de7-ae8a-f1246c7003a1, agent.update)
+[13/08/2020 15:19:48:631 |               a.e.u.r.n.m.Master | DEBUG] Agent c59a19f3-cd70-4de7-ae8a-f1246c7003a1: State change from BUSY -> READY
+[13/08/2020 15:19:48:771 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(b0223b86-c61a-4c0e-987a-7314b7b2dd08, agent.update)
+[13/08/2020 15:19:48:772 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(b0223b86-c61a-4c0e-987a-7314b7b2dd08, agent.update)
+[13/08/2020 15:19:48:772 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(d60a7703-8e9e-4f4b-b525-51cee3dd4df0, agent.update)
+[13/08/2020 15:19:48:772 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(d60a7703-8e9e-4f4b-b525-51cee3dd4df0, agent.update)
+[13/08/2020 15:19:48:772 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(685ac7ba-40aa-4748-9aa7-535fca5e0ef6, agent.update)
+[13/08/2020 15:19:48:772 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(4c12d434-e393-4405-9fbd-2638d84c4e32, agent.update)
+[13/08/2020 15:19:48:772 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(d60a7703-8e9e-4f4b-b525-51cee3dd4df0, agent.update)
+[13/08/2020 15:19:48:772 |               a.e.u.r.n.m.Master | DEBUG] Agent d60a7703-8e9e-4f4b-b525-51cee3dd4df0: State change from BUSY -> READY
+[13/08/2020 15:19:48:913 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(769e77b0-9390-4395-8813-b9d6fb61bf5c, agent.update)
+[13/08/2020 15:19:48:913 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(2ee422b4-3999-4a64-89b8-52dad5d77495, agent.update)
+[13/08/2020 15:19:48:913 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(e0a064f4-bab6-4332-b285-299ce2b3bcde, agent.update)
+[13/08/2020 15:19:48:913 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(d7efc56c-59ca-4fa4-bec7-765e4d1aa433, agent.update)
+[13/08/2020 15:19:48:913 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(d3ac66b8-de31-4a33-a20a-632e81e21889, agent.update)
+[13/08/2020 15:19:48:913 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(685ac7ba-40aa-4748-9aa7-535fca5e0ef6, agent.update)
+[13/08/2020 15:19:48:913 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(4c12d434-e393-4405-9fbd-2638d84c4e32, agent.update)
+[13/08/2020 15:19:48:913 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(769e77b0-9390-4395-8813-b9d6fb61bf5c, agent.update)
+[13/08/2020 15:19:48:913 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(2ee422b4-3999-4a64-89b8-52dad5d77495, agent.update)
+[13/08/2020 15:19:48:913 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(d3ac66b8-de31-4a33-a20a-632e81e21889, agent.update)
+[13/08/2020 15:19:48:913 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(e0a064f4-bab6-4332-b285-299ce2b3bcde, agent.update)
+[13/08/2020 15:19:48:913 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(d7efc56c-59ca-4fa4-bec7-765e4d1aa433, agent.update)
+[13/08/2020 15:19:48:913 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(2ee422b4-3999-4a64-89b8-52dad5d77495, agent.update)
+[13/08/2020 15:19:48:914 |               a.e.u.r.n.m.Master | DEBUG] Agent 2ee422b4-3999-4a64-89b8-52dad5d77495: State change from BUSY -> READY
+[13/08/2020 15:19:49:054 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(685ac7ba-40aa-4748-9aa7-535fca5e0ef6, agent.update)
+[13/08/2020 15:19:49:055 |               a.e.u.r.n.m.Master | DEBUG] Agent 685ac7ba-40aa-4748-9aa7-535fca5e0ef6: State change from BUSY -> READY
+[13/08/2020 15:19:49:196 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(4c12d434-e393-4405-9fbd-2638d84c4e32, agent.update)
+[13/08/2020 15:19:49:196 |               a.e.u.r.n.m.Master | DEBUG] Agent 4c12d434-e393-4405-9fbd-2638d84c4e32: State change from BUSY -> READY
+[13/08/2020 15:19:49:317 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(769e77b0-9390-4395-8813-b9d6fb61bf5c, agent.update)
+[13/08/2020 15:19:49:317 |               a.e.u.r.n.m.Master | DEBUG] Agent 769e77b0-9390-4395-8813-b9d6fb61bf5c: State change from BUSY -> READY
+[13/08/2020 15:19:49:425 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(d7efc56c-59ca-4fa4-bec7-765e4d1aa433, agent.update)
+[13/08/2020 15:19:49:425 |               a.e.u.r.n.m.Master | DEBUG] Agent d7efc56c-59ca-4fa4-bec7-765e4d1aa433: State change from BUSY -> READY
+[13/08/2020 15:19:49:575 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(d3ac66b8-de31-4a33-a20a-632e81e21889, agent.update)
+[13/08/2020 15:19:49:575 |               a.e.u.r.n.m.Master | DEBUG] Agent d3ac66b8-de31-4a33-a20a-632e81e21889: State change from BUSY -> READY
+[13/08/2020 15:19:49:683 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(e0a064f4-bab6-4332-b285-299ce2b3bcde, agent.update)
+[13/08/2020 15:19:49:683 |               a.e.u.r.n.m.Master | DEBUG] Agent e0a064f4-bab6-4332-b285-299ce2b3bcde: State change from BUSY -> READY
+[13/08/2020 15:19:49:800 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(e28f68dc-4c50-42d1-8aa3-ea550289e816, agent.update)
+[13/08/2020 15:19:49:800 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(e28f68dc-4c50-42d1-8aa3-ea550289e816, agent.update)
+[13/08/2020 15:19:49:800 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(79b8776b-42aa-4584-9d6c-17179634db87, agent.update)
+[13/08/2020 15:19:49:800 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(79b8776b-42aa-4584-9d6c-17179634db87, agent.update)
+[13/08/2020 15:19:49:800 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(e28f68dc-4c50-42d1-8aa3-ea550289e816, agent.update)
+[13/08/2020 15:19:49:800 |               a.e.u.r.n.m.Master | DEBUG] Agent e28f68dc-4c50-42d1-8aa3-ea550289e816: State change from BUSY -> READY
+[13/08/2020 15:19:49:908 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(79b8776b-42aa-4584-9d6c-17179634db87, agent.update)
+[13/08/2020 15:19:49:908 |               a.e.u.r.n.m.Master | DEBUG] Agent 79b8776b-42aa-4584-9d6c-17179634db87: State change from BUSY -> READY
+[13/08/2020 15:19:50:025 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(e28b390b-c83e-4fb6-a8cd-a2081818c60c, agent.update)
+[13/08/2020 15:19:50:025 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(f0488bf4-9cf2-4970-8c75-66f85f8b17fe, agent.update)
+[13/08/2020 15:19:50:025 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(e28b390b-c83e-4fb6-a8cd-a2081818c60c, agent.update)
+[13/08/2020 15:19:50:025 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(f0488bf4-9cf2-4970-8c75-66f85f8b17fe, agent.update)
+[13/08/2020 15:19:50:026 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(f0488bf4-9cf2-4970-8c75-66f85f8b17fe, agent.update)
+[13/08/2020 15:19:50:026 |               a.e.u.r.n.m.Master | DEBUG] Agent f0488bf4-9cf2-4970-8c75-66f85f8b17fe: State change from BUSY -> READY
+[13/08/2020 15:19:50:142 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(e28b390b-c83e-4fb6-a8cd-a2081818c60c, agent.update)
+[13/08/2020 15:19:50:142 |               a.e.u.r.n.m.Master | DEBUG] Agent e28b390b-c83e-4fb6-a8cd-a2081818c60c: State change from BUSY -> READY
+[13/08/2020 15:19:50:267 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(b0223b86-c61a-4c0e-987a-7314b7b2dd08, agent.update)
+[13/08/2020 15:19:50:267 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(b0223b86-c61a-4c0e-987a-7314b7b2dd08, agent.update)
+[13/08/2020 15:19:50:267 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(b0223b86-c61a-4c0e-987a-7314b7b2dd08, agent.update)
+[13/08/2020 15:19:50:267 |               a.e.u.r.n.m.Master | DEBUG] Agent b0223b86-c61a-4c0e-987a-7314b7b2dd08: State change from BUSY -> READY
+[13/08/2020 15:19:50:350 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(aaa3e33a-c82d-4175-8b3f-cef05c3841b3, agent.update)
+[13/08/2020 15:19:50:350 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(aaa3e33a-c82d-4175-8b3f-cef05c3841b3, agent.update)
+[13/08/2020 15:19:50:350 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(a37217c0-c70b-43fb-8c30-18993fd97371, agent.update)
+[13/08/2020 15:19:50:350 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(aaa3e33a-c82d-4175-8b3f-cef05c3841b3, agent.update)
+[13/08/2020 15:19:50:350 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(a37217c0-c70b-43fb-8c30-18993fd97371, agent.update)
+[13/08/2020 15:19:50:350 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(a37217c0-c70b-43fb-8c30-18993fd97371, agent.update)
+[13/08/2020 15:19:50:350 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(474040f6-8245-4dd4-af77-4d0ce8102b75, agent.update)
+[13/08/2020 15:19:50:351 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(aaa3e33a-c82d-4175-8b3f-cef05c3841b3, tn107c, READY, BUSY)
+[13/08/2020 15:19:50:442 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(a37217c0-c70b-43fb-8c30-18993fd97371, tn107c, READY, BUSY)
+[13/08/2020 15:19:50:525 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(474040f6-8245-4dd4-af77-4d0ce8102b75, tn107c, READY, BUSY)
+[13/08/2020 15:19:50:609 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(cb9017e2-fc3d-4268-8f94-663ddecccc44, tn107c, READY, BUSY)
+[13/08/2020 15:19:50:692 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(e7271f21-2a70-4b61-8bcf-db491c48ff9e, tn107c, READY, BUSY)
+[13/08/2020 15:19:50:775 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(d6b3d8b0-27b6-4fb8-890b-8b4add8ba826, tn107c, READY, BUSY)
+[13/08/2020 15:19:50:942 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(efaa1b8b-d750-437d-a7c5-fa4276f027e4, tn107c, BUSY, READY)
+[13/08/2020 15:19:51:109 | .e.u.r.n.m.s.DefaultJobScheduler |  INFO] Job 'localexp/2' succeeded on attempt 1!
+[13/08/2020 15:19:51:109 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(70fcb95f-6c19-4386-bea6-ce67fc6e6c16, tn107c, BUSY, READY)
+[13/08/2020 15:19:51:276 | .e.u.r.n.m.s.DefaultJobScheduler |  INFO] Job 'localexp/1' succeeded on attempt 1!
+[13/08/2020 15:19:52:317 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(765bfb94-bfed-4aeb-9fab-f42420443d40, tn107c, BUSY, READY)
+[13/08/2020 15:19:52:476 | .e.u.r.n.m.s.DefaultJobScheduler |  INFO] Job 'localexp/4' succeeded on attempt 1!
+[13/08/2020 15:19:52:793 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(dbe03615-536e-4e4a-bdd6-3e5d56a9a9df, tn107c, BUSY, READY)
+[13/08/2020 15:19:52:976 | .e.u.r.n.m.s.DefaultJobScheduler |  INFO] Job 'localexp/5' succeeded on attempt 1!
+[13/08/2020 15:19:54:185 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(c59a19f3-cd70-4de7-ae8a-f1246c7003a1, tn107c, BUSY, READY)
+[13/08/2020 15:19:54:335 | .e.u.r.n.m.s.DefaultJobScheduler |  INFO] Job 'localexp/10' succeeded on attempt 1!
+[13/08/2020 15:19:54:810 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(d60a7703-8e9e-4f4b-b525-51cee3dd4df0, tn107c, BUSY, READY)
+[13/08/2020 15:19:54:968 | .e.u.r.n.m.s.DefaultJobScheduler |  INFO] Job 'localexp/12' succeeded on attempt 1!
+[13/08/2020 15:19:55:985 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(2ee422b4-3999-4a64-89b8-52dad5d77495, tn109d, BUSY, READY)
+[13/08/2020 15:19:56:160 | .e.u.r.n.m.s.DefaultJobScheduler |  INFO] Job 'localexp/7' succeeded on attempt 1!
+[13/08/2020 15:19:56:160 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(685ac7ba-40aa-4748-9aa7-535fca5e0ef6, tn109d, BUSY, READY)
+[13/08/2020 15:19:56:335 | .e.u.r.n.m.s.DefaultJobScheduler |  INFO] Job 'localexp/11' succeeded on attempt 1!
+[13/08/2020 15:19:56:335 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(4c12d434-e393-4405-9fbd-2638d84c4e32, tn109d, BUSY, READY)
+[13/08/2020 15:19:56:510 | .e.u.r.n.m.s.DefaultJobScheduler |  INFO] Job 'localexp/6' succeeded on attempt 1!
+[13/08/2020 15:19:56:510 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(769e77b0-9390-4395-8813-b9d6fb61bf5c, tn109d, BUSY, READY)
+[13/08/2020 15:19:56:685 | .e.u.r.n.m.s.DefaultJobScheduler |  INFO] Job 'localexp/13' succeeded on attempt 1!
+[13/08/2020 15:19:56:685 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(d7efc56c-59ca-4fa4-bec7-765e4d1aa433, tn109d, BUSY, READY)
+[13/08/2020 15:19:56:860 | .e.u.r.n.m.s.DefaultJobScheduler |  INFO] Job 'localexp/3' succeeded on attempt 1!
+[13/08/2020 15:19:56:860 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(d3ac66b8-de31-4a33-a20a-632e81e21889, tn109d, BUSY, READY)
+[13/08/2020 15:19:57:035 | .e.u.r.n.m.s.DefaultJobScheduler |  INFO] Job 'localexp/8' succeeded on attempt 1!
+[13/08/2020 15:19:57:035 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(e0a064f4-bab6-4332-b285-299ce2b3bcde, tn109d, BUSY, READY)
+[13/08/2020 15:19:57:219 | .e.u.r.n.m.s.DefaultJobScheduler |  INFO] Job 'localexp/9' succeeded on attempt 1!
+[13/08/2020 15:19:57:586 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(e28f68dc-4c50-42d1-8aa3-ea550289e816, tn109d, BUSY, READY)
+[13/08/2020 15:19:57:836 | .e.u.r.n.m.s.DefaultJobScheduler |  INFO] Job 'localexp/14' succeeded on attempt 1!
+[13/08/2020 15:19:57:836 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(79b8776b-42aa-4584-9d6c-17179634db87, tn109d, BUSY, READY)
+[13/08/2020 15:19:58:019 | .e.u.r.n.m.s.DefaultJobScheduler |  INFO] Job 'localexp/15' succeeded on attempt 1!
+[13/08/2020 15:19:58:402 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(f0488bf4-9cf2-4970-8c75-66f85f8b17fe, tn109d, BUSY, READY)
+[13/08/2020 15:19:58:586 | .e.u.r.n.m.s.DefaultJobScheduler |  INFO] Job 'localexp/17' succeeded on attempt 1!
+[13/08/2020 15:19:58:586 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(e28b390b-c83e-4fb6-a8cd-a2081818c60c, tn109d, BUSY, READY)
+[13/08/2020 15:19:58:786 | .e.u.r.n.m.s.DefaultJobScheduler |  INFO] Job 'localexp/16' succeeded on attempt 1!
+[13/08/2020 15:19:58:969 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(b0223b86-c61a-4c0e-987a-7314b7b2dd08, tn109d, BUSY, READY)
+[13/08/2020 15:19:59:152 | .e.u.r.n.m.s.DefaultJobScheduler |  INFO] Job 'localexp/18' succeeded on attempt 1!
+[13/08/2020 15:19:59:794 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] 0 pending jobs
+[13/08/2020 15:19:59:795 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] 0 held jobs
+[13/08/2020 15:20:00:386 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(cb9017e2-fc3d-4268-8f94-663ddecccc44, agent.update)
+[13/08/2020 15:20:00:386 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(474040f6-8245-4dd4-af77-4d0ce8102b75, agent.update)
+[13/08/2020 15:20:00:386 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(cb9017e2-fc3d-4268-8f94-663ddecccc44, agent.update)
+[13/08/2020 15:20:00:386 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(474040f6-8245-4dd4-af77-4d0ce8102b75, agent.update)
+[13/08/2020 15:20:00:386 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(cb9017e2-fc3d-4268-8f94-663ddecccc44, agent.update)
+[13/08/2020 15:20:00:386 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(e7271f21-2a70-4b61-8bcf-db491c48ff9e, agent.update)
+[13/08/2020 15:20:00:386 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(e7271f21-2a70-4b61-8bcf-db491c48ff9e, agent.update)
+[13/08/2020 15:20:00:386 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(d6b3d8b0-27b6-4fb8-890b-8b4add8ba826, agent.update)
+[13/08/2020 15:20:00:386 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(e7271f21-2a70-4b61-8bcf-db491c48ff9e, agent.update)
+[13/08/2020 15:20:00:386 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(d6b3d8b0-27b6-4fb8-890b-8b4add8ba826, agent.update)
+[13/08/2020 15:20:00:386 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(d6b3d8b0-27b6-4fb8-890b-8b4add8ba826, agent.update)
+[13/08/2020 15:20:00:387 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(aaa3e33a-c82d-4175-8b3f-cef05c3841b3, agent.update)
+[13/08/2020 15:20:00:387 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(aaa3e33a-c82d-4175-8b3f-cef05c3841b3, agent.update)
+[13/08/2020 15:20:00:387 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(a37217c0-c70b-43fb-8c30-18993fd97371, agent.update)
+[13/08/2020 15:20:00:387 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(aaa3e33a-c82d-4175-8b3f-cef05c3841b3, agent.update)
+[13/08/2020 15:20:00:387 |               a.e.u.r.n.m.Master | DEBUG] Agent aaa3e33a-c82d-4175-8b3f-cef05c3841b3: State change from BUSY -> READY
+[13/08/2020 15:20:00:478 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(a37217c0-c70b-43fb-8c30-18993fd97371, agent.update)
+[13/08/2020 15:20:00:478 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(a37217c0-c70b-43fb-8c30-18993fd97371, agent.update)
+[13/08/2020 15:20:00:478 |               a.e.u.r.n.m.Master | DEBUG] Agent a37217c0-c70b-43fb-8c30-18993fd97371: State change from BUSY -> READY
+[13/08/2020 15:20:00:569 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(474040f6-8245-4dd4-af77-4d0ce8102b75, agent.update)
+[13/08/2020 15:20:00:569 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(cb9017e2-fc3d-4268-8f94-663ddecccc44, agent.update)
+[13/08/2020 15:20:00:569 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(cb9017e2-fc3d-4268-8f94-663ddecccc44, agent.update)
+[13/08/2020 15:20:00:569 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(474040f6-8245-4dd4-af77-4d0ce8102b75, agent.update)
+[13/08/2020 15:20:00:570 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(cb9017e2-fc3d-4268-8f94-663ddecccc44, agent.update)
+[13/08/2020 15:20:00:570 |               a.e.u.r.n.m.Master | DEBUG] Agent cb9017e2-fc3d-4268-8f94-663ddecccc44: State change from BUSY -> READY
+[13/08/2020 15:20:00:661 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(474040f6-8245-4dd4-af77-4d0ce8102b75, agent.update)
+[13/08/2020 15:20:00:661 |               a.e.u.r.n.m.Master | DEBUG] Agent 474040f6-8245-4dd4-af77-4d0ce8102b75: State change from BUSY -> READY
+[13/08/2020 15:20:00:753 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(e7271f21-2a70-4b61-8bcf-db491c48ff9e, agent.update)
+[13/08/2020 15:20:00:753 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(d6b3d8b0-27b6-4fb8-890b-8b4add8ba826, agent.update)
+[13/08/2020 15:20:00:753 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(e7271f21-2a70-4b61-8bcf-db491c48ff9e, agent.update)
+[13/08/2020 15:20:00:753 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(d6b3d8b0-27b6-4fb8-890b-8b4add8ba826, agent.update)
+[13/08/2020 15:20:00:753 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(e7271f21-2a70-4b61-8bcf-db491c48ff9e, agent.update)
+[13/08/2020 15:20:00:753 |               a.e.u.r.n.m.Master | DEBUG] Agent e7271f21-2a70-4b61-8bcf-db491c48ff9e: State change from BUSY -> READY
+[13/08/2020 15:20:00:844 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(d6b3d8b0-27b6-4fb8-890b-8b4add8ba826, agent.update)
+[13/08/2020 15:20:00:844 |               a.e.u.r.n.m.Master | DEBUG] Agent d6b3d8b0-27b6-4fb8-890b-8b4add8ba826: State change from BUSY -> READY
+[13/08/2020 15:20:02:236 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(aaa3e33a-c82d-4175-8b3f-cef05c3841b3, tn107c, BUSY, READY)
+[13/08/2020 15:20:02:420 | .e.u.r.n.m.s.DefaultJobScheduler |  INFO] Job 'localexp/19' succeeded on attempt 1!
+[13/08/2020 15:20:02:511 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(a37217c0-c70b-43fb-8c30-18993fd97371, tn107c, BUSY, READY)
+[13/08/2020 15:20:02:720 | .e.u.r.n.m.s.DefaultJobScheduler |  INFO] Job 'localexp/20' succeeded on attempt 1!
+[13/08/2020 15:20:03:053 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(cb9017e2-fc3d-4268-8f94-663ddecccc44, tn107c, BUSY, READY)
+[13/08/2020 15:20:03:220 | .e.u.r.n.m.s.DefaultJobScheduler |  INFO] Job 'localexp/22' succeeded on attempt 1!
+[13/08/2020 15:20:03:220 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(474040f6-8245-4dd4-af77-4d0ce8102b75, tn107c, BUSY, READY)
+[13/08/2020 15:20:03:387 | .e.u.r.n.m.s.DefaultJobScheduler |  INFO] Job 'localexp/21' succeeded on attempt 1!
+[13/08/2020 15:20:03:720 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(e7271f21-2a70-4b61-8bcf-db491c48ff9e, tn107c, BUSY, READY)
+[13/08/2020 15:20:03:895 | .e.u.r.n.m.s.DefaultJobScheduler |  INFO] Job 'localexp/23' succeeded on attempt 1!
+[13/08/2020 15:20:03:895 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(d6b3d8b0-27b6-4fb8-890b-8b4add8ba826, tn107c, BUSY, READY)
+[13/08/2020 15:20:04:062 | .e.u.r.n.m.s.DefaultJobScheduler |  INFO] Job 'localexp/24' succeeded on attempt 1!
+[13/08/2020 15:20:04:563 |               a.e.u.r.n.m.Master | TRACE] Terminating agent 'c59a19f3-cd70-4de7-ae8a-f1246c7003a1'
+[13/08/2020 15:20:04:565 |               a.e.u.r.n.m.Master | TRACE] Terminating agent '765bfb94-bfed-4aeb-9fab-f42420443d40'
+[13/08/2020 15:20:04:565 |               a.e.u.r.n.m.Master | TRACE] Terminating agent 'a37217c0-c70b-43fb-8c30-18993fd97371'
+[13/08/2020 15:20:04:565 |               a.e.u.r.n.m.Master | TRACE] Terminating agent '70fcb95f-6c19-4386-bea6-ce67fc6e6c16'
+[13/08/2020 15:20:04:566 |               a.e.u.r.n.m.Master | TRACE] Terminating agent 'aaa3e33a-c82d-4175-8b3f-cef05c3841b3'
+[13/08/2020 15:20:04:566 |               a.e.u.r.n.m.Master | TRACE] Terminating agent 'cb9017e2-fc3d-4268-8f94-663ddecccc44'
+[13/08/2020 15:20:04:566 |               a.e.u.r.n.m.Master | TRACE] Terminating agent 'f0488bf4-9cf2-4970-8c75-66f85f8b17fe'
+[13/08/2020 15:20:04:566 |               a.e.u.r.n.m.Master | TRACE] Terminating agent 'e7271f21-2a70-4b61-8bcf-db491c48ff9e'
+[13/08/2020 15:20:04:567 |               a.e.u.r.n.m.Master | TRACE] Terminating agent '4c12d434-e393-4405-9fbd-2638d84c4e32'
+[13/08/2020 15:20:04:567 |               a.e.u.r.n.m.Master | TRACE] Terminating agent '2ee422b4-3999-4a64-89b8-52dad5d77495'
+[13/08/2020 15:20:04:567 |               a.e.u.r.n.m.Master | TRACE] Terminating agent '685ac7ba-40aa-4748-9aa7-535fca5e0ef6'
+[13/08/2020 15:20:04:568 |               a.e.u.r.n.m.Master | TRACE] Terminating agent '769e77b0-9390-4395-8813-b9d6fb61bf5c'
+[13/08/2020 15:20:04:568 |               a.e.u.r.n.m.Master | TRACE] Terminating agent 'd3ac66b8-de31-4a33-a20a-632e81e21889'
+[13/08/2020 15:20:04:568 |               a.e.u.r.n.m.Master | TRACE] Terminating agent 'e28b390b-c83e-4fb6-a8cd-a2081818c60c'
+[13/08/2020 15:20:04:569 |               a.e.u.r.n.m.Master | TRACE] Terminating agent 'd60a7703-8e9e-4f4b-b525-51cee3dd4df0'
+[13/08/2020 15:20:04:569 |               a.e.u.r.n.m.Master | TRACE] Terminating agent 'd7efc56c-59ca-4fa4-bec7-765e4d1aa433'
+[13/08/2020 15:20:04:569 |               a.e.u.r.n.m.Master | TRACE] Terminating agent 'efaa1b8b-d750-437d-a7c5-fa4276f027e4'
+[13/08/2020 15:20:04:569 |               a.e.u.r.n.m.Master | TRACE] Terminating agent 'd6b3d8b0-27b6-4fb8-890b-8b4add8ba826'
+[13/08/2020 15:20:04:570 |               a.e.u.r.n.m.Master | TRACE] Terminating agent 'e0a064f4-bab6-4332-b285-299ce2b3bcde'
+[13/08/2020 15:20:04:570 |               a.e.u.r.n.m.Master | TRACE] Terminating agent 'b0223b86-c61a-4c0e-987a-7314b7b2dd08'
+[13/08/2020 15:20:04:570 |               a.e.u.r.n.m.Master | TRACE] Terminating agent 'dbe03615-536e-4e4a-bdd6-3e5d56a9a9df'
+[13/08/2020 15:20:04:571 |               a.e.u.r.n.m.Master | TRACE] Terminating agent '79b8776b-42aa-4584-9d6c-17179634db87'
+[13/08/2020 15:20:04:571 |               a.e.u.r.n.m.Master | TRACE] Terminating agent '474040f6-8245-4dd4-af77-4d0ce8102b75'
+[13/08/2020 15:20:04:571 |               a.e.u.r.n.m.Master | TRACE] Terminating agent 'e28f68dc-4c50-42d1-8aa3-ea550289e816'
+[13/08/2020 15:20:04:688 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(a37217c0-c70b-43fb-8c30-18993fd97371, agent.shutdown)
+[13/08/2020 15:20:04:688 |               a.e.u.r.n.m.Master | DEBUG] Agent a37217c0-c70b-43fb-8c30-18993fd97371: State change from READY -> SHUTDOWN
+[13/08/2020 15:20:04:760 |      a.e.u.r.n.r.a.LocalActuator |  INFO] Agent e28f68dc-4c50-42d1-8aa3-ea550289e816 process 17993 exited with return code 0.
+[13/08/2020 15:20:04:762 |      a.e.u.r.n.r.a.LocalActuator |  INFO] Agent e28b390b-c83e-4fb6-a8cd-a2081818c60c process 18009 exited with return code 0.
+[13/08/2020 15:20:04:763 |      a.e.u.r.n.r.a.LocalActuator |  INFO] Agent e0a064f4-bab6-4332-b285-299ce2b3bcde process 18013 exited with return code 0.
+[13/08/2020 15:20:04:764 |      a.e.u.r.n.r.a.LocalActuator |  INFO] Agent d7efc56c-59ca-4fa4-bec7-765e4d1aa433 process 18017 exited with return code 0.
+[13/08/2020 15:20:04:765 |      a.e.u.r.n.r.a.LocalActuator |  INFO] Agent 79b8776b-42aa-4584-9d6c-17179634db87 process 18029 exited with return code 0.
+[13/08/2020 15:20:04:767 |      a.e.u.r.n.r.a.LocalActuator |  INFO] Agent f0488bf4-9cf2-4970-8c75-66f85f8b17fe process 18021 exited with return code 0.
+[13/08/2020 15:20:04:768 |      a.e.u.r.n.r.a.LocalActuator |  INFO] Agent d3ac66b8-de31-4a33-a20a-632e81e21889 process 18005 exited with return code 0.
+[13/08/2020 15:20:04:769 |      a.e.u.r.n.r.a.LocalActuator |  INFO] Agent 769e77b0-9390-4395-8813-b9d6fb61bf5c process 17997 exited with return code 0.
+[13/08/2020 15:20:04:771 |      a.e.u.r.n.r.a.LocalActuator |  INFO] Agent 685ac7ba-40aa-4748-9aa7-535fca5e0ef6 process 17989 exited with return code 0.
+[13/08/2020 15:20:04:772 |      a.e.u.r.n.r.a.LocalActuator |  INFO] Agent b0223b86-c61a-4c0e-987a-7314b7b2dd08 process 18025 exited with return code 0.
+[13/08/2020 15:20:04:773 |      a.e.u.r.n.r.a.LocalActuator |  INFO] Agent 2ee422b4-3999-4a64-89b8-52dad5d77495 process 17987 exited with return code 0.
+[13/08/2020 15:20:04:775 |      a.e.u.r.n.r.a.LocalActuator |  INFO] Agent 4c12d434-e393-4405-9fbd-2638d84c4e32 process 18001 exited with return code 0.
+[13/08/2020 15:20:04:803 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(a37217c0-c70b-43fb-8c30-18993fd97371, tn107c, READY, SHUTDOWN)
+[13/08/2020 15:20:04:813 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(765bfb94-bfed-4aeb-9fab-f42420443d40, agent.shutdown)
+[13/08/2020 15:20:04:813 |               a.e.u.r.n.m.Master | DEBUG] Agent 765bfb94-bfed-4aeb-9fab-f42420443d40: State change from READY -> SHUTDOWN
+[13/08/2020 15:20:04:920 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(70fcb95f-6c19-4386-bea6-ce67fc6e6c16, agent.shutdown)
+[13/08/2020 15:20:04:920 |               a.e.u.r.n.m.Master | DEBUG] Agent 70fcb95f-6c19-4386-bea6-ce67fc6e6c16: State change from READY -> SHUTDOWN
+[13/08/2020 15:20:05:037 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(765bfb94-bfed-4aeb-9fab-f42420443d40, tn107c, READY, SHUTDOWN)
+[13/08/2020 15:20:05:037 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(70fcb95f-6c19-4386-bea6-ce67fc6e6c16, tn107c, READY, SHUTDOWN)
+[13/08/2020 15:20:05:038 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(f0488bf4-9cf2-4970-8c75-66f85f8b17fe, agent.shutdown)
+[13/08/2020 15:20:05:038 |               a.e.u.r.n.m.Master | DEBUG] Agent f0488bf4-9cf2-4970-8c75-66f85f8b17fe: State change from READY -> SHUTDOWN
+[13/08/2020 15:20:05:145 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(c59a19f3-cd70-4de7-ae8a-f1246c7003a1, agent.shutdown)
+[13/08/2020 15:20:05:145 |               a.e.u.r.n.m.Master | DEBUG] Agent c59a19f3-cd70-4de7-ae8a-f1246c7003a1: State change from READY -> SHUTDOWN
+[13/08/2020 15:20:05:253 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(2ee422b4-3999-4a64-89b8-52dad5d77495, agent.shutdown)
+[13/08/2020 15:20:05:254 |               a.e.u.r.n.m.Master | DEBUG] Agent 2ee422b4-3999-4a64-89b8-52dad5d77495: State change from READY -> SHUTDOWN
+[13/08/2020 15:20:05:353 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(769e77b0-9390-4395-8813-b9d6fb61bf5c, agent.shutdown)
+[13/08/2020 15:20:05:354 |               a.e.u.r.n.m.Master | DEBUG] Agent 769e77b0-9390-4395-8813-b9d6fb61bf5c: State change from READY -> SHUTDOWN
+[13/08/2020 15:20:05:495 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(b0223b86-c61a-4c0e-987a-7314b7b2dd08, agent.shutdown)
+[13/08/2020 15:20:05:495 |               a.e.u.r.n.m.Master | DEBUG] Agent b0223b86-c61a-4c0e-987a-7314b7b2dd08: State change from READY -> SHUTDOWN
+[13/08/2020 15:20:05:687 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(f0488bf4-9cf2-4970-8c75-66f85f8b17fe, tn109d, READY, SHUTDOWN)
+[13/08/2020 15:20:05:687 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(c59a19f3-cd70-4de7-ae8a-f1246c7003a1, tn107c, READY, SHUTDOWN)
+[13/08/2020 15:20:05:687 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(2ee422b4-3999-4a64-89b8-52dad5d77495, tn109d, READY, SHUTDOWN)
+[13/08/2020 15:20:05:687 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(769e77b0-9390-4395-8813-b9d6fb61bf5c, tn109d, READY, SHUTDOWN)
+[13/08/2020 15:20:05:687 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(b0223b86-c61a-4c0e-987a-7314b7b2dd08, tn109d, READY, SHUTDOWN)
+[13/08/2020 15:20:05:688 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(e7271f21-2a70-4b61-8bcf-db491c48ff9e, agent.shutdown)
+[13/08/2020 15:20:05:688 |               a.e.u.r.n.m.Master | DEBUG] Agent e7271f21-2a70-4b61-8bcf-db491c48ff9e: State change from READY -> SHUTDOWN
+[13/08/2020 15:20:05:787 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(cb9017e2-fc3d-4268-8f94-663ddecccc44, agent.shutdown)
+[13/08/2020 15:20:05:787 |               a.e.u.r.n.m.Master | DEBUG] Agent cb9017e2-fc3d-4268-8f94-663ddecccc44: State change from READY -> SHUTDOWN
+[13/08/2020 15:20:05:903 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(aaa3e33a-c82d-4175-8b3f-cef05c3841b3, agent.shutdown)
+[13/08/2020 15:20:05:904 |               a.e.u.r.n.m.Master | DEBUG] Agent aaa3e33a-c82d-4175-8b3f-cef05c3841b3: State change from READY -> SHUTDOWN
+[13/08/2020 15:20:06:012 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(685ac7ba-40aa-4748-9aa7-535fca5e0ef6, agent.shutdown)
+[13/08/2020 15:20:06:012 |               a.e.u.r.n.m.Master | DEBUG] Agent 685ac7ba-40aa-4748-9aa7-535fca5e0ef6: State change from READY -> SHUTDOWN
+[13/08/2020 15:20:06:112 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(4c12d434-e393-4405-9fbd-2638d84c4e32, agent.shutdown)
+[13/08/2020 15:20:06:112 |               a.e.u.r.n.m.Master | DEBUG] Agent 4c12d434-e393-4405-9fbd-2638d84c4e32: State change from READY -> SHUTDOWN
+[13/08/2020 15:20:06:195 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(d3ac66b8-de31-4a33-a20a-632e81e21889, agent.shutdown)
+[13/08/2020 15:20:06:195 |               a.e.u.r.n.m.Master | DEBUG] Agent d3ac66b8-de31-4a33-a20a-632e81e21889: State change from READY -> SHUTDOWN
+[13/08/2020 15:20:06:279 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(d6b3d8b0-27b6-4fb8-890b-8b4add8ba826, agent.shutdown)
+[13/08/2020 15:20:06:279 |               a.e.u.r.n.m.Master | DEBUG] Agent d6b3d8b0-27b6-4fb8-890b-8b4add8ba826: State change from READY -> SHUTDOWN
+[13/08/2020 15:20:06:362 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(e28b390b-c83e-4fb6-a8cd-a2081818c60c, agent.shutdown)
+[13/08/2020 15:20:06:362 |               a.e.u.r.n.m.Master | DEBUG] Agent e28b390b-c83e-4fb6-a8cd-a2081818c60c: State change from READY -> SHUTDOWN
+[13/08/2020 15:20:06:445 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(d60a7703-8e9e-4f4b-b525-51cee3dd4df0, agent.shutdown)
+[13/08/2020 15:20:06:445 |               a.e.u.r.n.m.Master | DEBUG] Agent d60a7703-8e9e-4f4b-b525-51cee3dd4df0: State change from READY -> SHUTDOWN
+[13/08/2020 15:20:06:529 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(d7efc56c-59ca-4fa4-bec7-765e4d1aa433, agent.shutdown)
+[13/08/2020 15:20:06:529 |               a.e.u.r.n.m.Master | DEBUG] Agent d7efc56c-59ca-4fa4-bec7-765e4d1aa433: State change from READY -> SHUTDOWN
+[13/08/2020 15:20:06:612 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(e7271f21-2a70-4b61-8bcf-db491c48ff9e, tn107c, READY, SHUTDOWN)
+[13/08/2020 15:20:06:612 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(cb9017e2-fc3d-4268-8f94-663ddecccc44, tn107c, READY, SHUTDOWN)
+[13/08/2020 15:20:06:612 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(aaa3e33a-c82d-4175-8b3f-cef05c3841b3, tn107c, READY, SHUTDOWN)
+[13/08/2020 15:20:06:612 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(685ac7ba-40aa-4748-9aa7-535fca5e0ef6, tn109d, READY, SHUTDOWN)
+[13/08/2020 15:20:06:612 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(4c12d434-e393-4405-9fbd-2638d84c4e32, tn109d, READY, SHUTDOWN)
+[13/08/2020 15:20:06:612 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(d3ac66b8-de31-4a33-a20a-632e81e21889, tn109d, READY, SHUTDOWN)
+[13/08/2020 15:20:06:612 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(d6b3d8b0-27b6-4fb8-890b-8b4add8ba826, tn107c, READY, SHUTDOWN)
+[13/08/2020 15:20:06:613 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(e28b390b-c83e-4fb6-a8cd-a2081818c60c, tn109d, READY, SHUTDOWN)
+[13/08/2020 15:20:06:613 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(d60a7703-8e9e-4f4b-b525-51cee3dd4df0, tn107c, READY, SHUTDOWN)
+[13/08/2020 15:20:06:613 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(d7efc56c-59ca-4fa4-bec7-765e4d1aa433, tn109d, READY, SHUTDOWN)
+[13/08/2020 15:20:07:113 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(efaa1b8b-d750-437d-a7c5-fa4276f027e4, agent.shutdown)
+[13/08/2020 15:20:07:113 |               a.e.u.r.n.m.Master | DEBUG] Agent efaa1b8b-d750-437d-a7c5-fa4276f027e4: State change from READY -> SHUTDOWN
+[13/08/2020 15:20:07:195 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(e0a064f4-bab6-4332-b285-299ce2b3bcde, agent.shutdown)
+[13/08/2020 15:20:07:195 |               a.e.u.r.n.m.Master | DEBUG] Agent e0a064f4-bab6-4332-b285-299ce2b3bcde: State change from READY -> SHUTDOWN
+[13/08/2020 15:20:07:312 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(79b8776b-42aa-4584-9d6c-17179634db87, agent.shutdown)
+[13/08/2020 15:20:07:312 |               a.e.u.r.n.m.Master | DEBUG] Agent 79b8776b-42aa-4584-9d6c-17179634db87: State change from READY -> SHUTDOWN
+[13/08/2020 15:20:07:396 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(e28f68dc-4c50-42d1-8aa3-ea550289e816, agent.shutdown)
+[13/08/2020 15:20:07:396 |               a.e.u.r.n.m.Master | DEBUG] Agent e28f68dc-4c50-42d1-8aa3-ea550289e816: State change from READY -> SHUTDOWN
+[13/08/2020 15:20:07:479 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(474040f6-8245-4dd4-af77-4d0ce8102b75, agent.shutdown)
+[13/08/2020 15:20:07:479 |               a.e.u.r.n.m.Master | DEBUG] Agent 474040f6-8245-4dd4-af77-4d0ce8102b75: State change from READY -> SHUTDOWN
+[13/08/2020 15:20:07:562 |               a.e.u.r.n.m.Master | DEBUG] doProcessAgentMessage(dbe03615-536e-4e4a-bdd6-3e5d56a9a9df, agent.shutdown)
+[13/08/2020 15:20:07:562 |               a.e.u.r.n.m.Master | DEBUG] Agent dbe03615-536e-4e4a-bdd6-3e5d56a9a9df: State change from READY -> SHUTDOWN
+[13/08/2020 15:20:07:728 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(efaa1b8b-d750-437d-a7c5-fa4276f027e4, tn107c, READY, SHUTDOWN)
+[13/08/2020 15:20:07:728 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(e0a064f4-bab6-4332-b285-299ce2b3bcde, tn109d, READY, SHUTDOWN)
+[13/08/2020 15:20:07:728 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(79b8776b-42aa-4584-9d6c-17179634db87, tn109d, READY, SHUTDOWN)
+[13/08/2020 15:20:07:728 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(e28f68dc-4c50-42d1-8aa3-ea550289e816, tn109d, READY, SHUTDOWN)
+[13/08/2020 15:20:07:728 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(474040f6-8245-4dd4-af77-4d0ce8102b75, tn107c, READY, SHUTDOWN)
+[13/08/2020 15:20:07:728 | .u.r.n.m.s.DefaultAgentScheduler | TRACE] onAgentStateUpdate(dbe03615-536e-4e4a-bdd6-3e5d56a9a9df, tn107c, READY, SHUTDOWN)
+[13/08/2020 15:20:08:822 |                a.e.u.r.n.m.AAAAA |  INFO] Waiting on 2 actuator(s)...
+[13/08/2020 15:20:08:824 |        a.e.u.r.n.s.OpenSSHClient | TRACE] OpenSSH: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control tn107c --
+[13/08/2020 15:20:08:826 |        a.e.u.r.n.s.OpenSSHClient | TRACE] Executing command: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control tn107c -- kill -9 26596 27452 26069 26867 25540 27170 28644 28184 28911 25806 26333 25276
+[13/08/2020 15:20:09:125 |        a.e.u.r.n.s.OpenSSHClient | TRACE] Executing command: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control tn107c -- rm -f /home/s4395747/.nimrod/act-tn107c-RemoteActuator-1396827730/cacert.pem
+[13/08/2020 15:20:09:266 |        a.e.u.r.n.s.OpenSSHClient | TRACE] Executing command: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control tn107c -- rm -f /home/s4395747/.nimrod/act-tn107c-RemoteActuator-1396827730/agent-x86_64-pc-linux-musl
+[13/08/2020 15:20:09:400 |        a.e.u.r.n.s.OpenSSHClient | TRACE] Executing command: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control tn107c -- rmdir /home/s4395747/.nimrod/act-tn107c-RemoteActuator-1396827730
+[13/08/2020 15:20:09:533 |        a.e.u.r.n.s.OpenSSHClient | TRACE] Executing command: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control -O exit tn107c
+[13/08/2020 15:20:09:538 |        a.e.u.r.n.s.OpenSSHClient | TRACE] Executing command: /usr/bin/ssh -q -oPasswordAuthentication=no -oKbdInteractiveAuthentication=no -oChallengeResponseAuthentication=no -oBatchMode=yes -oControlMaster=auto -oControlPersist=yes -oControlPath=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/openssh-1077290816-control -O exit tn107c

@@ -34,5 +34,5 @@ rsample <- read.csv(paste0("/home/",USER,"/SLiM/Scripts/Nimrod/Pilot/AIM1/Inputs
 i <- row_seed
 j <- row_combo
 
-slim_out <- system(sprintf("/home/$USER/SLiM/slim -s %s -d Ne=%i -d rwide=%s -d pleio_cov=%f -d pleiorate=%f -d delmu=%f -d nloci=%i -d locisigma=%f -d delchr=%i -d modelindex=%i /home/$USER/SLiM/Scripts/Nimrod/Pilot/AIM1/Inputs/null_8T100L.slim",
+slim_out <- system(sprintf("/home/$USER/SLiM/slim -s %s -d Ne=%i -d rwide=%s -d pleio_cov=%f -d pleiorate=%f -d delmu=%f -d nloci=%i -d locisigma=%f -d delchr=%i -d modelindex=%i /home/$USER/SLiM/Scripts/Nimrod/Pilot/AIM1/Inputs/null8T100L.slim",
                        as.character(rsample$Seed[i]), as.integer(round(lscombos_null_pilot$Ne[j])), as.character(lscombos_null_pilot$rwide[j]), lscombos_null_pilot$pleiocov[j], lscombos_null_pilot$pleiorate[j], lscombos_null_pilot$delmu[j], as.integer(round(lscombos_null_pilot$nloci[j])), lscombos_null_pilot$locisigma[j], as.integer(round(lscombos_null_pilot$delchr[j])), j, intern=T))

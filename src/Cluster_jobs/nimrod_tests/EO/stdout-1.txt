@@ -1,0 +1,4 @@
+PBS_O_WORKDIR is /home/s4395747/SLiM/Scripts/Nimrod/Pilot/AIM1
+/home/s4395747/SLiM/Scripts/Nimrod/Pilot/AIM1/Outputs/TEST_1_1.txt
+  adding: pbs/tmpdir/pbs.342595.tinmgr2/agent-70fcb95f-6c19-4386-bea6-ce67fc6e6c16/cf750fe1-cd5d-49a7-90a4-9a2e74e89320/tmp/matrices/ (stored 0%)
+  adding: pbs/tmpdir/pbs.342595.tinmgr2/agent-70fcb95f-6c19-4386-bea6-ce67fc6e6c16/cf750fe1-cd5d-49a7-90a4-9a2e74e89320/tmp/matrices/model1/ (stored 0%)

@@ -1,0 +1,195 @@
+########################### Execution Started #############################
+JobId:342595.tinmgr2
+UserName:s4395747
+GroupName:qris-uq
+ExecutionHost:tn109d
+###############################################################################
+{
+    "argv": [
+        "nimexec",
+        "/var/spool/pbs/mom_priv/jobs/342595.tinmgr2.SC"
+    ],
+    "batch_info": {
+        "fwdenv": [
+            "OMP_NUM_THREADS",
+            "PBS_ACCOUNT",
+            "PBS_JOBNAME",
+            "PBS_ENVIRONMENT",
+            "PBS_O_WORKDIR",
+            "PBS_TASKNUM",
+            "PBS_O_HOME",
+            "PBS_MOMPORT",
+            "PBS_O_QUEUE",
+            "PBS_O_LOGNAME",
+            "PBS_O_LANG",
+            "PBS_JOBCOOKIE",
+            "PBS_NODENUM",
+            "PBS_JOBDIR",
+            "PBS_O_SHELL",
+            "PBS_JOBID",
+            "PBS_O_HOST",
+            "PBS_QUEUE",
+            "PBS_O_MAIL",
+            "PBS_O_SYSTEM",
+            "PBS_NODEFILE",
+            "PBS_O_PATH"
+        ],
+        "job_id": "342595.tinmgr2",
+        "nodes": {
+            "tn107c": 24,
+            "tn109d": 24
+        },
+        "ompthreads": 2,
+        "outdir": "/home/s4395747/SLiM/Scripts/Nimrod/Pilot/AIM1"
+    },
+    "cluster": "generic_pbs",
+    "compile_info": {
+        "git": {
+            "description": "UNKNOWN-DIRTY",
+            "dirty": 1,
+            "sha1": "9f724e338ab02df270df9ffffabb83f3efa83ea8"
+        },
+        "version": {
+            "nimrun": "UNKNOWN-DIRTY",
+            "openssl": "1.0.2k"
+        }
+    },
+    "environment": [
+        "MANPATH=/usr/share/lmod/lmod/share/man::/opt/pbs/share/man",
+        "_ModuleTable003_=VEgiXT0iL3N3Ny9Nb2R1bGVzL1JDQy9sb2NhbDovZ3BmczEvc3c3L01vZHVsZXMvSU5ERVg6L3N3L01vZHVsZXMvZG9jL21vZHVsZWZpbGVzOi9zdy9Nb2R1bGVzL0RFUFJFQ0FURUQ6L3N3L01vZHVsZXMvSU5ERVg6L29wdC9tb2R1bGVmaWxlcy9tcGk6L29wdC9tb2R1bGVmaWxlcy9jb21waWxlcnM6L29wdC9tb2R1bGVmaWxlcy9hcHBsaWNhdGlvbnM6L3Vzci9zaGFyZS9Nb2R1bGVzL21vZHVsZWZpbGVzOi91c3Ivc2hhcmUvbW9kdWxlZmlsZXM6L3N3L01vZHVsZXMvQ29udGFpbmVkQXBwczovc3cvQjE4YS9tb2R1bGVmaWxlczovc3cvTW9kdWxlcy9RRkFCOi91c3Ivc2hhcmUvbW9kdWxlZmlsZXMvTGludXg6L3Vzci9zaGFyZS9tb2R1bGVmaWxlcy9Db3JlOi91c3Ivc2hh",
+        "HOSTNAME=tn109d.local",
+        "PBS_ACCOUNT=qris-uq",
+        "SHELL=/bin/bash",
+        "NIMROD_HOME=/sw7/RCC/NimrodG/embedded-1.9.0/opt/nimrod-1.9.0",
+        "HISTSIZE=1000",
+        "PBS_JOBNAME=Nim_SLiMAIM1",
+        "TMPDIR=/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2",
+        "MODULEPATH_ROOT=/usr/share/modulefiles",
+        "PBS_ENVIRONMENT=PBS_BATCH",
+        "LMOD_PKG=/usr/share/lmod/lmod",
+        "LMOD_VERSION=7.4.17",
+        "PBS_O_WORKDIR=/home/s4395747/SLiM/Scripts/Nimrod/Pilot/AIM1",
+        "ROCKSROOT=/opt/rocks/share/devel",
+        "NCPUS=2",
+        "ANT_HOME=/opt/rocks",
+        "QT_GRAPHICSSYSTEM_CHECKED=1",
+        "USER=s4395747",
+        "PBS_TASKNUM=1",
+        "LMOD_sys=Linux",
+        "PBS_O_HOME=/home/s4395747",
+        "ROCKS_ROOT=/opt/rocks",
+        "_ModuleTable004_=cmUvbG1vZC9sbW9kL21vZHVsZWZpbGVzL0NvcmUiLH0=",
+        "PBS_MOMPORT=16003",
+        "PBS_O_QUEUE=workq",
+        "_ModuleTable001_=X01vZHVsZVRhYmxlXz17WyJNVHZlcnNpb24iXT0zLFsiY19yZWJ1aWxkVGltZSJdPWZhbHNlLFsiY19zaG9ydFRpbWUiXT1mYWxzZSxkZXB0aFQ9e30sZmFtaWx5PXt9LG1UPXtbImVtYmVkZGVkLW5pbXJvZCJdPXtbImZuIl09Ii9zdzcvTW9kdWxlcy9SQ0MvbG9jYWwvZW1iZWRkZWQtbmltcm9kLzEuOS4wLmx1YSIsWyJmdWxsTmFtZSJdPSJlbWJlZGRlZC1uaW1yb2QvMS45LjAiLFsibG9hZE9yZGVyIl09MSxwcm9wVD17fSxbInN0YXR1cyJdPSJhY3RpdmUiLFsidXNlck5hbWUiXT0iZW1iZWRkZWQtbmltcm9kLzEuOS4wIix9LH0sbXBhdGhBPXsiL3N3Ny9Nb2R1bGVzL1JDQy9sb2NhbCIsIi9ncGZzMS9zdzcvTW9kdWxlcy9JTkRFWCIsIi9zdy9Nb2R1bGVzL2RvYy9tb2R1",
+        "PATH=/sw7/RCC/NimrodG/embedded-1.9.0/opt/nimrod-1.9.0/bin:/sw7/RCC/NimrodG/embedded-1.9.0/bin:/sw7/RCC/NimrodG/embedded-1.9.0/lib/jvm/jdk-11.0.8+10/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/opt/ganglia/bin:/opt/ganglia/sbin:/usr/java/latest/bin:/opt/pbs/bin:/opt/rocks/bin:/opt/rocks/sbin:/home/s4395747/.local/bin:/home/s4395747/bin",
+        "PBS_O_LOGNAME=s4395747",
+        "MAIL=/var/spool/mail/s4395747",
+        "QPID_HOME=/sw7/RCC/NimrodG/embedded-1.9.0/opt/qpid-broker/7.1.2",
+        "PBS_O_LANG=C.UTF-8",
+        "PBS_JOBCOOKIE=000000001A26AC470000000069453540",
+        "SDSCDEVEL=/opt/sdsc/devel",
+        "LMOD_SETTARG_CMD=:",
+        "PWD=/gpfs1/homes/s4395747",
+        "_LMFILES_=/sw7/Modules/RCC/local/embedded-nimrod/1.9.0.lua",
+        "JAVA_HOME=/sw7/RCC/NimrodG/embedded-1.9.0/lib/jvm/jdk-11.0.8+10",
+        "PBS_NODENUM=0",
+        "LANG=en_US.UTF-8",
+        "MODULEPATH=/sw7/Modules/RCC/local:/gpfs1/sw7/Modules/INDEX:/sw/Modules/doc/modulefiles:/sw/Modules/DEPRECATED:/sw/Modules/INDEX:/opt/modulefiles/mpi:/opt/modulefiles/compilers:/opt/modulefiles/applications:/usr/share/Modules/modulefiles:/usr/share/modulefiles:/sw/Modules/ContainedApps:/sw/B18a/modulefiles:/sw/Modules/QFAB:/usr/share/modulefiles/Linux:/usr/share/modulefiles/Core:/usr/share/lmod/lmod/modulefiles/Core",
+        "_ModuleTable_Sz_=4",
+        "PBS_JOBDIR=/home/s4395747",
+        "LOADEDMODULES=embedded-nimrod/1.9.0",
+        "PBS_O_SHELL=/bin/bash",
+        "LMOD_CMD=/usr/share/lmod/lmod/libexec/lmod",
+        "PBS_JOBID=342595.tinmgr2",
+        "ENVIRONMENT=BATCH",
+        "HISTCONTROL=ignoredups",
+        "SSH_ASKPASS=/usr/libexec/openssh/gnome-ssh-askpass",
+        "HOME=/home/s4395747",
+        "SHLVL=1",
+        "_ModuleTable002_=bGVmaWxlcyIsIi9zdy9Nb2R1bGVzL0RFUFJFQ0FURUQiLCIvc3cvTW9kdWxlcy9JTkRFWCIsIi9vcHQvbW9kdWxlZmlsZXMvbXBpIiwiL29wdC9tb2R1bGVmaWxlcy9jb21waWxlcnMiLCIvb3B0L21vZHVsZWZpbGVzL2FwcGxpY2F0aW9ucyIsIi91c3Ivc2hhcmUvTW9kdWxlcy9tb2R1bGVmaWxlcyIsIi91c3Ivc2hhcmUvbW9kdWxlZmlsZXMiLCIvc3cvTW9kdWxlcy9Db250YWluZWRBcHBzIiwiL3N3L0IxOGEvbW9kdWxlZmlsZXMiLCIvc3cvTW9kdWxlcy9RRkFCIiwiL3Vzci9zaGFyZS9tb2R1bGVmaWxlcy9MaW51eCIsIi91c3Ivc2hhcmUvbW9kdWxlZmlsZXMvQ29yZSIsIi91c3Ivc2hhcmUvbG1vZC9sbW9kL21vZHVsZWZpbGVzL0NvcmUiLH0sWyJzeXN0ZW1CYXNlTVBB",
+        "PBS_O_HOST=tinaroo2.local",
+        "ROLLSROOT=/opt/rocks/share/devel/src/roll",
+        "SDSCHOME=/opt/sdsc",
+        "BASH_ENV=/usr/share/lmod/lmod/init/bash",
+        "LOGNAME=s4395747",
+        "PBS_QUEUE=Multiple",
+        "MODULESHOME=/usr/share/lmod/lmod",
+        "PBS_O_MAIL=/var/spool/mail/s4395747",
+        "OMP_NUM_THREADS=2",
+        "LESSOPEN=||/usr/bin/lesspipe.sh %s",
+        "LMOD_FULL_SETTARG_SUPPORT=no",
+        "NIMRUN_CLUSTER=generic_pbs",
+        "LMOD_DIR=/usr/share/lmod/lmod/libexec",
+        "PBS_O_SYSTEM=Linux",
+        "PBS_NODEFILE=/var/spool/pbs/aux/342595.tinmgr2",
+        "PBS_O_PATH=/sw7/RCC/NimrodG/embedded-1.9.0/opt/nimrod-1.9.0/bin:/sw7/RCC/NimrodG/embedded-1.9.0/bin:/sw7/RCC/NimrodG/embedded-1.9.0/lib/jvm/jdk-11.0.8+10/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/opt/ganglia/bin:/opt/ganglia/sbin:/usr/java/latest/bin:/opt/pbs/bin:/opt/rocks/bin:/opt/rocks/sbin:/home/s4395747/.local/bin:/home/s4395747/bin",
+        "BASH_FUNC_module()=() {  eval $($LMOD_CMD bash \"$@\") && eval $(${LMOD_SETTARG_CMD:-:} -s sh)\n}",
+        "BASH_FUNC_ml()=() {  eval $($LMOD_DIR/ml_cmd \"$@\")\n}"
+    ],
+    "execmode": "nimexec",
+    "hostname": "tn109d.local",
+    "interfaces": [
+        "127.0.0.1",
+        "10.120.20.13",
+        "10.120.30.13"
+    ],
+    "java": "/sw7/RCC/NimrodG/embedded-1.9.0/lib/jvm/jdk-11.0.8+10/bin/java",
+    "java_home": "/sw7/RCC/NimrodG/embedded-1.9.0/lib/jvm/jdk-11.0.8+10",
+    "nimrod_dbpath": "/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work/nimrod.db",
+    "nimrod_home": "/sw7/RCC/NimrodG/embedded-1.9.0/opt/nimrod-1.9.0",
+    "nimrod_ini": "/home/s4395747/SLiM/Scripts/Nimrod/Pilot/AIM1/nimrod-342595.tinmgr2/nimrod.ini",
+    "nimrod_resources": [
+        {
+            "local": false,
+            "name": "tn107c",
+            "num_agents": 12,
+            "uri": "ssh://tn107c"
+        },
+        {
+            "local": true,
+            "name": "tn109d",
+            "num_agents": 12,
+            "uri": "ssh://tn109d"
+        }
+    ],
+    "nimrod_setupini": "/home/s4395747/SLiM/Scripts/Nimrod/Pilot/AIM1/nimrod-342595.tinmgr2/nimrod-setup.ini",
+    "nimrod_work": "/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/nimrod-work",
+    "openssh": "/usr/bin/ssh",
+    "outdir": "/home/s4395747/SLiM/Scripts/Nimrod/Pilot/AIM1",
+    "outdir_stats": "/home/s4395747/SLiM/Scripts/Nimrod/Pilot/AIM1/nimrod-342595.tinmgr2",
+    "password": "brxRJ2gS9db9uCtUasMEuZzjx0jcGRTr",
+    "pem_cert": "/home/s4395747/SLiM/Scripts/Nimrod/Pilot/AIM1/nimrod-342595.tinmgr2/cert.pem",
+    "pem_key": "/home/s4395747/SLiM/Scripts/Nimrod/Pilot/AIM1/nimrod-342595.tinmgr2/key.pem",
+    "pkcs12_cert": "/home/s4395747/SLiM/Scripts/Nimrod/Pilot/AIM1/nimrod-342595.tinmgr2/cert.p12",
+    "qpid_cfg": "/home/s4395747/SLiM/Scripts/Nimrod/Pilot/AIM1/nimrod-342595.tinmgr2/qpid-initial-config.json",
+    "qpid_home": "/sw7/RCC/NimrodG/embedded-1.9.0/opt/qpid-broker/7.1.2",
+    "qpid_work": "/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2/qpid-work",
+    "simple_hostname": "tn109d",
+    "stderr_path": "/home/s4395747/SLiM/Scripts/Nimrod/Pilot/AIM1/nimrod-342595.tinmgr2/err",
+    "stderr_path_rel": "nimrod-342595.tinmgr2/err",
+    "stdout_path": "/home/s4395747/SLiM/Scripts/Nimrod/Pilot/AIM1/nimrod-342595.tinmgr2/out",
+    "stdout_path_rel": "nimrod-342595.tinmgr2/out",
+    "tmpdir": "/state/partition1/pbs/tmpdir/pbs.342595.tinmgr2",
+    "uname": {
+        "machine": "x86_64",
+        "nodename": "tn109d.local",
+        "release": "3.10.0-693.5.2.el7.x86_64",
+        "sysname": "Linux",
+        "version": "#1 SMP Fri Oct 20 20:32:50 UTC 2017"
+    },
+    "username": "s4395747"
+}
+Detected QPID listening on port 44191
+########################### Job Execution History #############################
+JobId:342595.tinmgr2
+UserName:s4395747
+GroupName:qris-uq
+JobName:Nim_SLiMAIM1
+SessionId:17054
+ResourcesRequested:mem=240gb,ncpus=48,place=free,walltime=168:00:00
+ResourcesUsed:cpupercent=90,cput=00:00:41,mem=659744kb,ncpus=48,vmem=50013140kb,walltime=00:01:01
+QueueUsed:Multiple
+AccountString:qris-uq
+ExitStatus:0
+###############################################################################
