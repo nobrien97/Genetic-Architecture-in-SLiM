@@ -48,4 +48,4 @@ write.csv(lscombos_sel_pilot, "lscombos_sel_pilot.csv")
 # Seeds 
 
 rsample <- as.character(runif(3, 1, (2^62 - 1)))
-write.table(rbind(rsample), file = "seeds_pilot.csv", row.names = FALSE, col.names = FALSE, sep=",")
+write.table(c("Seed", rsample), file = "seeds_pilot.csv", row.names = FALSE, col.names = FALSE, sep=",")
