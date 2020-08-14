@@ -74,7 +74,7 @@ dat_to_mat <- function(dat) {
 # Split data frame up into single lines, do dat_to_mat on each, store as an array
 
 mat_gen <- function(dat) {
-  dat <- arrange(dat, gen, modelindex, seed)
+  dat <- dplyr::arrange(dat, gen, modelindex, seed)
   dat <- group_split(dat, gen)
   dat <- lapply(dat, function(x) { group_split(x, modelindex)})
   dat <- lapply(dat, function(x) { lapply(x, function(y) {
@@ -143,16 +143,17 @@ matstruc_test <- matmean_construct(d_null_mat)
 # Function to do as above, but for an se instead of mean
 
 matse_construct <- function(dat) {
-  datm <- group_split(dat, modelindex)
-  matlist <- lapply(datm, mat_gen) # mat_gen splits each model into its seed rows, stores them as a list
-  lapply(matlist, mat_se) # apply mat_mean to each model
+  matlist <- mat_gen(dat) # mat_gen splits each model into its seed rows, stores them as a list
+  lapply(matlist, function(x) {
+    lapply(x, mat_se)
+    }) # apply mat_se to each model
 }
 
 
 
 # E.g. with d_null_mat
 
-G_null_mean <- simplify2array(matmean_construct(d_null_mat))
+G_null_mean <- simplify2array(matstruc_test)
 
 G_null_se <- as.array(matse_construct(d_null_mat))
 
@@ -162,6 +163,24 @@ G_null_se <- as.array(matse_construct(d_null_mat))
 # Eigentensor analysis: Using evolqg EigenTensorDecomposition()
 
 library(evolqg)
+
+Gmean_ET <- function(G) {
+  Gmax <- lapply(G, function(x) {
+      evolqg::EigenTensorDecomposition(x, return.projection = F)$matrices[,,1:2]
+  })
+    Es <- lapply(Gmax, function(x) {
+      eigen(x, symmetric = T, only.values = T)
+    })
+    Es
+}
+
+
+Gmax_test <- lapply(matstruc_test, function(x) {
+  evolqg::EigenTensorDecomposition(x, return.projection = F)$matrices[,,1:2]
+})
+
+
+
 
 ET_Decomp_Gnull <- EigenTensorDecomposition(G_null_mean)
 

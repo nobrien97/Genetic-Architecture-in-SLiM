@@ -131,7 +131,7 @@ initialize() {
 	// QTL constants - UNIVERSAL PLEIOTROPY assumed!
 	
 	setCfgParam("pleio_mu", float(8)); // mean distribution value for multivariate normal we are pulling effects of all 8 traits from
-	setCfgParam("pleio_cov", 0.1); // Default covariance term for use in pleio_covs - 0 is our null: pleiotropy, but with no direction
+	setCfgParam("pleio_cov", -0.14); // Default covariance term for use in pleio_covs - 0 is our null: pleiotropy, but with no direction
 	if (pleio_cov != 0.0) {
 		
 		defineConstant("pleio_covs", rnorm(28, pleio_cov*locisigma, abs(pleio_cov/5)*locisigma));		// If we set our pleio_cov to something other than 0.0 (some directionality to the covariance), use a norm distribution to randomise effects around that value, so we aren't assuming every covariance value is identical
@@ -171,7 +171,9 @@ initialize() {
 	scriptPath = writeTempFile("sigma_", ".R", rstr);
 	
 	
-	system("/opt/R/lib64/R/bin/Rscript", args=scriptPath); // On HPC: /opt/R/lib64/R/bin/Rscript, On home: /usr/lib/R/bin/Rscript
+//	system("/opt/R/lib64/R/bin/Rscript", args=scriptPath); // On HPC: /opt/R/lib64/R/bin/Rscript, On home: /usr/lib/R/bin/Rscript
+	system("/usr/lib/R/bin/Rscript", args=scriptPath); // On HPC: /opt/R/lib64/R/bin/Rscript, On home: /usr/lib/R/bin/Rscript
+
 	deleteFile(scriptPath);
 	deleteFile(sigPath);
 	sigma_PD = strsplit(paste(readFile(PDpath)));
@@ -183,7 +185,8 @@ initialize() {
 	
 	}
 
-	else { defineConstant("pleio_sigma", sigma); }
+//	else { 
+defineConstant("pleio_sigma", sigma);
 	
 	catn("\nPleiotropic QTL DFE means: ");
 	print(pleio_mu);
