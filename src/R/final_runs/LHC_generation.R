@@ -166,6 +166,10 @@ max(abs(cor(lscombos_rand)[cor(lscombos_rand) != 1]))
 
 cor(lscombos)
 
+# Optimised algorithm is best for minimising correlations, we'll go with that
+
+write.csv(lscombos_opt, "lscombos_sel.csv")
+
 
 
 # Null and recom model LHS Generation
@@ -185,3 +189,16 @@ lscombos_nul_opt <- lhs.design(
     pleiocov = c(0.0, 0.5), # More even sampling, going from 0 to 0.5 to avoid non-positive-definite errors
     delchr = c(0, 10))
 )
+
+write.csv(lscombos_nul_opt, "lscombos_null.csv")
+
+
+# Seed generation
+
+rsample <- as.character(round(runif(50, 1, (2^32 - 1)))) # Pull from 32 bit integer range for now to reduce problems, below
+# Seems to be a problem with the seeds themselves: 
+# they are treated as the same if too large, even though they are below 64 bit limit
+# They are above the 32 bit limit though, which is the strange thing: may be a bug?
+# Mutation information and G matrices are still different among seeds, may be a problem with sample()
+write.table(c("Seed", rsample), file = "seeds.csv", row.names = FALSE, col.names = FALSE, sep=",")
+
