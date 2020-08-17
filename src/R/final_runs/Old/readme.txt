@@ -1,0 +1,1 @@
+Old scripts for when I was planning to use job array on Tinaroo instead of Nimrod
