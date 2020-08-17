@@ -10,8 +10,8 @@
 #PBS -A qris-uq
 #
 #Use more resources if you need.
-#PBS -l select=2:ncpus=24:mem=120GB:ompthreads=2
-# PBS -l select=1:ncpus=12:mem=60GB:ompthreads=1
+#PBS -l select=2:ncpus=24:mem=120GB:ompthreads=1 
+#ompthreads=1 as a test, should work since we are doing most writing to TMPDIR anyway
 #PBS -l walltime=168:00:00
 #
 #Job name for ease of recognition

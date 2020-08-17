@@ -59,13 +59,13 @@ lscombos_imp <- lhs.design(
   seed = 1370976025, #sampled from 1:2147483647
   type = "improved",
   factor.names = list(
-    Ne = c(10, 10000),
+    Ne = c(10, 8000),
     rwide = c(0.0, 1.241e-4), 
     nloci = c(10, 500),
     locisigma = c(0.1, 10),
-    pleiorate = c(0.0, 1.0),
+    pleiorate = c(0.0, 0.5),
     delmu = c(0.0, 1.0),
-    pleiocov = c(-0.5, 0.5), # More even sampling, going from -0.5 to 0.5 rather than 0 to 0.5
+    pleiocov = c(0.0, 0.5), # More even sampling, going from -0.5 to 0.5 rather than 0 to 0.5
     delchr = c(0, 10),
     wsd = c(0.1, 10))
 )
@@ -81,9 +81,9 @@ lscombos_maximin <- lhs.design(
     rwide = c(0.0, 1.241e-4), 
     nloci = c(10, 500),
     locisigma = c(0.1, 10),
-    pleiorate = c(0.0, 1.0),
+    pleiorate = c(0.0, 0.5),
     delmu = c(0.0, 1.0),
-    pleiocov = c(-0.5, 0.5), # More even sampling, going from -0.5 to 0.5 rather than 0 to 0.5
+    pleiocov = c(0.0, 0.5), # More even sampling, going from -0.5 to 0.5 rather than 0 to 0.5
     delchr = c(0, 10),
     wsd = c(0.1, 10))
 )
@@ -98,9 +98,9 @@ lscombos_opt <- lhs.design(
     rwide = c(0.0, 1.241e-4), 
     nloci = c(10, 500),
     locisigma = c(0.1, 10),
-    pleiorate = c(0.0, 1.0),
+    pleiorate = c(0.0, 0.5),
     delmu = c(0.0, 1.0),
-    pleiocov = c(-0.5, 0.5), # More even sampling, going from -0.5 to 0.5 rather than 0 to 0.5
+    pleiocov = c(0.0, 0.5), # More even sampling, going from -0.5 to 0.5 rather than 0 to 0.5
     delchr = c(0, 10),
     wsd = c(0.1, 10))
 )
@@ -165,3 +165,23 @@ max(abs(cor(lscombos_rand)[cor(lscombos_rand) != 1]))
 
 
 cor(lscombos)
+
+
+
+# Null and recom model LHS Generation
+
+lscombos_nul_opt <- lhs.design(
+  nruns = 100, # this drastically increases the amount of runs: nruns * nseeds is the total. Also generating the LHC takes forever with more of these
+  nfactors = 8,
+  seed = 1370976025, #sampled from 1:2147483647
+  type = "optimum",
+  factor.names = list(
+    Ne = c(10, 10000),
+    rwide = c(0.0, 1.241e-4), 
+    nloci = c(10, 500),
+    locisigma = c(0.1, 10),
+    pleiorate = c(0.0, 0.5),
+    delmu = c(0.0, 1.0),
+    pleiocov = c(0.0, 0.5), # More even sampling, going from 0 to 0.5 to avoid non-positive-definite errors
+    delchr = c(0, 10))
+)
