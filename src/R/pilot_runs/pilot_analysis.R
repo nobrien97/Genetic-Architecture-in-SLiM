@@ -72,11 +72,14 @@ dat_to_mat <- function(dat) {
 }
 
 # Split data frame up into single lines, do dat_to_mat on each, store as an array
+# Split by seed first so tree is list -> gen -> seed -> model
+# Easier to compare models this way by seed
+
 
 mat_gen <- function(dat) {
   dat <- dplyr::arrange(dat, gen, modelindex, seed)
   dat <- group_split(dat, gen)
-  dat <- lapply(dat, function(x) { group_split(x, modelindex)})
+  dat <- lapply(dat, function(x) { dplyr::group_split(x, seed)})
   dat <- lapply(dat, function(x) { lapply(x, function(y) {
     split(as.matrix(y), row(y))
    })
@@ -88,7 +91,7 @@ mat_gen <- function(dat) {
       })
     }) 
   })
-  
+  dat
 }
 
 # Split by generation tests
@@ -149,6 +152,84 @@ matse_construct <- function(dat) {
     }) # apply mat_se to each model
 }
 
+## Multicore versions of the above functions
+# Uses parallel, dplyr
+
+MCmat_gen <- function(dat, cores) {
+  dat <- dplyr::arrange(dat, gen, modelindex, seed)
+  dat <- dplyr::group_split(dat, gen)
+  dat <- parallel::mclapply(dat, function(x) { dplyr::group_split(x, seed)}, mc.cores = cores)
+  dat <- parallel::mclapply(dat, function(x) { lapply(x, function(y) {
+    split(as.matrix(y), row(y))
+  })
+  }, mc.cores = cores)
+  
+  dat <- parallel::mclapply(dat, function(x) { 
+    lapply(x, function(y) { 
+      lapply(y, function(z) { 
+        dat_to_mat(z) 
+      })
+    }) 
+  }, mc.cores = cores)
+  dat
+}
+
+library(evolqg)
+MCG_ET <- function(G, cores, nmats) {
+  Gmax <- parallel::mclapply(G, function(x) {
+    lapply(x, function(y) {
+      mats <- simplify2array(y)
+      evolqg::EigenTensorDecomposition(mats, return.projection = F)$matrices[1:nmats]
+    })
+  }, mc.cores = cores)
+  Es <- parallel::mclapply(Gmax, function(x) {
+    lapply(x, function(y) {
+      eigen(y, symmetric = T, only.values = T)
+    })
+  }, mc.cores = cores)
+  Es
+}
+
+
+is.positive.definite(testGs[[1]][[1]][,,1])
+# first is subsetting by generation, then seed, then last is getting each model's matrix as element of array
+
+G_ET <- function(G, nmats) {
+  Gmax <- lapply(G, function(x) {
+    lapply(x, function(y) {
+      mats <- simplify2array(y)
+      mats <- mats[,,matrixcalc::is.positive.definite(y) == T]
+       evolqg::EigenTensorDecomposition(mats, return.projection = F)$matrices[1:nmats]
+  #   })
+  # })
+  # Es <- lapply(Gmax, function(x) {
+  #   lapply(x, function(y) {
+  #     eigen(y, symmetric = T, only.values = T)
+  #   })
+  # })
+  # Es
+    }) })
+  Gmax
+}
+
+
+
+testGs <- lapply(testmatrices, function(x) {
+  lapply(x, function(y) {
+      lapply(x, `[[`, 1)
+    })
+})
+  
+  n <- length(x)
+  mats <- array(unlist(mats), c(8, 8, n))
+  evolqg::EigenTensorDecomposition(mats, return.projection = F)$matrices[,,1:2]
+})
+
+
+library(evolqg)
+mats_test <- array(unlist(testmatrices[[1]][1]), c(8,8,3))
+ETOutput <- EigenTensorDecomposition(mats_test, return.projection = F)$matrices[,,1:2]
+EigOutput <- eigen(ETOutput$matrices[2], symmetric = T, only.values = T)
 
 
 # E.g. with d_null_mat
@@ -203,7 +284,7 @@ eigen(mat.sq.dist(G_null_mean, dist. = "Euclidean"))
 
 # VFA
 library(Matrix)
-library(rARPACK)
+#library(rARPACK)
 library(vsp)
 
 vsp()

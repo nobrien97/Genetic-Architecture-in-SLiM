@@ -47,7 +47,7 @@ write.csv(lscombos_sel_pilot, "lscombos_sel_pilot.csv")
 
 # Seeds 
 
-rsample <- as.character(round(runif(3, 1, (2^32 - 1)))) # Pull from 32 bit integer range for now to reduce problems, below
+rsample <- as.character(round(runif(50, 1, (2^62 - 1)))) # Pull from 32 bit integer range for now to reduce problems, below
 # Seems to be a problem with the seeds themselves: 
 # they are treated as the same if too large, even though they are below 64 bit limit
 # They are above the 32 bit limit though, which is the strange thing: may be a bug?
