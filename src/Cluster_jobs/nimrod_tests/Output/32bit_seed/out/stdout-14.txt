@@ -1,0 +1,51 @@
+PBS_O_WORKDIR is /home/s4395747/SLiM/Scripts/Nimrod/Pilot/AIM1
+/home/s4395747/SLiM/Scripts/Nimrod/Pilot/AIM1/Outputs/TEST_6_2.txt
+// Initial random seed:
+3399723994
+
+// RunInitializeCallbacks():
+initializeMutationRate(6.3e-06);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(2, 0.5, "g", -0.03, 0.2);
+initializeMutationType(3, 0.5, "f", 0);
+initializeMutationType(4, 0.5, "n", 0, 8.78058);
+initializeMutationType(5, 0.5, "n", 0, 8.78058);
+initializeMutationType(6, 0.5, "n", 0, 8.78058);
+initializeMutationType(7, 0.5, "n", 0, 8.78058);
+initializeMutationType(8, 0.5, "n", 0, 8.78058);
+initializeMutationType(9, 0.5, "n", 0, 8.78058);
+initializeMutationType(10, 0.5, "n", 0, 8.78058);
+initializeMutationType(11, 0.5, "n", 0, 8.78058);
+initializeGenomicElementType(1, c(m1, m2), c(1, 0.982935));
+initializeGenomicElementType(2, m1, 1);
+initializeRecombinationRate(c(1.58172e-05, 0.5, 1.48814e-05, 0.5, 1.51994e-05, 0.5, 1.45779e-05, 0.5, 1.40663e-05, 0.5, 1.95493e-05, 0.5, 1.60111e-05, 0.5, 1.77081e-05, 0.5, 1.83361e-05, 0.5, 1.53069e-05), c(2068, 2069, 4136, 4137, 6204, 6205, 8272, 8273, 10340, 10341, 12408, 12409, 14476, 14477, 16544, 16545, 18612, 18613, 20680));
+initializeGenomicElement(g2, 0, 2067);
+initializeGenomicElement(g2, 2068, 4135);
+initializeGenomicElement(g2, 4136, 6203);
+initializeGenomicElement(g1, 6204, 8271);
+initializeGenomicElement(g1, 8272, 10339);
+initializeGenomicElement(g2, 10340, 12407);
+initializeGenomicElement(g1, 12408, 14475);
+initializeGenomicElement(g1, 14476, 16543);
+initializeGenomicElement(g2, 16544, 18611);
+initializeGenomicElement(g2, 18612, 20679);
+
+Pleiotropic QTL DFE means: 
+0 0 0 0 0 0 0 0
+
+Pleiotropic QTL DFE variance-covariance matrix (M matrix): 
+        [,0]    [,1]    [,2]    [,3]    [,4]    [,5]    [,6]    [,7]
+[0,] 8.78058 4.08166 3.70548 4.30102 5.48439 5.41626 5.91497  3.8678
+[1,] 4.08166 8.78058 2.28001  3.9134 5.44233 4.80479 6.84965 4.12661
+[2,] 3.70548 2.28001 8.78058 4.74687 2.94185 4.55868 5.03858 3.67436
+[3,] 4.30102  3.9134 4.74687 8.78058 4.57669 4.31079 3.88506 4.63095
+[4,] 5.48439 5.44233 2.94185 4.57669 8.78058 6.87625 4.89607 3.56862
+[5,] 5.41626 4.80479 4.55868 4.31079 6.87625 8.78058 2.35674  4.6932
+[6,] 5.91497 6.84965 5.03858 3.88506 4.89607 2.35674 8.78058 4.09359
+[7,]  3.8678 4.12661 3.67436 4.63095 3.56862  4.6932 4.09359 8.78058
+
+// Starting run at generation <start>:
+1 
+
+  adding: pbs/tmpdir/pbs.346014.tinmgr2/nimrodg-localact-6721694910908594920/81b484db-640c-4fc0-98e6-0c134dee2ed3/7f77b05c-b41d-4e69-9d3f-009b63c5405e/tmp/matrices/ (stored 0%)
+  adding: pbs/tmpdir/pbs.346014.tinmgr2/nimrodg-localact-6721694910908594920/81b484db-640c-4fc0-98e6-0c134dee2ed3/7f77b05c-b41d-4e69-9d3f-009b63c5405e/tmp/matrices/model6/ (stored 0%)

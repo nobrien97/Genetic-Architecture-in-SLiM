@@ -1,0 +1,3 @@
+Warning message:
+In read.table(file = file, header = header, sep = sep, quote = quote,  :
+  incomplete final line found by readTableHeader on '/tmp/sig_UkrdZz.csv'

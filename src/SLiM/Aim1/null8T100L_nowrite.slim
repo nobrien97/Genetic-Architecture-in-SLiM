@@ -4,7 +4,7 @@
 // in the same region etc. 
 // Model now puts neutral mutations which have fixed into substitution objects and adds the effects of substitutions correctly into the phenotypes. These 
 // substitutions are also put in the mutation output (freq = 1)
-// Mutation file gets massive, possibly need to compress it with // writeFile(compress = T), but that will add performance overhead + lots more RAM usage as it will 
+// Mutation file gets massive, possibly need to compress it with //writeFile(compress = T), but that will add performance overhead + lots more RAM usage as it will 
 // likely keep each line in memory while it appends them and compresses
 // Alternative solution (which I've done here) is to get the mutation output less frequently, but this results in missing a lot of the micro-evolution going on 
 // through losses of mutations, which are likely to be missed
@@ -24,11 +24,9 @@ initialize() {
 		setCfgParam("seed", getSeed());
 		catn("Actual seed: " + asInteger(seed));
 	}
-	
-	defineConstant("clock", clock());
 	setCfgParam("mu", 6.3e-6); // Genome-wide mutation rate per locus, Schug et al. 1996, as above
-	setCfgParam("Ne", 100); // Population size
-	setCfgParam("pleiorate", 0.44); // Proportion of QTL mutations that should be pleiotropic - given by Chesmore et al. 2017, based on human disease GWAS studies!
+	setCfgParam("Ne", 10); // Population size
+	setCfgParam("pleiorate", 0.0); // Proportion of QTL mutations that should be pleiotropic - given by Chesmore et al. 2017, based on human disease GWAS studies!
 	setCfgParam("del_mean", -0.03); // Mean used for the gamma distribution that deleterious mutations are pulled function
 	setCfgParam("del_shape", 0.2); // Shape parameter for gamma distribution used for deleterious mutations
 	setCfgParam("delmu", 1.0); // Proportion of deleterious mutations compared to others (relative to others, 0.1 compared to 1 of neutral)
@@ -73,7 +71,7 @@ initialize() {
 	m5.color = "gray";
 	
 	//m6 mutation type: QTL for phenotype 2 only
-	initializeMutationType("m6", 0.5, "n", 0.0, locisigma);	
+	initializeMutationType("m6", 0.5, "n", 0.0, locisigma);
 	m6.color = "pink";
 	
 	//m7 mutation type: QTL for phenotype 3 only
@@ -91,7 +89,7 @@ initialize() {
 	m9.color = "aquamarine";
 	
 	//m10 mutation type: QTL for phenotype 6 only
-	initializeMutationType("m10", 0.5, "n", 0.0, locisigma);	
+	initializeMutationType("m10", 0.5, "n", 0.0, locisigma);
 	m10.color = "chartreuse";
 	
 	//m11 mutation type: QTL for phenotype 7 only
@@ -103,20 +101,20 @@ initialize() {
 	initializeGenomicElementType("g1", c(m1, m2), c(1, delmu));
 	
 	// g2 genomic element type: uses just m1, so we can control local vs global effects of deleterious mutation on individual chromosomes or across the genome
-	initializeGenomicElementType("g2", m1, 1);	
+	initializeGenomicElementType("g2", m1, 1);
 	
 	recomseq = seq(0, genomelength - 1, by = 0.1*genomelength); // Create 10 equally-distanced chromosomes
 	ends = asInteger(round(recomseq[1:9])); 	// Convert to int from float, ignore the first value since it is 0
 	ends = c(sort(c(ends, ends+1)), genomelength);
 	rbtwnQTL = c(rep(0.5, length(ends)));		// rregion is fixed to 0.5, always have 10 chromosomes now
-	rgenome = c(rnorm(length(ends), rwide, rsd)); 
+	rgenome = c(rnorm(length(ends), rwide, rsd));
 	rates = c(rbind(rgenome, rbtwnQTL), rwide);
 	rates = rates[0:(length(ends) - 1)];
 	
-
+	
 	
 	initializeRecombinationRate(rates, ends); // We set this later, when we get the positions of QTLs
-
+	
 	// Chromosome set up with genomic regions according to recombseq, where there are 100 potential QTL sites, the rest are neutral sites (m1, m2)
 	recomseq = asInteger(round(recomseq));
 	
@@ -125,7 +123,7 @@ initialize() {
 	chr_del = sample(0:9, delchr);
 	chr_elements[chr_del] = g1;
 	
-// Set up 10 equidistant chromosomes, with one of them generating deleterious mutations
+	// Set up 10 equidistant chromosomes, with one of them generating deleterious mutations
 	
 	initializeGenomicElement(chr_elements[0], 0, recomseq[1] - 1);
 	initializeGenomicElement(chr_elements[1], recomseq[1], recomseq[2] - 1);
@@ -141,7 +139,7 @@ initialize() {
 	// QTL constants - UNIVERSAL PLEIOTROPY assumed!
 	
 	setCfgParam("pleio_mu", float(8)); // mean distribution value for multivariate normal we are pulling effects of all 8 traits from
-	setCfgParam("pleio_cov", 0.1); // Default covariance term for use in pleio_covs - 0 is our null: pleiotropy, but with no direction
+	setCfgParam("pleio_cov", 0.5); // Default covariance term for use in pleio_covs - 0 is our null: pleiotropy, but with no direction
 	if (pleio_cov != 0.0) {
 		
 		defineConstant("pleio_covs", rnorm(28, pleio_cov*locisigma, abs(pleio_cov/5)*locisigma));		// If we set our pleio_cov to something other than 0.0 (some directionality to the covariance), use a norm distribution to randomise effects around that value, so we aren't assuming every covariance value is identical
@@ -160,41 +158,8 @@ initialize() {
 									pleio_covs[5], pleio_covs[11], pleio_covs[16], pleio_covs[20], pleio_covs[23], pleio_covs[25], locisigma, pleio_covs[27],
 									pleio_covs[6], pleio_covs[12], pleio_covs[17], pleio_covs[21], pleio_covs[24], pleio_covs[26], pleio_covs[27], locisigma), nrow=8); // sigma used in multivariate normal pull - variance covariance matrix, where variance of each trait = locisigma
 
-
-
-	if (any(pleio_covs < -0.1428 | pleio_covs > 0.99*locisigma)) { // Need to ensure we are positive-definite: using Sylvester's criterion, says covariance values can be > -1/(n-1), where n is the number of traits; also must be < 1
-
-	defineConstant("PDpath", writeTempFile("PD_", ".txt", ""));
 	
-	sigPath = writeTempFile("sig_", ".csv", paste(sigma, ","));
-	
-	rstr = paste(c( '{', 
-							'library(MASS)',
-							'library(Matrix)', 
-							's <- as.vector(t(read.csv("' + sigPath + '", header = F)))',
-							'sigma <- matrix(c(s), nrow=8)',
-							'sigma_PD <- nearPD(sigma, keepDiag = T)$mat',
-							'write.matrix(sigma_PD, file = "' + PDpath + '")',
-							 '}'), sep="\n");
-							 
-	
-	scriptPath = writeTempFile("sigma_", ".R", rstr);
-	
-	
-	system("/opt/R/lib64/R/bin/Rscript", args=scriptPath); // On HPC: /opt/R/lib64/R/bin/Rscript, On home: /usr/lib/R/bin/Rscript
-	deleteFile(scriptPath);
-	deleteFile(sigPath);
-	sigma_PD = strsplit(paste(readFile(PDpath)));
-	sigma_PD = asFloat(sigma_PD[sigma_PD != ""]);
-	
-	deleteFile(PDpath);
-
-	defineConstant("pleio_sigma", matrix(c(sigma_PD), nrow = 8));
-	
-	}
-
-	else { defineConstant("pleio_sigma", sigma); }
-	
+	defineConstant("pleio_sigma", sigma);	
 	catn("\nPleiotropic QTL DFE means: ");
 	print(pleio_mu);
 	catn("\nPleiotropic QTL DFE variance-covariance matrix (M matrix): ");
@@ -225,16 +190,20 @@ function (f)chrHeterozygosity(o<Genome>$ genome1, o<Genome>$ genome2) // Chromos
 	muts1 = genome1.mutations;
 	muts2 = genome2.mutations;
 	unshared = setSymmetricDifference(muts1, muts2);
-	ends = sort(sim.chromosome.recombinationEndPositions); 
+	ends = sort(sim.chromosome.recombinationEndPositions)[1:(size(sim.chromosome.recombinationEndPositions) - 1)]; // Get rid of the first end, which starts at 0
 	pi = float(size(ends));
-
+	
+	
+	// Calculate Heterozygosity for each 'chromosome' - we get the end positions and calculate pi within that region and the last one
+	// If we are at the first chromosome, there is no last 'end', so we go from 0
+	
 	for (i in ends) {
 		index = match(i, ends);
 		if (index == 0)
 			pi[index] = size(unshared[unshared.position <= i]) / (ends[index] - 1);
 		else
 			pi[index] = size(unshared[unshared.position <= i & unshared.position >= ends[index - 1]]) / ( (ends[index] - ends[(index - 1)]) - 1);
-		
+	
 	}
 	return pi;
 }
@@ -253,7 +222,7 @@ function (f)subpopHeterozygosity(o<Subpopulation>$ subpop, [i$ sampleSize=100])
 		individual_pi = chrHeterozygosity(genomes[0], genomes[1]);
 		pi_total = pi_total + individual_pi;
 	}
-	return pi_total[!isNAN(pi_total)]/sampleSize;
+	return pi_total[!isNAN(pi_total)]/sampleSize; // Cut out all the NaN values for the chromosome 'end' pairs that exist between chromosomes - 0-1, 202-203 etc.
 }
 
 
@@ -262,11 +231,12 @@ function (f)subpopHeterozygosity(o<Subpopulation>$ subpop, [i$ sampleSize=100])
 	sim.addSubpop("p1", Ne);
 	chr_QTL = sample(1:(sim.chromosome.lastPosition -1), 8*nloci); // Set the positions of our loci, from position 1 to the length of the chromosome; avoid the first and last positions to avoid errors with setting recombination ends at invalid locations
 // Need to get chr_QTL for all 8 traits - so each trait has nloci loci
+
 	sim.setValue("chr_QTL", chr_QTL); //store these positions in a sim value
 	
 	chrfile = paste(c(modelindex, asString(seed), nloci, chr_QTL, sim.chromosome.recombinationRates, sim.chromosome.recombinationEndPositions), ","); // Output information on where the QTLs are, and the recombination structure of the genome
 	
-	// writeFile(outpositions, chrfile, append = T);
+	//writeFile(outpositions, chrfile, append = T);
 }
 
 // Set fitness of m4 and m5 to be neutral
@@ -303,9 +273,9 @@ fitness(m11) {
 }
 
 // Check if the m1 mutation's position is at a chr_QTL position, if it is than redraw the mutationType to a phenotype one
-			// From McGuigan et al. 2014: "...multivariate modeling indicated that 21% (1 in every 4.8) of five-trait matrices displayed significant mutational 							pleiotropy." But only found pleiotropy in 0.52% of bivariate covariances - so most pleiotropic mutations affect > 2 traits
-			// Decide how many traits to affect: pull a number from a gamma (? CHECK LITERATURE ?) distribution with some mean and shape parameter, then choose traits uniformly based on the number we want.
-			// Or we could leave the model assuming universal pleiotropy, rather than restricted modularity		
+// From McGuigan et al. 2014: "...multivariate modeling indicated that 21% (1 in every 4.8) of five-trait matrices displayed significant mutational 							pleiotropy." But only found pleiotropy in 0.52% of bivariate covariances - so most pleiotropic mutations affect > 2 traits
+// Decide how many traits to affect: pull a number from a gamma (? CHECK LITERATURE ?) distribution with some mean and shape parameter, then choose traits uniformly based on the number we want.
+// Or we could leave the model assuming universal pleiotropy, rather than restricted modularity		
 
 mutation(m1) {
 	if (any(mut.position == sim.getValue("chr_QTL") )) { // If the mutation falls in any of our defined QTL loci within a region 
@@ -416,24 +386,14 @@ mutation(m2) {
 
 }
 
-// Timer
-1:150000 late() {
-	if (sim.generation % 500 != 0)
-		return;
-	else {
-		time = clock() - clock;
-		catn(sim.generation + " " + time);
-		}
-}
-
 // Burn-in period
 1:50000 late() {
 	if (sim.generation % 500 != 0) // Grab a sample every 500 generations
 		return;
-		
+	
 	meanH = paste(subpopHeterozygosity(p1, Ne), ",");
-	Hfile = paste(c(sim.generation, asString(seed), modelindex, meanH, ","));
-	// writeFile(outburn, Hfile, append = T);
+	Hfile = paste(c(sim.generation, asString(seed), modelindex, meanH), ",");
+	//writeFile(outburn, Hfile, append = T);
 }
 
 
@@ -464,10 +424,10 @@ mutation(m2) {
 	fixedfx2 = sizem3 ? sum(fixed[fixed.mutationType == m3].getValue("e2")) else 0.0 + sizem6 ? sum(fixed[fixed.mutationType == m6].getValue("e2")) else 0.0;
 	
 	fixedfx3 = sizem3 ? sum(fixed[fixed.mutationType == m3].getValue("e3")) else 0.0 + sizem7 ? sum(fixed[fixed.mutationType == m7].getValue("e3")) else 0.0;
-
+	
 	fixedfx4 = sizem3 ? sum(fixed[fixed.mutationType == m3].getValue("e4")) else 0.0 + sizem8 ? sum(fixed[fixed.mutationType == m8].getValue("e4")) else 0.0;
 	
-	fixedfx5 = sizem3 ? sum(fixed[fixed.mutationType == m3].getValue("e5")) else 0.0 + sizem9 ? sum(fixed[fixed.mutationType == m9].getValue("e5")) else 0.0;	
+	fixedfx5 = sizem3 ? sum(fixed[fixed.mutationType == m3].getValue("e5")) else 0.0 + sizem9 ? sum(fixed[fixed.mutationType == m9].getValue("e5")) else 0.0;
 	
 	fixedfx6 = sizem3 ? sum(fixed[fixed.mutationType == m3].getValue("e6")) else 0.0 + sizem10 ? sum(fixed[fixed.mutationType == m10].getValue("e6")) else 0.0;
 	
@@ -512,8 +472,8 @@ mutation(m2) {
 		ind.setValue("phenotype7", phenotype7);
 	}
 	// Get the values for output: mean trait values, variance of those trait values, covariance and correlation coefficients
-//	inds = sim.subpopulations.individuals;
-
+	//	inds = sim.subpopulations.individuals;
+	
 	phenotype0 = inds.getValue("phenotype0");
 	phenotype1 = inds.getValue("phenotype1");
 	phenotype2 = inds.getValue("phenotype2");
@@ -522,7 +482,7 @@ mutation(m2) {
 	phenotype5 = inds.getValue("phenotype5");
 	phenotype6 = inds.getValue("phenotype6");
 	phenotype7 = inds.getValue("phenotype7");
-
+	
 	phenomeans = c(mean(phenotype0), mean(phenotype1), mean(phenotype2), mean(phenotype3), mean(phenotype4), mean(phenotype5), mean(phenotype6), mean(phenotype7));
 	
 	phenovars = c(var(phenotype0), var(phenotype1), var(phenotype2), var(phenotype3), var(phenotype4), var(phenotype5), var(phenotype6), var(phenotype7));
@@ -604,10 +564,10 @@ mutation(m2) {
 	file = paste(meanline, "");
 	
 	// Write the file
-	// writeFile(outname, file, append = T);
+	//writeFile(outname, file, append = T);
 	
 	
-// Mutation output: only do this once every 25000 generations: missing a lot of micro-evolution, but we keep fixations, and the files get too big otherwise	
+	// Mutation output: only do this once every 25000 generations: missing a lot of micro-evolution, but we keep fixations, and the files get too big otherwise	
 	
 	if (sim.generation % 25000 != 0)
 		return;
@@ -656,7 +616,7 @@ mutation(m2) {
 		subFreq = 1.0;
 		subType = sub.mutationType.id;
 		subValues = paste(c(sub.getValue("e0"), sub.getValue("e1"), sub.getValue("e2"), sub.getValue("e3"), sub.getValue("e4"), sub.getValue("e5"), sub.getValue("e6"), sub.getValue("e7")), ",");
-
+		
 		
 		if (sub != revsubs[0]) // THIS IS THE HACK THAT I MUST RESORT TO THANKS TO NO \b OR REPLACE() 	GOSH BLESS EIDOS
 			subLine = paste(c(sim.generation, ",", getSeed(), ",", modelindex, ",", rsd, ",", rwide, ",", delmu, ",", nloci, ",", paste(pleio_covs, ","), ",", Ne, ",", subType, ",", sub.id, ",", sub.position, ",", sub.originGeneration, ",", subValues, ",", sub.getValue("fe"), ",", subFreq, ",", sub.fixationGeneration, "\n"), "");
@@ -672,13 +632,13 @@ mutation(m2) {
 	// Write the mutations file
 	// Fail safe in case there are no mutations at some point and the for loop doesn't run
 //	if (exists('mutsLine'))
-		// writeFile(outnamemuts, mutsFile, append = T);
+		//writeFile(outnamemuts, mutsFile, append = T);
 	
 	
 	// SLiMGUI test output 	
 	//	catn(paste(c("Generation: ", sim.generation, " Phenotype 0 Mean: ", pheno0mean, " Phenotype 1 Mean: ", pheno1mean, " covariance: ", phenocov)));
 
-	
+
 }
 
 // Genome output: We have to do this for each trait! So Trait 1 uses mutation types m3 and m4; trait 2 uses m3 and m5, need to get these effects separately
@@ -735,9 +695,9 @@ mutation(m2) {
 	
 	}
 	
-	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, ".csv"))), segsitesfile, append = T); // append is true so we can stick trait values together
+	//writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, ".csv"))), segsitesfile, append = T); // append is true so we can stick trait values together
 	//	// This is ~/model{modelindex}/seed_segsitesoutname.csv
-	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, ".csv"))), sizefxfile, append = T);
+	//writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, ".csv"))), sizefxfile, append = T);
 	
 	
 	
@@ -763,7 +723,7 @@ mutation(m2) {
 	
 	
 	}
-	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, ".csv"))), zygosfile, append = T);
+	//writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, ".csv"))), zygosfile, append = T);
 }
 
 
@@ -799,9 +759,9 @@ mutation(m2) {
 	
 	}
 	
-	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, ".csv"))), segsitesfile, append = T);
+	//writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, ".csv"))), segsitesfile, append = T);
 	
-	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, ".csv"))), sizefxfile, append = T);
+	//writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, ".csv"))), sizefxfile, append = T);
 	
 	
 	
@@ -827,7 +787,7 @@ mutation(m2) {
 	
 	}
 	
-	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, ".csv"))), zygosfile, append = T);
+	//writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, ".csv"))), zygosfile, append = T);
 }
 
 // Trait 3: m3, m6; e2
@@ -862,9 +822,9 @@ mutation(m2) {
 	
 	}
 	
-	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, ".csv"))), segsitesfile, append = T);
+	//writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, ".csv"))), segsitesfile, append = T);
 	
-	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, ".csv"))), sizefxfile, append = T);
+	//writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, ".csv"))), sizefxfile, append = T);
 	
 	
 	
@@ -888,7 +848,7 @@ mutation(m2) {
 		zygosfile = paste0(zygoslines);
 	
 	}
-	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, ".csv"))), zygosfile, append = T);
+	//writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, ".csv"))), zygosfile, append = T);
 }
 
 // Trait 4: m3, m7; e3
@@ -924,9 +884,9 @@ mutation(m2) {
 	
 	}
 	
-	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, ".csv"))), segsitesfile, append = T);
+	//writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, ".csv"))), segsitesfile, append = T);
 	
-	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, ".csv"))), sizefxfile, append = T);
+	//writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, ".csv"))), sizefxfile, append = T);
 	
 	
 	
@@ -951,7 +911,7 @@ mutation(m2) {
 	
 	
 	}
-	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, ".csv"))), zygosfile, append = T);
+	//writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, ".csv"))), zygosfile, append = T);
 }
 
 
@@ -1001,9 +961,9 @@ mutation(m2) {
 	
 	}
 	
-	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, ".csv"))), segsitesfile, append = T); // append is true so we can stick outputs from different model/seed runs into the same file
+	//writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, ".csv"))), segsitesfile, append = T); // append is true so we can stick outputs from different model/seed runs into the same file
 	//	// This is ~/model{modelindex}/seed_segsitesoutname_trait1.csv
-	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, ".csv"))), sizefxfile, append = T);
+	//writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, ".csv"))), sizefxfile, append = T);
 	
 	
 	
@@ -1029,7 +989,7 @@ mutation(m2) {
 	
 	
 	}
-	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, ".csv"))), zygosfile, append = T);
+	//writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, ".csv"))), zygosfile, append = T);
 }
 
 // Trait 6: m3, m9; e5
@@ -1078,9 +1038,9 @@ mutation(m2) {
 	
 	}
 	
-	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, ".csv"))), segsitesfile, append = T); // append is true so we can stick outputs from different model/seed runs into the same file
+	//writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, ".csv"))), segsitesfile, append = T); // append is true so we can stick outputs from different model/seed runs into the same file
 	//	// This is ~/model{modelindex}/seed_segsitesoutname_trait1.csv
-	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, ".csv"))), sizefxfile, append = T);
+	//writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, ".csv"))), sizefxfile, append = T);
 	
 	
 	
@@ -1106,7 +1066,7 @@ mutation(m2) {
 	
 	
 	}
-	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, ".csv"))), zygosfile, append = T);
+	//writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, ".csv"))), zygosfile, append = T);
 }
 
 // Trait 7: m3, m10; e6
@@ -1155,9 +1115,9 @@ mutation(m2) {
 	
 	}
 	
-	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, ".csv"))), segsitesfile, append = T); // append is true so we can stick outputs from different model/seed runs into the same file
+	//writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, ".csv"))), segsitesfile, append = T); // append is true so we can stick outputs from different model/seed runs into the same file
 	//	// This is ~/model{modelindex}/seed_segsitesoutname_trait1.csv
-	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, ".csv"))), sizefxfile, append = T);
+	//writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, ".csv"))), sizefxfile, append = T);
 	
 	
 	
@@ -1183,7 +1143,7 @@ mutation(m2) {
 	
 	
 	}
-	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, ".csv"))), zygosfile, append = T);
+	//writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, ".csv"))), zygosfile, append = T);
 }
 
 // Trait 8: m3, m11; e7
@@ -1232,9 +1192,9 @@ mutation(m2) {
 	
 	}
 	
-	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, ".csv"))), segsitesfile, append = T); // append is true so we can stick outputs from different model/seed runs into the same file
+	//writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", segsitesoutname, ".csv"))), segsitesfile, append = T); // append is true so we can stick outputs from different model/seed runs into the same file
 	//	// This is ~/model{modelindex}/seed_segsitesoutname_trait1.csv
-	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, ".csv"))), sizefxfile, append = T);
+	//writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", sizefxoutname, ".csv"))), sizefxfile, append = T);
 	
 	
 	
@@ -1260,7 +1220,7 @@ mutation(m2) {
 	
 	
 	}
-	writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, ".csv"))), zygosfile, append = T);
+	//writeFile(asString(paste0(c("./matrices/model", modelindex, "/", asString(seed), "_", zygosoutname, ".csv"))), zygosfile, append = T);
 }
 
 

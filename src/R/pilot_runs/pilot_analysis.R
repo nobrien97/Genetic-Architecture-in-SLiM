@@ -11,6 +11,31 @@ std.error <- function(x){
 }
 
 
+d_null_32bit <- read.csv("Z:/Documents/GitHub/Genetic-Architecture-in-SLiM/src/Cluster_jobs/nimrod_tests/Output/32bit_seed/out_8T_null_means.csv", header = F)
+
+# Name columns
+
+names(d_null_32bit)[1:7]<- c("gen", "seed", "modelindex", "rsd", "rwide", "delmu", "nloci")
+
+
+# pleiocov terms                
+names(d_null_32bit)[8:35] <-  c(paste0("pleiocov_0", 1:7), paste0("pleiocov_1", 2:7), paste0("pleiocov_2", 3:7), paste0("pleiocov_3", 4:7), paste0("pleiocov_4", 5:7), paste0("pleiocov_5", 6:7), paste0("pleiocov_6", 7))
+
+
+names(d_null_32bit)[36] <- "Ne"
+
+names(d_null_32bit)[37:44] <- paste0("mean", 0:7)
+
+names(d_null_32bit)[45:52] <- paste0("var", 0:7)
+
+names(d_null_32bit)[53:80] <- c(paste0("phenocov_0", 1:7), paste0("phenocov_1", 2:7), paste0("phenocov_2", 3:7), paste0("phenocov_3", 4:7), paste0("phenocov_4", 5:7), paste0("phenocov_5", 6:7), paste0("phenocov_6", 7))
+
+names(d_null_32bit)[81:108] <- c(paste0("phenocor_0", 1:7), paste0("phenocor_1", 2:7), paste0("phenocor_2", 3:7), paste0("phenocor_3", 4:7), paste0("phenocor_4", 5:7), paste0("phenocor_5", 6:7), paste0("phenocor_6", 7))
+
+names(d_null_32bit)[109:118] <- paste0("H_chr", 0:9)
+
+d_null_32bit$seed <- as.factor(d_null_32bit$seed)
+
 
 
 # Null data set

@@ -156,14 +156,6 @@ initialize() {
 	catn("\nPleiotropic QTL DFE variance-covariance matrix (M matrix): ");
 	print(pleio_sigma);
 }
-	
-	else { defineConstant("pleio_sigma", sigma); }
-	
-	catn("\nPleiotropic QTL DFE means: ");
-	print(pleio_mu);
-	catn("\nPleiotropic QTL DFE variance-covariance matrix (M matrix): ");
-	print(pleio_sigma);
-}
 
 // This M matrix defines the direction of pleiotropy via the covariance. Covariance between traits at the end 
 // of the simulation is due to a combination of this covariance term, random effects of drift, recombination,

@@ -1,0 +1,54 @@
+PBS_O_WORKDIR is /home/s4395747/SLiM/Scripts/Nimrod/Pilot/AIM1
+/home/s4395747/SLiM/Scripts/Nimrod/Pilot/AIM1/Outputs/TEST_2_1.txt
+// Initial random seed:
+489175962
+
+// RunInitializeCallbacks():
+initializeMutationRate(6.3e-06);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(2, 0.5, "g", -0.03, 0.2);
+initializeMutationType(3, 0.5, "f", 0);
+initializeMutationType(4, 0.5, "n", 0, 3.32449);
+initializeMutationType(5, 0.5, "n", 0, 3.32449);
+initializeMutationType(6, 0.5, "n", 0, 3.32449);
+initializeMutationType(7, 0.5, "n", 0, 3.32449);
+initializeMutationType(8, 0.5, "n", 0, 3.32449);
+initializeMutationType(9, 0.5, "n", 0, 3.32449);
+initializeMutationType(10, 0.5, "n", 0, 3.32449);
+initializeMutationType(11, 0.5, "n", 0, 3.32449);
+initializeGenomicElementType(1, c(m1, m2), c(1, 0.606026));
+initializeGenomicElementType(2, m1, 1);
+initializeRecombinationRate(c(6.97453e-05, 0.5, 8.49184e-05, 0.5, 7.29278e-05, 0.5, 7.44339e-05, 0.5, 8.28533e-05, 0.5, 6.54798e-05, 0.5, 7.55113e-05, 0.5, 7.99135e-05, 0.5, 7.34247e-05, 0.5, 7.68387e-05), c(2068, 2069, 4136, 4137, 6204, 6205, 8272, 8273, 10340, 10341, 12408, 12409, 14476, 14477, 16544, 16545, 18612, 18613, 20680));
+initializeGenomicElement(g1, 0, 2067);
+initializeGenomicElement(g2, 2068, 4135);
+initializeGenomicElement(g2, 4136, 6203);
+initializeGenomicElement(g1, 6204, 8271);
+initializeGenomicElement(g2, 8272, 10339);
+initializeGenomicElement(g1, 10340, 12407);
+initializeGenomicElement(g1, 12408, 14475);
+initializeGenomicElement(g1, 14476, 16543);
+initializeGenomicElement(g1, 16544, 18611);
+initializeGenomicElement(g1, 18612, 20679);
+
+Pleiotropic QTL DFE means: 
+0 0 0 0 0 0 0 0
+
+Pleiotropic QTL DFE variance-covariance matrix (M matrix): 
+         [,0]     [,1]     [,2]     [,3]     [,4]     [,5]     [,6]     [,7]
+[0,]  3.32449 0.364208 0.389724 0.459095 0.430229 0.361772  0.46074 0.504474
+[1,] 0.364208  3.32449 0.336284 0.397321 0.440853 0.371103  0.40177 0.425168
+[2,] 0.389724 0.336284  3.32449 0.487655 0.382278 0.461617 0.538449 0.404533
+[3,] 0.459095 0.397321 0.487655  3.32449 0.524433 0.478455 0.446125 0.356799
+[4,] 0.430229 0.440853 0.382278 0.524433  3.32449 0.448215 0.364183 0.420428
+[5,] 0.361772 0.371103 0.461617 0.478455 0.448215  3.32449 0.387156 0.226761
+[6,]  0.46074  0.40177 0.538449 0.446125 0.364183 0.387156  3.32449 0.350503
+[7,] 0.504474 0.425168 0.404533 0.356799 0.420428 0.226761 0.350503  3.32449
+
+// Starting run at generation <start>:
+1 
+
+  adding: pbs/tmpdir/pbs.346014.tinmgr2/nimrodg-localact-6721694910908594920/e6948393-4a9b-41a5-ac15-a846df7cca74/f4b62279-9ee9-41b3-a934-b5ef44e30033/tmp/matrices/ (stored 0%)
+  adding: pbs/tmpdir/pbs.346014.tinmgr2/nimrodg-localact-6721694910908594920/e6948393-4a9b-41a5-ac15-a846df7cca74/f4b62279-9ee9-41b3-a934-b5ef44e30033/tmp/matrices/model2/ (stored 0%)
+  adding: pbs/tmpdir/pbs.346014.tinmgr2/nimrodg-localact-6721694910908594920/e6948393-4a9b-41a5-ac15-a846df7cca74/f4b62279-9ee9-41b3-a934-b5ef44e30033/tmp/matrices/model2/489175962_out_8T_null_segsites.csv (deflated 98%)
+  adding: pbs/tmpdir/pbs.346014.tinmgr2/nimrodg-localact-6721694910908594920/e6948393-4a9b-41a5-ac15-a846df7cca74/f4b62279-9ee9-41b3-a934-b5ef44e30033/tmp/matrices/model2/489175962_out_8T_null_sizefx.csv (deflated 99%)
+  adding: pbs/tmpdir/pbs.346014.tinmgr2/nimrodg-localact-6721694910908594920/e6948393-4a9b-41a5-ac15-a846df7cca74/f4b62279-9ee9-41b3-a934-b5ef44e30033/tmp/matrices/model2/489175962_out_8T_null_zygosity.csv (deflated 98%)
