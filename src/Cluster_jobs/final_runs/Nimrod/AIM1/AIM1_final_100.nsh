@@ -1,5 +1,7 @@
 #!/sw7/RCC/NimrodG/embedded-1.9.0/bin/nimexec
 
+
+# Runs AIM 1 Models 76-100
 # Modified from original script by David.Green@uq.edu.au
 # More information at: https://github.com/UQ-RCC/nimrod-embedded
 #
@@ -10,12 +12,12 @@
 #PBS -A qris-uq
 #
 #Use more resources if you need.
-#PBS -l select=40:ncpus=24:mem=120GB:ompthreads=1 
-#40 nodes, 24 cores, 120GB per node
+#PBS -l select=10:ncpus=24:mem=120GB:ompthreads=1 
+#10 nodes, 24 cores, 120GB per node
 #PBS -l walltime=336:00:00
 #
-#Job name for ease of recognition
-#PBS -N Nim_SLiMAIM1
+#Job name for ease of recognition: SLiM AIM1 76-100
+#PBS -N Nim_SLiM1-100
 #
 # Special Queue
 #PBS -q Special
@@ -29,7 +31,7 @@
 # =============================================================================
 
 #The parameters for the 100 latin squares are rows in the input file.
-#NIM parameter LS integer range from 1 to 100 step 1
+#NIM parameter LS integer range from 76 to 100 step 1
 
 #Repeat 50 times for each hypercube with a different SEED value
 #NIM parameter REP integer range from 1 to 50 step 1

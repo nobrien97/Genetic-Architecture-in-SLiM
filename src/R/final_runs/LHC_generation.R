@@ -180,7 +180,7 @@ lscombos_nul_opt <- lhs.design(
   seed = 1370976025, #sampled from 1:2147483647
   type = "optimum",
   factor.names = list(
-    Ne = c(10, 10000),
+    Ne = c(10, 8000),
     rwide = c(0.0, 1.241e-4), 
     nloci = c(10, 500),
     locisigma = c(0.1, 10),
@@ -192,6 +192,26 @@ lscombos_nul_opt <- lhs.design(
 
 write.csv(lscombos_nul_opt, "lscombos_null.csv")
 
+# Selection model LHS Generation
+
+lscombos_sel_opt <- lhs.design(
+  nruns = 100, # this drastically increases the amount of runs: nruns * nseeds is the total. Also generating the LHC takes forever with more of these
+  nfactors = 9,
+  seed = 1370976025, #sampled from 1:2147483647
+  type = "optimum",
+  factor.names = list(
+    Ne = c(10, 8000),
+    rwide = c(0.0, 1.241e-4), 
+    nloci = c(10, 500),
+    locisigma = c(0.1, 10),
+    pleiorate = c(0.0, 0.5),
+    delmu = c(0.0, 1.0),
+    pleiocov = c(0.0, 0.5), # More even sampling, going from -0.5 to 0.5 rather than 0 to 0.5
+    delchr = c(0, 10),
+    tau = c(50, 10000))
+)
+
+write.csv(lscombos_sel_opt, "lscombos_sel.csv")
 
 # Seed generation
 

@@ -1,0 +1,13 @@
+#!/bin/bash -l
+#PBS -q workq
+#PBS -A qris-uq
+#PBS -N slim_tautest
+#PBS -J 1-3
+#PBS -l walltime=200:00:00
+#PBS -l select=1:ncpus=3:mem=15G
+
+cd $TMPDIR
+
+module load R/3.5.0
+
+R --file=/home/$USER/SLiM/Scripts/tautest/tautest.R
