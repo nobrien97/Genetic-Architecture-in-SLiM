@@ -1,0 +1,88 @@
+
+R version 3.5.0 (2018-04-23) -- "Joy in Playing"
+Copyright (C) 2018 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> 
+> 
+> # Worst case scenario test run for 8T Null
+> 
+> 
+> TMPDIR <- Sys.getenv('TMPDIR')
+> USER <- Sys.getenv('USER')
+> PBSIND <- as.numeric(Sys.getenv("PBS_ARRAY_INDEX"))
+> 
+> 
+> 
+> 
+> if (PBSIND == 1) {
++   system.time(system("/home/$USER/SLiM/slim -s 123 -d Ne=8000 -d nloci=500 -d locisigma=10.0 -d pleiorate=1.0 -d delmu=1.0 -d rwide=1.241e-4 -d pleio_cov=0.5 -d delchr=10 /home/$USER/SLiM/Scripts/speedtest/Final/null8T100L_nowrite.slim"))
++ } else if (PBSIND == 2) {
++   system.time(system("/home/$USER/SLiM/slim -s 123 -d Ne=8000 -d nloci=500 -d locisigma=10.0 -d pleiorate=1.0 -d delmu=1.0 -d rwide=1.241e-4 -d pleio_cov=0.5 -d delchr=10 /home/$USER/SLiM/Scripts/speedtest/Final/null_recom_8T100L_nowrite.slim"))
++ } else {
++   system.time(system("/home/$USER/SLiM/slim -s 123 -d Ne=8000 -d nloci=500 -d locisigma=10.0 -d pleiorate=1.0 -d delmu=1.0 -d rwide=1.241e-4 -d pleio_cov=0.5 -d delchr=10 -d wsd=10.0 /home/$USER/SLiM/Scripts/speedtest/Final/stabsel_recom_8T100L_nowrite.slim"))
++   }
+// Initial random seed:
+123
+
+// RunInitializeCallbacks():
+initializeMutationRate(6.3e-06);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(2, 0.5, "g", -0.03, 0.2);
+initializeMutationType(3, 0.5, "f", 0);
+initializeMutationType(4, 0.5, "n", 0, 10);
+initializeMutationType(5, 0.5, "n", 0, 10);
+initializeMutationType(6, 0.5, "n", 0, 10);
+initializeMutationType(7, 0.5, "n", 0, 10);
+initializeMutationType(8, 0.5, "n", 0, 10);
+initializeMutationType(9, 0.5, "n", 0, 10);
+initializeMutationType(10, 0.5, "n", 0, 10);
+initializeMutationType(11, 0.5, "n", 0, 10);
+initializeGenomicElementType(1, c(m1, m2), c(1, 1));
+initializeGenomicElementType(2, m1, 1);
+initializeGenomicElement(g1, 0, 3362);
+initializeGenomicElement(g1, 3363, 4779);
+initializeGenomicElement(g1, 4780, 5075);
+initializeGenomicElement(g1, 5076, 6179);
+initializeGenomicElement(g1, 6180, 8204);
+initializeGenomicElement(g1, 8205, 11312);
+initializeGenomicElement(g1, 11313, 16009);
+initializeGenomicElement(g1, 16010, 16577);
+initializeGenomicElement(g1, 16578, 17670);
+initializeGenomicElement(g1, 17671, 20679);
+initializeRecombinationRate(0);
+
+Pleiotropic QTL DFE means: 
+0 0 0 0 0 0 0 0
+
+Pleiotropic QTL DFE variance-covariance matrix (M matrix): 
+        [,0]    [,1]    [,2]    [,3]    [,4]    [,5]    [,6]    [,7]
+[0,]      10 5.76987  5.8249 5.99667  5.7338 4.57662 4.54523 6.19969
+[1,] 5.76987      10 4.40198 3.72447 5.13685 6.75773 5.35561 5.84368
+[2,]  5.8249 4.40198      10 4.50075 4.11521 6.18334 4.42841 4.33318
+[3,] 5.99667 3.72447 4.50075      10  4.9338 5.76647 4.94739 6.60092
+[4,]  5.7338 5.13685 4.11521  4.9338      10 4.38554 4.01834  5.5993
+[5,] 4.57662 6.75773 6.18334 5.76647 4.38554      10 3.99925 4.92038
+[6,] 4.54523 5.35561 4.42841 4.94739 4.01834 3.99925      10  4.1007
+[7,] 6.19969 5.84368 4.33318 6.60092  5.5993 4.92038  4.1007      10
+
+// Starting run at generation <start>:
+1 
+
+      user     system    elapsed 
+188055.035   1380.889 189450.614 
+> 
