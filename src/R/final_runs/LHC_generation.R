@@ -190,6 +190,9 @@ lscombos_nul_opt <- lhs.design(
     delchr = c(0, 10))
 )
 
+plot(lscombos_nul_opt)
+cor(lscombos_nul_opt)
+
 write.csv(lscombos_nul_opt, "lscombos_null.csv")
 
 # Selection model LHS Generation

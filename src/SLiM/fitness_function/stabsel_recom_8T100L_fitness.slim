@@ -34,13 +34,14 @@ initialize() {
 	setCfgParam("rsd", rwide*0.1); // Recombination rate standard deviation (used in rnorm)
 	setCfgParam("nloci", 100); // Number of QTL positions along the chromosome - where QTL mutations can appear, sampled from sample()
 	setCfgParam("genomelength", 20680); // Taken from my own analysis from Ensembl, and from Elliott and Gregory 2015 
-	setCfgParam("locisigma", 1.0); // Variance used for normal disttribution pulls - effectively the additive effect size
+	setCfgParam("locisigma", 10.0); // Variance used for normal disttribution pulls - effectively the additive effect size
 	setCfgParam("delchr", 5); // Number of chromosomes to harbour deleterious mutations	
-	setCfgParam("tau", 50.0); // scalar for shape of fitness curve: smaller = narrower curve, greater selection pressure: need to be careful with values, they need to be relative to the mean phenotype after burn-in, and the initial distance from the optimum. 
+	setCfgParam("tau", 10.0); // scalar for shape of fitness curve: smaller = narrower curve, greater selection pressure: need to be careful with values, they need to be relative to the mean phenotype after burn-in, and the initial distance from the optimum. 
 	
 	setCfgParam("outpositions", 'out_8T_stabsel_chr.csv'); // Output filename/path for chromosome endpoints and QTL loci positions
 	setCfgParam("outburn", 'out_8T_stabsel_burnin.csv'); // Output burn-in heterozygosities
 	setCfgParam("outname", 'out_8T_stabsel_means.csv'); // Output filename/path for the trait means/variance
+	setCfgParam("outopt", 'out_8T_stabsel_opt.csv'); // Output filename/path for the trait optimum values for each run
 	setCfgParam("outnamemuts", 'out_8T_stabsel_muts.csv'); //Output filename/path for the mutation information
 	setCfgParam("segsitesoutname", 'out_8T_stabsel_segsites'); // Output filename for genomes - the 0s and 1s for whether a mutation is present at a certain position
 	setCfgParam("zygosoutname", 'out_8T_stabsel_zygosity'); // Output filename for zygosity of mutations for each individual for each locus position	
@@ -304,8 +305,7 @@ fitness(m11) {
 
 // Check if the m1 mutation's position is at a chr_QTL position, if it is than redraw the mutationType
 			// From McGuigan et al. 2014: "...multivariate modeling indicated that 21% (1 in every 4.8) of five-trait matrices displayed significant mutational 							pleiotropy." But only found pleiotropy in 0.52% of bivariate covariances - so most pleiotropic mutations affect > 2 traits
-			// Decide how many traits to affect: pull a number from a gamma (? CHECK LITERATURE ?) distribution with some mean and shape parameter, then choose traits uniformly based on the number we want.
-			// Or we could leave the model assuming universal pleiotropy, rather than restricted modularity		
+			// assuming universal pleiotropy, rather than restricted modularity		
 
 mutation(m1) {
 	if (any(mut.position == sim.getValue("chr_QTL") )) { // If the mutation falls in any of our defined QTL loci within a region 
@@ -583,9 +583,17 @@ mutation(m2) {
 	
 	catn("\nTrait means");
 	print(phenomeans);
-	defineConstant("optima", (5.0*phenomeans));
+	// Calculate optima as 100 steps from the mean - first find total steps/mutations in burn-in: mu*nloci*50000 generations
+	steps = mu*(nloci)*50000;
+	// Optima are 100 steps from mean, that's 100/steps * phenomeans
+	defineConstant("optima", (phenomeans+(phenomeans*(100/steps))));
 	catn("\nTrait optima: ");
 	print(optima);
+	
+	// Optima file
+	
+	optline = paste(c(seed, modelindex, optima), ",");
+//	writeFile(outopt, optline, append = T);
 }
 
 
@@ -639,7 +647,7 @@ mutation(m2) {
 
 	phenotype = float(8);
 	phenotype = sapply(inds, <<
-	muts = applyValue.genomes.mutationsOfType(m3); mutscount = size(muts); phenotype[0] = (mutscount ? sum(muts.getValue("e0")) else 0.0) + (applyValue.sumOfMutationsOfType(m4) + fixedfx0); phenotype[1] = (mutscount ? sum(muts.getValue("e1")) else 0.0) + (applyValue.sumOfMutationsOfType(m5) + fixedfx1); phenotype[2] = (mutscount ? sum(muts.getValue("e2")) else 0.0) + (applyValue.sumOfMutationsOfType(m6) + fixedfx2); phenotype[3] = (mutscount ? sum(muts.getValue("e3")) else 0.0) + (applyValue.sumOfMutationsOfType(m7) + fixedfx3); phenotype[4] = (mutscount ? sum(muts.getValue("e4")) else 0.0) + (applyValue.sumOfMutationsOfType(m8) + fixedfx4); phenotype[5] = (mutscount ? sum(muts.getValue("e5")) else 0.0) + (applyValue.sumOfMutationsOfType(m9) + fixedfx5); phenotype[6] = (mutscount ? sum(muts.getValue("e6")) else 0.0) + (applyValue.sumOfMutationsOfType(m10) + fixedfx6);		 phenotype[7] = (mutscount ? sum(muts.getValue("e7")) else 0.0) + (applyValue.sumOfMutationsOfType(m11) + fixedfx7); applyValue.setValue("phenotype0", phenotype[0]); applyValue.setValue("phenotype1", phenotype[1]); applyValue.setValue("phenotype2", phenotype[2]); applyValue.setValue("phenotype3", phenotype[3]); applyValue.setValue("phenotype4", phenotype[4]); applyValue.setValue("phenotype5", phenotype[5]); applyValue.setValue("phenotype6", phenotype[6]); applyValue.setValue("phenotype7", phenotype[7]); sumx2 = sum((optima - phenotype)^2); applyValue.fitnessScaling = ((1-0.9*(1-exp(-(1/(tau)) * sumx2))) * 10.0) ; phenotype;
+	muts = applyValue.genomes.mutationsOfType(m3); mutscount = size(muts); phenotype[0] = (mutscount ? sum(muts.getValue("e0")) else 0.0) + (applyValue.sumOfMutationsOfType(m4) + fixedfx0); phenotype[1] = (mutscount ? sum(muts.getValue("e1")) else 0.0) + (applyValue.sumOfMutationsOfType(m5) + fixedfx1); phenotype[2] = (mutscount ? sum(muts.getValue("e2")) else 0.0) + (applyValue.sumOfMutationsOfType(m6) + fixedfx2); phenotype[3] = (mutscount ? sum(muts.getValue("e3")) else 0.0) + (applyValue.sumOfMutationsOfType(m7) + fixedfx3); phenotype[4] = (mutscount ? sum(muts.getValue("e4")) else 0.0) + (applyValue.sumOfMutationsOfType(m8) + fixedfx4); phenotype[5] = (mutscount ? sum(muts.getValue("e5")) else 0.0) + (applyValue.sumOfMutationsOfType(m9) + fixedfx5); phenotype[6] = (mutscount ? sum(muts.getValue("e6")) else 0.0) + (applyValue.sumOfMutationsOfType(m10) + fixedfx6);		 phenotype[7] = (mutscount ? sum(muts.getValue("e7")) else 0.0) + (applyValue.sumOfMutationsOfType(m11) + fixedfx7); applyValue.setValue("phenotype0", phenotype[0]); applyValue.setValue("phenotype1", phenotype[1]); applyValue.setValue("phenotype2", phenotype[2]); applyValue.setValue("phenotype3", phenotype[3]); applyValue.setValue("phenotype4", phenotype[4]); applyValue.setValue("phenotype5", phenotype[5]); applyValue.setValue("phenotype6", phenotype[6]); applyValue.setValue("phenotype7", phenotype[7]); sumx2 = sum((optima - phenotype)^2); applyValue.fitnessScaling = ((1-0.9*(1-exp(-(1/(tau)) * sumx2)))) ; phenotype;
 >>);
 
 
