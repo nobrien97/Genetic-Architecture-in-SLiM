@@ -40,6 +40,7 @@ initialize() {
 	setCfgParam("outpositions", 'out_8T_stabsel_chr.csv'); // Output filename/path for chromosome endpoints and QTL loci positions
 	setCfgParam("outburn", 'out_8T_stabsel_burnin.csv'); // Output burn-in heterozygosities
 	setCfgParam("outname", 'out_8T_stabsel_means.csv'); // Output filename/path for the trait means/variance
+	setCfgParam("outopt", 'out_8T_stabsel_opt.csv'); // Output filename/path for the trait optimum values for each run
 	setCfgParam("outnamemuts", 'out_8T_stabsel_muts.csv'); //Output filename/path for the mutation information
 	setCfgParam("segsitesoutname", 'out_8T_stabsel_segsites'); // Output filename for genomes - the 0s and 1s for whether a mutation is present at a certain position
 	setCfgParam("zygosoutname", 'out_8T_stabsel_zygosity'); // Output filename for zygosity of mutations for each individual for each locus position	
@@ -523,11 +524,23 @@ mutation(m2) {
 	writeFile(outname, file, append = T);
 	
 	
-	// Optima are 5x the burn-in phenotype means
+	// Optima are designated according to average number of mutational steps that will occur
 
-	defineConstant("optima", (5.0*phenomeans));
+	catn("\nTrait means");
+	print(phenomeans);
+	// Calculate optima as 100 steps from the mean - first find total steps/mutations in burn-in: mu*nloci*50000 generations
+	
+	// steps = 31.5; //mu*(nloci)*50000; nloci fixed at 100
+	
+	// Optima are 100 steps from mean, that's 100/steps * phenomeans
+	defineConstant("optima", (phenomeans+(phenomeans*(3.1746)))); // 100/31.5 = 3.1746
 	catn("\nTrait optima: ");
 	print(optima);
+	
+	// Optima file
+	
+	optline = paste(c(seed, modelindex, optima), ",");
+	writeFile(outopt, optline, append = T);
 }
 
 // Output and phenotype calculation : We get the phenotypes at the end of burn-in as well for model 2
