@@ -25,17 +25,16 @@ initialize() {
 		catn("Actual seed: " + asInteger(seed));
 	}
 	setCfgParam("mu", 6.3e-6); // Genome-wide mutation rate per locus, Schug et al. 1996, as above
-	setCfgParam("Ne", 10); // Population size
-	setCfgParam("pleiorate", 0.0); // Proportion of QTL mutations that should be pleiotropic - given by Chesmore et al. 2017, based on human disease GWAS studies!
+	setCfgParam("Ne", 8000); // Population size: Fixed at 8000
+	setCfgParam("pleiorate", 0.44); // Proportion of QTL mutations that should be pleiotropic - given by Chesmore et al. 2017, based on human disease GWAS studies!
 	setCfgParam("del_mean", -0.03); // Mean used for the gamma distribution that deleterious mutations are pulled function
 	setCfgParam("del_shape", 0.2); // Shape parameter for gamma distribution used for deleterious mutations
 	setCfgParam("delmu", 1.0); // Proportion of deleterious mutations compared to others (relative to others, 0.1 compared to 1 of neutral)
 	setCfgParam("rwide", 1.346e-5); // Recombination rate across the whole genome (used as mean in rnorm)
 	setCfgParam("rsd", rwide*0.1); // Recombination rate standard deviation (used in rnorm)
-	setCfgParam("nloci", 100); // Number of QTL positions along the chromosome - where QTL mutations can appear, sampled from sample()
-	setCfgParam("genomelength", 20680); // Taken from my own analysis from Ensembl, and from Elliott and Gregory 2015 
-	setCfgParam("locisigma", 1.0); // Variance used for normal disttribution pulls - effectively the additive effect size
-	setCfgParam("delchr", 5); // Number of chromosomes to harbour deleterious mutations
+	setCfgParam("nloci", 100); // Number of QTL positions along the chromosome - where QTL mutations can appear, sampled from sample(): Fixed at 100
+	setCfgParam("genomelength", 800); // Fixed at 800 loci
+	setCfgParam("locisigma", 1.0); // Variance used for normal distribution pulls - effectively the additive effect size
 	
 	setCfgParam("outpositions", 'out_8T_null_chr.csv'); // Output filename/path for chromosome endpoints and QTL loci positions
 	setCfgParam("outburn", 'out_8T_null_burnin.csv'); // Output burnin heterozygosities
@@ -100,41 +99,15 @@ initialize() {
 	// g1 genomic element type: uses m1 and m2 for all mutations - get other effects only if determined for m1 
 	initializeGenomicElementType("g1", c(m1, m2), c(1, delmu));
 	
-	// g2 genomic element type: uses just m1, so we can control local vs global effects of deleterious mutation on individual chromosomes or across the genome
-	initializeGenomicElementType("g2", m1, 1);
 	
-	recomseq = seq(0, genomelength - 1, by = 0.1*genomelength); // Create 10 equally-distanced chromosomes
-	ends = asInteger(round(recomseq[1:9])); 	// Convert to int from float, ignore the first value since it is 0
-	ends = c(sort(c(ends, ends+1)), genomelength);
-	rbtwnQTL = c(rep(0.5, length(ends)));		// rregion is fixed to 0.5, always have 10 chromosomes now
-	rgenome = c(rnorm(length(ends), rwide, rsd));
-	rates = c(rbind(rgenome, rbtwnQTL), rwide);
-	rates = rates[0:(length(ends) - 1)];
+	// Set genome wide recombination rate
+	initializeRecombinationRate(rwide);
 	
 	
+	// 1 chromosome, 800 length
 	
-	initializeRecombinationRate(rates, ends); // We set this later, when we get the positions of QTLs
-	
-	// Chromosome set up with genomic regions according to recombseq, where there are 100 potential QTL sites, the rest are neutral sites (m1, m2)
-	recomseq = asInteger(round(recomseq));
-	
-	// Generate list of 10 genomic elements, randomising which chromosome should have deleterious mutations, according to parameter 
-	chr_elements = rep(g2, 10);
-	chr_del = sample(0:9, delchr);
-	chr_elements[chr_del] = g1;
-	
-	// Set up 10 equidistant chromosomes, with one of them generating deleterious mutations
-	
-	initializeGenomicElement(chr_elements[0], 0, recomseq[1] - 1);
-	initializeGenomicElement(chr_elements[1], recomseq[1], recomseq[2] - 1);
-	initializeGenomicElement(chr_elements[2], recomseq[2], recomseq[3] - 1);
-	initializeGenomicElement(chr_elements[3], recomseq[3], recomseq[4] - 1);
-	initializeGenomicElement(chr_elements[4], recomseq[4], recomseq[5] - 1);
-	initializeGenomicElement(chr_elements[5], recomseq[5], recomseq[6] - 1);
-	initializeGenomicElement(chr_elements[6], recomseq[6], recomseq[7] - 1);
-	initializeGenomicElement(chr_elements[7], recomseq[7], recomseq[8] - 1);
-	initializeGenomicElement(chr_elements[8], recomseq[8], recomseq[9] - 1);
-	initializeGenomicElement(chr_elements[9], recomseq[9], genomelength - 1);
+	initializeGenomicElement(g1, 0, genomelength - 1);
+
 	
 	// QTL constants - UNIVERSAL PLEIOTROPY assumed!
 	
@@ -157,6 +130,8 @@ initialize() {
 									pleio_covs[4], pleio_covs[10], pleio_covs[15], pleio_covs[19], pleio_covs[22], locisigma, pleio_covs[25], pleio_covs[26],
 									pleio_covs[5], pleio_covs[11], pleio_covs[16], pleio_covs[20], pleio_covs[23], pleio_covs[25], locisigma, pleio_covs[27],
 									pleio_covs[6], pleio_covs[12], pleio_covs[17], pleio_covs[21], pleio_covs[24], pleio_covs[26], pleio_covs[27], locisigma), nrow=8); // sigma used in multivariate normal pull - variance covariance matrix, where variance of each trait = locisigma
+
+	sigma = sigma*t(sigma); // A * A^t ensures matrices are positive definite
 
 	
 	defineConstant("pleio_sigma", sigma);	
@@ -181,60 +156,48 @@ function (void) setCfgParam (s$ name, ifls value) // setup function for automati
 
   Estimate the average nucleotide heterozygosity in a subpopulation by sampling individuals at random and averaging the heterozygosity of all of the individuals sampled.  Note that this function normally uses a sample of individuals, of a size supplied in the optional parameter sampleSize; but if sampleSize is equal to the number of individuals in subpop, it will instead compute the heterozygosity exactly, as the mean of the heterozygosities of all individuals, rather than taking a sample.  For large subpopulations, that will of course be much slower than using a sample, however.
 
-Modified from SLiM-Extras, https://github.com/MesserLab/SLiM-Extras
+From SLiM-Extras, https://github.com/MesserLab/SLiM-Extras
 
 */
 
-function (f)chrHeterozygosity(o<Genome>$ genome1, o<Genome>$ genome2) // Chromosomal heterozygosity: calculates heterozygosite at each of the 10 chromosomes
+
+function (f$)genomicHeterozygosity(o<Genome>$ genome1, o<Genome>$ genome2)
 {
 	muts1 = genome1.mutations;
 	muts2 = genome2.mutations;
 	unshared = setSymmetricDifference(muts1, muts2);
-	ends = sort(sim.chromosome.recombinationEndPositions)[1:(size(sim.chromosome.recombinationEndPositions) - 1)]; // Get rid of the first end, which starts at 0
-	pi = float(size(ends));
-	
-	
-	// Calculate Heterozygosity for each 'chromosome' - we get the end positions and calculate pi within that region and the last one
-	// If we are at the first chromosome, there is no last 'end', so we go from 0
-	
-	for (i in ends) {
-		index = match(i, ends);
-		if (index == 0)
-			pi[index] = size(unshared[unshared.position <= i]) / (ends[index] - 1);
-		else
-			pi[index] = size(unshared[unshared.position <= i & unshared.position >= ends[index - 1]]) / ( (ends[index] - ends[(index - 1)]) - 1);
-	
-	}
+	pi = size(unshared) / genomelength;
 	return pi;
 }
 
-function (f)subpopHeterozygosity(o<Subpopulation>$ subpop, [i$ sampleSize=100])
+
+function (f$)subpopHeterozygosity(o<Subpopulation>$ subpop, [i$ sampleSize=100])
 {
 	if (sampleSize == subpop.individualCount)
 		sampledIndividuals = subpop.individuals;
 	else
 		sampledIndividuals = sample(subpop.individuals, sampleSize, replace=T);
 	
-	pi_total = 0.0;
+	pi_total = 0;
 	for (individual in sampledIndividuals)
 	{
 		genomes = individual.genomes;
-		individual_pi = chrHeterozygosity(genomes[0], genomes[1]);
+		individual_pi = genomicHeterozygosity(genomes[0], genomes[1]);
 		pi_total = pi_total + individual_pi;
 	}
-	return pi_total[!isNAN(pi_total)]/sampleSize; // Cut out all the NaN values for the chromosome 'end' pairs that exist between chromosomes - 0-1, 202-203 etc.
+	return pi_total / sampleSize;
 }
 
 
 // create a population of Ne individuals
 1 {
 	sim.addSubpop("p1", Ne);
-	chr_QTL = sample(1:(sim.chromosome.lastPosition -1), 8*nloci); // Set the positions of our loci, from position 1 to the length of the chromosome; avoid the first and last positions to avoid errors with setting recombination ends at invalid locations
+	chr_QTL = sample(0:799, 800); // Set the positions of our loci, from position 1 to the length of the chromosome; avoid the first and last positions to avoid errors with setting recombination ends at invalid locations
 // Need to get chr_QTL for all 8 traits - so each trait has nloci loci
 
 	sim.setValue("chr_QTL", chr_QTL); //store these positions in a sim value
 	
-	chrfile = paste(c(modelindex, asString(seed), nloci, chr_QTL, sim.chromosome.recombinationRates, sim.chromosome.recombinationEndPositions), ","); // Output information on where the QTLs are, and the recombination structure of the genome
+	chrfile = paste(c(modelindex, asString(seed), nloci, chr_QTL), ","); // Output information on where the QTLs are, and the recombination structure of the genome
 	
 	writeFile(outpositions, chrfile, append = T);
 }
@@ -560,7 +523,7 @@ mutation(m2) {
 	meanH = paste(subpopHeterozygosity(p1, Ne), ",");
 	
 	// Stick those values in the output, along with predictors - there are a lot of predictors now... do we replace them all with modelindex aside from seed?
-	meanline = paste(c(sim.generation, ",", getSeed(), ",", modelindex, ",", rsd, ",", rwide, ",", delmu, ",", nloci, ",", paste(pleio_covs, ","), ",", Ne, ",", paste(phenomeans, ","), ",", paste(phenovars, ","), ",", phenocov, ",", phenocor, ",", meanH,""), "");
+	meanline = paste(c(sim.generation, ",", asString(seed), ",", modelindex, ",", rsd, ",", rwide, ",", delmu, ",",  paste(pleio_covs, ","), ",",  paste(phenomeans, ","), ",", paste(phenovars, ","), ",", phenocov, ",", phenocor, ",", meanH,""), "");
 	file = paste(meanline, "");
 	
 	// Write the file
@@ -594,7 +557,7 @@ mutation(m2) {
 			mutFreq = mean(sim.subpopulations.genomes.containsMutations(mut));
 			mutType = mut.mutationType.id;
 			mutValues = paste(c(mut.getValue("e0"), mut.getValue("e1"), mut.getValue("e2"), mut.getValue("e3"), mut.getValue("e4"), mut.getValue("e5"), mut.getValue("e6"), mut.getValue("e7")), ",");
-			mutsLine = paste(c(sim.generation, ",", getSeed(), ",", modelindex, ",", rsd, ",", rwide, ",", delmu, ",", nloci, ",", paste(pleio_covs, ","), ",", Ne, ",", mutType, ",", mut.id, ",", mut.position, ",", mut.originGeneration, ",", mutValues, ",", mutFreq, ",", "N/A", "\n"), "");
+			mutsLine = paste(c(sim.generation, ",", asString(seed), ",", modelindex, ",", rsd, ",", rwide, ",", delmu, ",",  paste(pleio_covs, ","), ",",  mutType, ",", mut.id, ",", mut.position, ",", mut.originGeneration, ",", mutValues, ",", mutFreq, ",", "N/A", "\n"), "");
 			
 			mutsLines = c(mutsLines, mutsLine);
 		}
@@ -604,9 +567,9 @@ mutation(m2) {
 			mutType = mut.mutationType.id;
 			mutValues = paste(c(mut.getValue("e0"), mut.getValue("e1"), mut.getValue("e2"), mut.getValue("e3"), mut.getValue("e4"), mut.getValue("e5"), mut.getValue("e6"), mut.getValue("e7")), ",");
 			if (mut != revmuts[0]) // Quality hack
-				mutsLine = paste(c(sim.generation, ",", getSeed(), ",", modelindex, ",", rsd, ",", rwide, ",", delmu, ",", nloci, ",", paste(pleio_covs, ","), ",", Ne, ",", mutType, ",", mut.id, ",", mut.position, ",", mut.originGeneration, ",", mutValues, ",", mut.getValue("fe"), ",", mutFreq, ",", "N/A", "\n"), "");
+				mutsLine = paste(c(sim.generation, ",", asString(seed), ",", modelindex, ",", rsd, ",", rwide, ",", delmu, ",",  paste(pleio_covs, ","), ",",  mutType, ",", mut.id, ",", mut.position, ",", mut.originGeneration, ",", mutValues, ",", mut.getValue("fe"), ",", mutFreq, ",", "N/A", "\n"), "");
 			else
-				mutsLine = paste(c(sim.generation, ",", getSeed(), ",", modelindex, ",", rsd, ",", rwide, ",", delmu, ",", nloci, ",", paste(pleio_covs, ","), ",", Ne, ",", mutType, ",", mut.id, ",", mut.position, ",", mut.originGeneration, ",", mutValues, ",", mut.getValue("fe"), ",", mutFreq, ",", "N/A", ""), "");
+				mutsLine = paste(c(sim.generation, ",", asString(seed), ",", modelindex, ",", rsd, ",", rwide, ",", delmu, ",",  paste(pleio_covs, ","), ",",  mutType, ",", mut.id, ",", mut.position, ",", mut.originGeneration, ",", mutValues, ",", mut.getValue("fe"), ",", mutFreq, ",", "N/A", ""), "");
 			mutsLines = c(mutsLines, mutsLine);
 		}
 	
@@ -619,9 +582,9 @@ mutation(m2) {
 		
 		
 		if (sub != revsubs[0]) // THIS IS THE HACK THAT I MUST RESORT TO THANKS TO NO \b OR REPLACE() 	GOSH BLESS EIDOS
-			subLine = paste(c(sim.generation, ",", getSeed(), ",", modelindex, ",", rsd, ",", rwide, ",", delmu, ",", nloci, ",", paste(pleio_covs, ","), ",", Ne, ",", subType, ",", sub.id, ",", sub.position, ",", sub.originGeneration, ",", subValues, ",", sub.getValue("fe"), ",", subFreq, ",", sub.fixationGeneration, "\n"), "");
+			subLine = paste(c(sim.generation, ",", asString(seed), ",", modelindex, ",", rsd, ",", rwide, ",", delmu, ",",  paste(pleio_covs, ","), ",",  subType, ",", sub.id, ",", sub.position, ",", sub.originGeneration, ",", subValues, ",", sub.getValue("fe"), ",", subFreq, ",", sub.fixationGeneration, "\n"), "");
 		else
-			subLine = paste(c(sim.generation, ",", getSeed(), ",", modelindex, ",", rsd, ",", rwide, ",", delmu, ",", nloci, ",", paste(pleio_covs, ","), ",", Ne, ",", subType, ",", sub.id, ",", sub.position, ",", sub.originGeneration, ",", subValues, ",", sub.getValue("fe"), ",", subFreq, ",", sub.fixationGeneration, ""), "");
+			subLine = paste(c(sim.generation, ",", asString(seed), ",", modelindex, ",", rsd, ",", rwide, ",", delmu, ",",  paste(pleio_covs, ","), ",",  subType, ",", sub.id, ",", sub.position, ",", sub.originGeneration, ",", subValues, ",", sub.getValue("fe"), ",", subFreq, ",", sub.fixationGeneration, ""), "");
 		
 		mutsLines = c(mutsLines, subLine); // Add substitutions to mutation output
 	

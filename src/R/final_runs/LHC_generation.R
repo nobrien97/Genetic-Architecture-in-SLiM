@@ -172,22 +172,20 @@ write.csv(lscombos_opt, "lscombos_sel.csv")
 
 
 
-# Null and recom model LHS Generation
+# Null and recom model LHS Generation: Generate 512 samples in case we can do more, fewer factors 
+# since we now fix nloci, Ne, and remove delchr
 
 lscombos_nul_opt <- lhs.design(
-  nruns = 100, # this drastically increases the amount of runs: nruns * nseeds is the total. Also generating the LHC takes forever with more of these
-  nfactors = 8,
+  nruns = 512, # this drastically increases the amount of runs: nruns * nseeds is the total. Also generating the LHC takes forever with more of these
+  nfactors = 5,
   seed = 1370976025, #sampled from 1:2147483647
   type = "optimum",
   factor.names = list(
-    Ne = c(10, 8000),
     rwide = c(0.0, 1.241e-4), 
-    nloci = c(10, 500),
     locisigma = c(0.1, 10),
     pleiorate = c(0.0, 0.5),
     delmu = c(0.0, 1.0),
-    pleiocov = c(0.0, 0.5), # More even sampling, going from 0 to 0.5 to avoid non-positive-definite errors
-    delchr = c(0, 10))
+    pleiocov = c(0.0, 0.5)) # going from 0 to 0.5 to avoid non-positive-definite errors
 )
 
 plot(lscombos_nul_opt)
