@@ -174,12 +174,14 @@ write.csv(lscombos_opt, "lscombos_sel.csv")
 
 # Null and recom model LHS Generation: Generate 512 samples in case we can do more, fewer factors 
 # since we now fix nloci, Ne, and remove delchr
+# Using maximin algorithm: not as good as optimum in minimising correlations, but much much faster 
+# (won't be possible to use optimum for 512 samples)
 
-lscombos_nul_opt <- lhs.design(
-  nruns = 512, # this drastically increases the amount of runs: nruns * nseeds is the total. Also generating the LHC takes forever with more of these
+lscombos_nul_maxi <- lhs.design(
+  nruns = 1024, # this drastically increases the amount of runs: nruns * nseeds is the total. Also generating the LHC takes forever with more of these
   nfactors = 5,
   seed = 1370976025, #sampled from 1:2147483647
-  type = "optimum",
+  type = "maximin",
   factor.names = list(
     rwide = c(0.0, 1.241e-4), 
     locisigma = c(0.1, 10),
@@ -188,10 +190,12 @@ lscombos_nul_opt <- lhs.design(
     pleiocov = c(0.0, 0.5)) # going from 0 to 0.5 to avoid non-positive-definite errors
 )
 
-plot(lscombos_nul_opt)
-cor(lscombos_nul_opt)
+plot(lscombos_nul_maxi)
+cor(lscombos_nul_maxi)
+max(abs(cor(lscombos_nul_maxi)[cor(lscombos_nul_maxi) != 1]))
+hist(lscombos_nul_maxi$locisigma)
 
-write.csv(lscombos_nul_opt, "lscombos_null.csv")
+write.csv(lscombos_nul_maxi, "lscombos_null.csv")
 
 # Selection model LHS Generation
 
@@ -216,10 +220,11 @@ write.csv(lscombos_sel_opt, "lscombos_sel.csv")
 
 # Seed generation
 
-rsample <- as.character(round(runif(50, 1, (2^32 - 1)))) # Pull from 32 bit integer range for now to reduce problems, below
+rsample <- as.character(round(runif(100, 1, (2^32 - 1)))) # Pull from 32 bit integer range for now to reduce problems, below
 # Seems to be a problem with the seeds themselves: 
 # they are treated as the same if too large, even though they are below 64 bit limit
 # They are above the 32 bit limit though, which is the strange thing: may be a bug?
 # Mutation information and G matrices are still different among seeds, may be a problem with sample()
 write.table(c("Seed", rsample), file = "seeds.csv", row.names = FALSE, col.names = FALSE, sep=",")
 
+plot_rsample <- hist(as.numeric(rsample))

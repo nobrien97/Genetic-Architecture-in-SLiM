@@ -24,12 +24,13 @@ initialize() {
 		setCfgParam("seed", getSeed());
 		catn("Actual seed: " + asInteger(seed));
 	}	
+	defineConstant("clock", clock());
 	setCfgParam("mu", 6.3e-6); // Genome-wide mutation rate per locus, Schug et al. 1996, as above
 	setCfgParam("Ne", 8000); // Population size: Fixed at 8000
 	setCfgParam("pleiorate", 0.44); // Proportion of QTL mutations that should be pleiotropic - given by Chesmore et al. 2017, based on human disease GWAS studies!
 	setCfgParam("del_mean", -0.03); // Mean used for the gamma distribution that deleterious mutations are pulled function
 	setCfgParam("del_shape", 0.2); // Shape parameter for gamma distribution used for deleterious mutations
-	setCfgParam("delmu", 10.0); // Proportion of deleterious mutations compared to others (relative to others, 0.1 compared to 1 of neutral)
+	setCfgParam("delmu", 1.0); // Proportion of deleterious mutations compared to others (relative to others, 0.1 compared to 1 of neutral)
 	setCfgParam("rwide", 1.241e-4); // Recombination rate across the whole genome (used as mean in rnorm)
 	setCfgParam("rsd", rwide*0.1); // Recombination rate standard deviation (used in rnorm)
 	setCfgParam("nloci", 100); // Number of QTL positions along the chromosome - where QTL mutations can appear, sampled from sample(): Fixed at 100
@@ -348,6 +349,16 @@ mutation(m2) {
 	
 	return T;
 
+}
+
+// Timer
+1000:150000 late() {
+	if (sim.generation % 500 != 0)
+		return;
+	else {
+		time = clock() - clock;
+		catn(sim.generation + " " + time);
+		}
 }
 
 

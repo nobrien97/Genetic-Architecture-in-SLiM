@@ -93,8 +93,19 @@ lm(time ~ gen, data = sel_burnin8000)
 # (221142.445 - 25742.445) + 24959.9 = 220349.9 = 61.21 hours
 
 
+simplif_seltime <- read.table("Z:/Documents/GitHub/Genetic-Architecture-in-SLiM/src/Cluster_jobs/Speedtests/Simplif/simplif_seltime.txt", header=T)
 
+plot_simplifseltime <- ggplot(simplif_seltime,
+                                aes(x=gen, y=time)) +
+  geom_line()
 
+simplif_selonly <- subset(simplif_seltime, gen > 50000)
+lm(time ~ gen, data = simplif_selonly)
+
+# 1.081x - 52832.816
+# 1.081*150000 - 52832.816 = 109317.2s = 30.37 hours
+# divide by number of cores = 30.37/960 = 0.03163542
+# multiplyby number of models
 
 
 
