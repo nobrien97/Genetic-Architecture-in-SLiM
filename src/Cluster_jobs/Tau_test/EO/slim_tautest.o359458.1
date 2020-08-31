@@ -1,0 +1,194 @@
+
+R version 3.5.0 (2018-04-23) -- "Joy in Playing"
+Copyright (C) 2018 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> 
+> 
+> # Tau value testing + time trial for selection model
+> 
+> 
+> TMPDIR <- Sys.getenv('TMPDIR')
+> USER <- Sys.getenv('USER')
+> PBSIND <- as.numeric(Sys.getenv("PBS_ARRAY_INDEX"))
+> 
+> library(foreach)
+> library(doParallel)
+> library(future)
+> 
+> rsample <- c(78478, 167, 244978)
+> 
+> cl <- makeCluster(future::availableCores())
+> registerDoParallel(cl)
+> 
+> if (PBSIND == 1) {
++ 	foreach(i=rsample) %dopar%
++ 		system.time(system(sprintf("/home/$USER/SLiM/slim -s %s -d Ne=8000 -d locisigma=10.0 -d pleiorate=0.5 -d delmu=1.0 -d rwide=1.241e-4 -d pleio_cov=0.5 -d tau=10.0 /home/$USER/SLiM/Scripts/tautest/stabsel_recom_8T100L_fitness.slim",
++ 									as.character(i), intern=T)))
++ } else if (PBSIND == 2) {
++ 	foreach(i=rsample) %dopar%
++ 		system.time(system(sprintf("/home/$USER/SLiM/slim -s %s -d Ne=8000 -d locisigma=10.0 -d pleiorate=0.5 -d delmu=1.0 -d rwide=1.241e-4 -d pleio_cov=0.5 -d tau=100.0 /home/$USER/SLiM/Scripts/tautest/stabsel_recom_8T100L_fitness.slim",
++ 									as.character(i), intern=T)))
++ } else {
++ 	foreach(i=rsample) %dopar%
++ 		system.time(system(sprintf("/home/$USER/SLiM/slim -s %s -d Ne=8000 -d locisigma=10.0 -d pleiorate=0.5 -d delmu=1.0 -d rwide=1.241e-4 -d pleio_cov=0.5 -d tau=1000.0 /home/$USER/SLiM/Scripts/tautest/stabsel_recom_8T100L_fitness.slim",
++ 									as.character(i), intern=T)))  
++     }
+// Initial random seed:
+244978
+
+// RunInitializeCallbacks():
+// Initial random seed:
+167
+
+initializeMutationRate(8.045e-06);
+// RunInitializeCallbacks():
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(2, 0.5, "g", -0.03, 0.2);
+initializeMutationType(3, 0.5, "f", 0);
+initializeMutationType(4, 0.5, "n", 0, 10);
+initializeMutationType(5, 0.5, "n", 0, 10);
+initializeMutationType(6, 0.5, "n", 0, 10);
+initializeMutationType(7, 0.5, "n", 0, 10);
+initializeMutationType(8, 0.5, "n", 0, 10);
+initializeMutationRate(8.045e-06);
+initializeMutationType(9, 0.5, "n", 0, 10);
+initializeMutationType(10, 0.5, "n", 0, 10);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(11, 0.5, "n", 0, 10);
+initializeMutationType(2, 0.5, "g", -0.03, 0.2);
+initializeMutationType(3, 0.5, "f", 0);
+initializeMutationType(4, 0.5, "n", 0, 10);
+initializeMutationType(5, 0.5, "n", 0, 10);
+initializeMutationType(6, 0.5, "n", 0, 10);
+initializeGenomicElementType(1, c(m1, m2), c(1, 1));
+initializeMutationType(7, 0.5, "n", 0, 10);
+initializeMutationType(8, 0.5, "n", 0, 10);
+initializeMutationType(9, 0.5, "n", 0, 10);
+initializeMutationType(10, 0.5, "n", 0, 10);
+initializeMutationType(11, 0.5, "n", 0, 10);
+initializeGenomicElementType(1, c(m1, m2), c(1, 1));
+initializeGenomicElement(g1, 0, 799);
+initializeGenomicElement(g1, 0, 799);
+initializeRecombinationRate(0.0001241);
+initializeRecombinationRate(0.0001241);
+
+Pleiotropic QTL DFE means: 
+
+Pleiotropic QTL DFE means: 
+0 0 0 0 0 0 0 0
+
+Pleiotropic QTL DFE variance-covariance matrix (M matrix): 
+0 0 0 0 0 0 0 0
+
+Pleiotropic QTL DFE variance-covariance matrix (M matrix): 
+        [,0]    [,1]    [,2]    [,3]    [,4]    [,5]    [,6]    [,7]
+        [,0]    [,1]    [,2]    [,3]    [,4]    [,5]    [,6]    [,7]
+[0,]     100 22.8607 12.3803 19.5421 19.8478 42.7923 40.6024 18.6593
+[0,]     100 29.8477 36.2442 33.5287 36.4625 14.4945 28.1486 44.5514
+[1,] 22.8607     100 32.3736 12.4249 25.0116 29.8768 17.8511 18.8283
+[1,] 29.8477     100 27.5405 23.9421 13.3638  52.551 31.4982 17.0244
+[2,] 12.3803 32.3736     100 22.8366 54.9489 32.8342 37.5736 34.3945
+[2,] 36.2442 27.5405     100 32.9601 30.5494 29.1535 28.5186 8.65099
+[3,] 19.5421 12.4249 22.8366     100 4.53215  20.049 27.0136 30.8362
+[3,] 33.5287 23.9421 32.9601     100 42.7421 20.9142 23.3439 28.7418
+[4,] 19.8478 25.0116 54.9489 4.53215     100 31.5374 16.0222 31.5014
+[4,] 36.4625 13.3638 30.5494 42.7421     100 25.0104 30.5494 31.0969
+[5,] 42.7923 29.8768 32.8342  20.049 31.5374     100 39.1527 24.8653
+[5,] 14.4945  52.551 29.1535 20.9142 25.0104     100 24.1519 11.6355
+[6,] 40.6024 17.8511 37.5736 27.0136 16.0222 39.1527     100 44.1521
+[6,] 28.1486 31.4982 28.5186 23.3439 30.5494 24.1519     100 22.1503
+[7,] 18.6593 18.8283 34.3945 30.8362 31.5014 24.8653 44.1521     100
+[7,] 44.5514 17.0244 8.65099 28.7418 31.0969 11.6355 22.1503     100
+
+// Starting run at generation <start>:
+1 
+
+
+// Starting run at generation <start>:
+1 
+
+// Initial random seed:
+78478
+
+// RunInitializeCallbacks():
+initializeMutationRate(8.045e-06);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(2, 0.5, "g", -0.03, 0.2);
+initializeMutationType(3, 0.5, "f", 0);
+initializeMutationType(4, 0.5, "n", 0, 10);
+initializeMutationType(5, 0.5, "n", 0, 10);
+initializeMutationType(6, 0.5, "n", 0, 10);
+initializeMutationType(7, 0.5, "n", 0, 10);
+initializeMutationType(8, 0.5, "n", 0, 10);
+initializeMutationType(9, 0.5, "n", 0, 10);
+initializeMutationType(10, 0.5, "n", 0, 10);
+initializeMutationType(11, 0.5, "n", 0, 10);
+initializeGenomicElementType(1, c(m1, m2), c(1, 1));
+initializeGenomicElement(g1, 0, 799);
+initializeRecombinationRate(0.0001241);
+
+Pleiotropic QTL DFE means: 
+0 0 0 0 0 0 0 0
+
+Pleiotropic QTL DFE variance-covariance matrix (M matrix): 
+        [,0]    [,1]    [,2]    [,3]    [,4]    [,5]    [,6]    [,7]
+[0,]     100  8.2072 44.1068  10.796 29.6817 43.4439 25.1004 25.7465
+[1,]  8.2072     100 11.8276 32.8282 23.5418   28.37 14.3623 27.2955
+[2,] 44.1068 11.8276     100 13.0783 16.5331 18.6155 28.3558 12.6991
+[3,]  10.796 32.8282 13.0783     100 34.1827 33.7816 27.9543  25.551
+[4,] 29.6817 23.5418 16.5331 34.1827     100 18.8172 18.7051 12.3079
+[5,] 43.4439   28.37 18.6155 33.7816 18.8172     100 22.7483 31.6625
+[6,] 25.1004 14.3623 28.3558 27.9543 18.7051 22.7483     100 36.4799
+[7,] 25.7465 27.2955 12.6991  25.551 12.3079 31.6625 36.4799     100
+
+// Starting run at generation <start>:
+1 
+
+
+Trait means
+1.21958 -5.42775 -4.59732 3.06603 -0.863344 -7.59306 -0.725679 2.25345
+
+Trait optima: 
+5.09127 -22.6587 -19.192 12.7995 -3.60411 -31.698 -3.02942 9.40724
+
+Trait means
+-1.14935 5.38228 3.69644 5.15163 -5.2561 2.70373 -3.63207 -0.457833
+
+Trait optima: 
+-4.79806 22.4688 15.4312 21.506 -21.9421 11.287 -15.1624 -1.91127
+
+Trait means
+-2.52372 -6.4214 -5.77699 -1.56949 -6.00408 -2.37625 -1.15364 3.44424
+
+Trait optima: 
+-10.5355 -26.8068 -24.1166 -6.552 -25.0646 -9.91989 -4.81599 14.3783
+[[1]]
+    user   system  elapsed 
+4235.249    0.237 4236.741 
+
+[[2]]
+    user   system  elapsed 
+3987.109    0.324 3988.069 
+
+[[3]]
+    user   system  elapsed 
+4359.691    0.292 4361.258 
+
+> 	
+> stopCluster(cl)
+> 

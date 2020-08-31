@@ -11,31 +11,6 @@ std.error <- function(x){
 }
 
 
-d_null_32bit <- read.csv("Z:/Documents/GitHub/Genetic-Architecture-in-SLiM/src/Cluster_jobs/nimrod_tests/Output/32bit_seed/out_8T_null_means.csv", header = F)
-
-# Name columns
-
-names(d_null_32bit)[1:7]<- c("gen", "seed", "modelindex", "rsd", "rwide", "delmu", "nloci")
-
-
-# pleiocov terms                
-names(d_null_32bit)[8:35] <-  c(paste0("pleiocov_0", 1:7), paste0("pleiocov_1", 2:7), paste0("pleiocov_2", 3:7), paste0("pleiocov_3", 4:7), paste0("pleiocov_4", 5:7), paste0("pleiocov_5", 6:7), paste0("pleiocov_6", 7))
-
-
-names(d_null_32bit)[36] <- "Ne"
-
-names(d_null_32bit)[37:44] <- paste0("mean", 0:7)
-
-names(d_null_32bit)[45:52] <- paste0("var", 0:7)
-
-names(d_null_32bit)[53:80] <- c(paste0("phenocov_0", 1:7), paste0("phenocov_1", 2:7), paste0("phenocov_2", 3:7), paste0("phenocov_3", 4:7), paste0("phenocov_4", 5:7), paste0("phenocov_5", 6:7), paste0("phenocov_6", 7))
-
-names(d_null_32bit)[81:108] <- c(paste0("phenocor_0", 1:7), paste0("phenocor_1", 2:7), paste0("phenocor_2", 3:7), paste0("phenocor_3", 4:7), paste0("phenocor_4", 5:7), paste0("phenocor_5", 6:7), paste0("phenocor_6", 7))
-
-names(d_null_32bit)[109:118] <- paste0("H_chr", 0:9)
-
-d_null_32bit$seed <- as.factor(d_null_32bit$seed)
-
 
 
 # Null data set
@@ -100,11 +75,15 @@ dat_to_mat <- function(dat) {
 # Split by seed first so tree is list -> gen -> seed -> model
 # Easier to compare models this way by seed
 
+# mat_gen generates G matrices in nested list format - need to convert the last bit into arrays (so for each seed we have an array of matrices, one for each model index)
+# Requires dplyr
+
+library(dplyr)
 
 mat_gen <- function(dat) {
   dat <- dplyr::arrange(dat, gen, modelindex, seed)
-  dat <- group_split(dat, gen)
-  dat <- lapply(dat, function(x) { dplyr::group_split(x, seed)})
+  dat <- dplyr::group_split(dat, gen) %>% setNames(unique(dat$gen))
+  dat <- lapply(dat, function(x) { dplyr::group_split(x, seed) %>% setNames(unique(x$seed))})
   dat <- lapply(dat, function(x) { lapply(x, function(y) {
     split(as.matrix(y), row(y))
    })
@@ -119,91 +98,63 @@ mat_gen <- function(dat) {
   dat
 }
 
-# Split by generation tests
-dattest <- arrange(d_null_mat, gen, modelindex, seed)
-dattest <- group_split(dattest, gen)
-dattest <- lapply(dattest, function(x) { group_split(x, modelindex)})
-
-dattest <- lapply(dattest, function(x) { lapply(x, function(y) {
-  split(as.matrix(y), row(y))
-  })
-})
-dattest <- lapply(dattest, function(x) { 
-  lapply(x, function(y) { 
-    lapply(y, function(z) { 
-      dat_to_mat(z) 
-      })
-    }) 
-  })
+test_datmat <- arrange(d_null_mat, gen, modelindex, seed)
+test_datmat <- group_split(test_datmat, gen) %>% setNames(unique(test_datmat$gen))
+test_datmat <- lapply(test_datmat, function(x) { dplyr::group_split(x, seed) %>% setNames(unique(x$seed))})
 
 
+# Test it on the data to make sure it works
 matgentest <- mat_gen(d_null_mat)
 
-# Calculate mean matrix by element - not a "real" matrix though: would median by-matrix (rather than by-element) 
-# be better?
 
-mat_mean <- function(mats) {
-  n <- length(mats)
-  mats <- array(as.numeric(unlist(mats)), c(8, 8, n))
-  rowMeans(mats, dims = 2)
-}
-
-# Same as above but for SE: standard error of the matrices across seeds
-
-mat_se <- function(mats) {
-  m <- length(mats)
-  mats <- array(unlist(mats), c(8, 8, m))
-  apply(mats, 1:2, std.error)
-}
-
-# Function to combine these so we put in a full data set, we split it into seeds, calculate a mean for each model
-# and put them all in a list
-
-matmean_construct <- function(dat) {
-  matlist <- mat_gen(dat) # mat_gen splits each model into its seed rows and generation, stores them as a list
-  lapply(matlist, function(x) {
-    lapply(x, mat_mean) # apply mat_mean to each model
-  })
-}
-
-matstruc_test <- matmean_construct(d_null_mat)
-
-# Function to do as above, but for an se instead of mean
-
-matse_construct <- function(dat) {
-  matlist <- mat_gen(dat) # mat_gen splits each model into its seed rows, stores them as a list
-  lapply(matlist, function(x) {
-    lapply(x, mat_se)
-    }) # apply mat_se to each model
-}
 
 ## Multicore versions of the above functions
 # Uses parallel, dplyr
 
 MCmat_gen <- function(dat, cores) {
   dat <- dplyr::arrange(dat, gen, modelindex, seed)
-  dat <- dplyr::group_split(dat, gen)
-  dat <- parallel::mclapply(dat, function(x) { dplyr::group_split(x, seed)}, mc.cores = cores)
+  dat <- dplyr::group_split(dat, gen) %>% setNames(unique(dat$gen)) # split data frame by generation
+  dat <- parallel::mclapply(dat, function(x) { dplyr::group_split(x, seed)}, mc.cores = cores) # split by seed
   dat <- parallel::mclapply(dat, function(x) { lapply(x, function(y) {
-    split(as.matrix(y), row(y))
+    split(as.matrix(y), row(y)) # split the dataframe of seed values by their row (models), treat as a matrix instead of dataframe for dat_to_mat
   })
   }, mc.cores = cores)
   
   dat <- parallel::mclapply(dat, function(x) { 
     lapply(x, function(y) { 
       lapply(y, function(z) { 
-        dat_to_mat(z) 
+        dat_to_mat(z) # Convert each line (model/seed/generation combination) into a G matrix
       })
     }) 
   }, mc.cores = cores)
+  dat <- lapply(dat, function(x) {
+    lapply(x, function(y) {
+      mats <- simplify2array(y) # simplify the last nesting to an array (so all models within a seed are part of an array rather than a list)
+    })
+  })
   dat
 }
 
+matgentest <- MCmat_gen(d_null_mat, 4)
+
+# To return a single matrix from the list - e.g. at generation 50000, first seed, first model:
+matgentest[["50000"]][[1]][,,1]
+
+
+
+
+
+# Eigentensor analysis - Take G matrices from mat_gen, make sure they are positive definite, decompose, ET analysis
 library(evolqg)
 MCG_ET <- function(G, cores, nmats) {
+  G <- lapply(G, function(x) {
+    lapply(x, function(y) {
+     G[[x]][[y]] <- G[[x]][[y]][matrixcalc::is.positive.definite(mats) == T] # make sure we only use the mats that are positive definite
+    })
+  })
+    
   Gmax <- parallel::mclapply(G, function(x) {
     lapply(x, function(y) {
-      mats <- simplify2array(y)
       evolqg::EigenTensorDecomposition(mats, return.projection = F)$matrices[1:nmats]
     })
   }, mc.cores = cores)
@@ -214,6 +165,15 @@ MCG_ET <- function(G, cores, nmats) {
   }, mc.cores = cores)
   Es
 }
+matgentest_T <- matgentest
+matgentest_pd <- lapply(matgentest, function(x) {
+  lapply(x, function(y) {
+    lapply(y, function(z) {
+      matgentest_T[[x]][[y]][,,z] <- matrixcalc::is.positive.definite((matgentest[[x]][[y]][,,z])) # make sure we only use the mats that are positive definite
+      matgentest <- matgentest[matgentest_T[[x]][[y]][,,z] == T]
+    })
+  })
+})
 
 
 is.positive.definite(testGs[[1]][[1]][,,1])
@@ -239,22 +199,14 @@ G_ET <- function(G, nmats) {
 
 
 
-testGs <- lapply(testmatrices, function(x) {
-  lapply(x, function(y) {
-      lapply(x, `[[`, 1)
-    })
-})
   
-  n <- length(x)
-  mats <- array(unlist(mats), c(8, 8, n))
-  evolqg::EigenTensorDecomposition(mats, return.projection = F)$matrices[,,1:2]
-})
+
 
 
 library(evolqg)
 mats_test <- array(unlist(testmatrices[[1]][1]), c(8,8,3))
 ETOutput <- EigenTensorDecomposition(mats_test, return.projection = F)$matrices[,,1:2]
-EigOutput <- eigen(ETOutput$matrices[2], symmetric = T, only.values = T)
+EigOutput <- eigen(ETOutput[,,1], symmetric = T, only.values = T)
 
 
 # E.g. with d_null_mat
@@ -355,3 +307,76 @@ d_sbstfinal_recom <- as_tibble(d_recom[d_recom$gen == 150000,])
 d_recom_mat <- select(d_sbstfinal_recom, gen, seed, modelindex, paste0("var", 0:7), c(paste0("phenocov_0", 1:7), paste0("phenocov_1", 2:7), paste0("phenocov_2", 3:7), paste0("phenocov_3", 4:7), paste0("phenocov_4", 5:7), paste0("phenocov_5", 6:7), paste0("phenocov_6", 7)))
 
 
+
+###################################
+#   Deprecated - code graveyard   #
+###################################
+
+# Calculate mean matrix by element - not a "real" matrix though: would median by-matrix (rather than by-element) 
+# be better?
+
+mat_mean <- function(mats) {
+  n <- length(mats)
+  mats <- array(as.numeric(unlist(mats)), c(8, 8, n))
+  rowMeans(mats, dims = 2)
+}
+
+# Same as above but for SE: standard error of the matrices across seeds
+
+mat_se <- function(mats) {
+  m <- length(mats)
+  mats <- array(unlist(mats), c(8, 8, m))
+  apply(mats, 1:2, std.error)
+}
+
+# Function to combine these so we put in a full data set, we split it into seeds, calculate a mean for each model
+# and put them all in a list
+
+matmean_construct <- function(dat) {
+  matlist <- mat_gen(dat) # mat_gen splits each model into its seed rows and generation, stores them as a list
+  lapply(matlist, function(x) {
+    lapply(x, mat_mean) # apply mat_mean to each model
+  })
+}
+
+matstruc_test <- matmean_construct(d_null_mat)
+
+# Function to do as above, but for an se instead of mean
+
+matse_construct <- function(dat) {
+  matlist <- mat_gen(dat) # mat_gen splits each model into its seed rows, stores them as a list
+  lapply(matlist, function(x) {
+    lapply(x, mat_se)
+  }) # apply mat_se to each model
+}
+
+# Split by generation tests: used for making the function
+dattest <- dplyr::arrange(d_null_mat, gen, modelindex, seed) # rearrange data so it is ordered when we list it
+dattest <- dplyr::group_split(dattest, gen) # Split dataframe according to group
+dattest <- lapply(dattest, function(x) { dplyr::group_split(x, modelindex)}) # split within that according to modelindex
+
+dattest <- lapply(dattest, function(x) { lapply(x, function(y) {
+  split(as.matrix(y), row(y)) # create a matrix from everything nested within that (individual seed/modelindex G matrices), splitting each row in the data frame into a separate one
+})
+})
+dattest <- lapply(dattest, function(x) { 
+  lapply(x, function(y) { 
+    lapply(y, function(z) { 
+      dat_to_mat(z) # convert each line within the list to a G matrix
+    })
+  }) 
+})
+
+
+n <- length(x)
+mats <- array(unlist(mats), c(8, 8, n))
+evolqg::EigenTensorDecomposition(mats, return.projection = F)$matrices[,,1:2]
+})
+
+
+# Combine the models into an array
+testGs <- lapply(testmatrices, function(x) {
+  lapply(x, function(y) {
+    lapply(x, `[[`, 1) # Extracts values - ??? 
+  })
+})

@@ -105,7 +105,16 @@ lm(time ~ gen, data = simplif_selonly)
 # 1.081x - 52832.816
 # 1.081*150000 - 52832.816 = 109317.2s = 30.37 hours
 # divide by number of cores = 30.37/960 = 0.03163542
-# multiplyby number of models
+# multiply by number of models
 
 
+simplif_seltime_comp <- read.table("Z:/Documents/GitHub/Genetic-Architecture-in-SLiM/src/Cluster_jobs/Speedtests/Simplif/simplif_seltime_comp.txt", header=T)
 
+plot_simplifselcomp <- ggplot(simplif_seltime_comp, 
+                              aes(x=gen, y=time)) +
+  geom_line()
+ci
+# 47.5574 hrs
+# divide by 960 cores = 0.0495390625
+# Multiply by number of runs (128 minimum)
+# 12800 runs = 26.421 days
