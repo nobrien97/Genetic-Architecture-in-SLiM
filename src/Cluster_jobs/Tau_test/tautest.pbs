@@ -11,3 +11,11 @@ cd $TMPDIR
 module load R/3.5.0
 
 R --file=/home/$USER/SLiM/Scripts/tautest/tautest.R
+
+cat /${TMPDIR}/out_8T_stabsel_means.csv >> /90days/${USER}/out_8T_stabsel_means.csv
+
+cat /${TMPDIR}/out_8T_stabsel_chr.csv >> /90days/${USER}/out_8T_stabsel_chr.csv
+
+cat /${TMPDIR}/out_8T_stabsel_burnin.csv >> /90days/${USER}/out_8T_stabsel_burnin.csv
+
+cat /${TMPDIR}/out_8T_stabsel_opt.csv >> /90days/${USER}/out_8T_stabsel_opt.csv

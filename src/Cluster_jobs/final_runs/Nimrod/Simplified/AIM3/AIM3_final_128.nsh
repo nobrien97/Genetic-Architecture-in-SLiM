@@ -32,7 +32,7 @@
 #NIM parameter LS integer range from 65 to 128 step 1
 
 #Repeat 100 times for each hypercube with a different SEED value
-#NIM parameter REP integer range from 1 to 100 step 1
+#NIM parameter SEED integer range from 1 to 100 step 1
 
 
 # Just checking that something did not go wrong with assignment of the J values.
