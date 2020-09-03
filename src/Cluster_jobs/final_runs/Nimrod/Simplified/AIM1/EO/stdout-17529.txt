@@ -1,0 +1,56 @@
+PBS_O_WORKDIR is /home/s4395747/SLiM/Scripts/Nimrod/Final/AIM1
+/home/s4395747/SLiM/Scripts/Nimrod/Final/AIM1/Outputs/TEST_121_69.txt
+// Initial random seed:
+1410827373
+
+// RunInitializeCallbacks():
+initializeMutationRate(8.045e-06);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(2, 0.5, "g", -0.03, 0.2);
+initializeMutationType(3, 0.5, "f", 0);
+initializeMutationType(4, 0.5, "n", 0, 3.49948);
+initializeMutationType(5, 0.5, "n", 0, 3.49948);
+initializeMutationType(6, 0.5, "n", 0, 3.49948);
+initializeMutationType(7, 0.5, "n", 0, 3.49948);
+initializeMutationType(8, 0.5, "n", 0, 3.49948);
+initializeMutationType(9, 0.5, "n", 0, 3.49948);
+initializeMutationType(10, 0.5, "n", 0, 3.49948);
+initializeMutationType(11, 0.5, "n", 0, 3.49948);
+initializeGenomicElementType(1, c(m1, m2), c(1, 0.392421));
+initializeRecombinationRate(6.73874e-05);
+initializeGenomicElement(g1, 0, 799);
+
+Pleiotropic QTL DFE means: 
+0 0 0 0 0 0 0 0
+
+Pleiotropic QTL DFE variance-covariance matrix (M matrix): 
+         [,0]     [,1]     [,2]     [,3]     [,4]     [,5]     [,6]     [,7]
+[0,]  3.49948 0.285363 0.206216 0.403816 0.232887 0.609444 0.257386 0.334965
+[1,] 0.285363  3.49948 0.273823 0.702465 0.400649 0.503891 0.554953 0.511738
+[2,] 0.206216 0.273823  3.49948 0.580739 0.231557 0.331938 0.427599 0.348758
+[3,] 0.403816 0.702465 0.580739  3.49948 0.479904  0.49079 0.795333 0.478042
+[4,] 0.232887 0.400649 0.231557 0.479904  3.49948 0.377345 0.327484 0.359973
+[5,] 0.609444 0.503891 0.331938  0.49079 0.377345  3.49948 0.160847 0.326797
+[6,] 0.257386 0.554953 0.427599 0.795333 0.327484 0.160847  3.49948 0.171246
+[7,] 0.334965 0.511738 0.348758 0.478042 0.359973 0.326797 0.171246  3.49948
+
+// Starting run at generation <start>:
+1 
+
+#WARNING (Eidos_ExecuteFunction_writeFile): function writeFile() encountered stream errors while writing to file at path out_8T_null_muts.csv.
+#WARNING (Eidos_ExecuteFunction_writeFile): function writeFile() encountered stream errors while writing to file at path out_8T_null_means.csv.
+#WARNING (Eidos_ExecuteFunction_writeFile): function writeFile() encountered stream errors while writing to file at path out_8T_null_means.csv.
+#WARNING (Eidos_ExecuteFunction_writeFile): function writeFile() encountered stream errors while writing to file at path out_8T_null_means.csv.
+#WARNING (Eidos_ExecuteFunction_writeFile): function writeFile() encountered stream errors while writing to file at path out_8T_null_means.csv.
+#WARNING (Eidos_ExecuteFunction_writeFile): function writeFile() encountered stream errors while writing to file at path out_8T_null_means.csv.
+#WARNING (Eidos_ExecuteFunction_writeFile): function writeFile() encountered stream errors while writing to file at path out_8T_null_means.csv.
+#WARNING (Eidos_ExecuteFunction_writeFile): function writeFile() encountered stream errors while writing to file at path out_8T_null_means.csv.
+#WARNING (Eidos_ExecuteFunction_writeFile): function writeFile() encountered stream errors while writing to file at path out_8T_null_means.csv.
+#WARNING (Eidos_ExecuteFunction_writeFile): function writeFile() encountered stream errors while writing to file at path out_8T_null_means.csv.
+#WARNING (Eidos_ExecuteFunction_writeFile): function writeFile() encountered stream errors while writing to file at path out_8T_null_means.csv.
+#WARNING (Eidos_ExecuteFunction_writeFile): function writeFile() encountered stream errors while writing to file at path out_8T_null_means.csv.
+#WARNING (Eidos_ExecuteFunction_writeFile): function writeFile() encountered stream errors while writing to file at path out_8T_null_means.csv.
+#WARNING (Eidos_ExecuteFunction_writeFile): function writeFile() encountered stream errors while writing to file at path out_8T_null_means.csv.
+#WARNING (Eidos_ExecuteFunction_writeFile): function writeFile() encountered stream errors while writing to file at path out_8T_null_means.csv.
+#WARNING (Eidos_ExecuteFunction_writeFile): function writeFile() encountered stream errors while writing to file at path out_8T_null_means.csv.
+#WARNING (Eidos_ExecuteFunction_writeFile): function w

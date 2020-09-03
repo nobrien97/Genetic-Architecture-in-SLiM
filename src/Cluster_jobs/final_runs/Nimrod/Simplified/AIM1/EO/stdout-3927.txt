@@ -1,0 +1,41 @@
+PBS_O_WORKDIR is /home/s4395747/SLiM/Scripts/Nimrod/Final/AIM1
+/home/s4395747/SLiM/Scripts/Nimrod/Final/AIM1/Outputs/TEST_87_16.txt
+// Initial random seed:
+2463684711
+
+// RunInitializeCallbacks():
+initializeMutationRate(8.045e-06);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(2, 0.5, "g", -0.03, 0.2);
+initializeMutationType(3, 0.5, "f", 0);
+initializeMutationType(4, 0.5, "n", 0, 5.9284);
+initializeMutationType(5, 0.5, "n", 0, 5.9284);
+initializeMutationType(6, 0.5, "n", 0, 5.9284);
+initializeMutationType(7, 0.5, "n", 0, 5.9284);
+initializeMutationType(8, 0.5, "n", 0, 5.9284);
+initializeMutationType(9, 0.5, "n", 0, 5.9284);
+initializeMutationType(10, 0.5, "n", 0, 5.9284);
+initializeMutationType(11, 0.5, "n", 0, 5.9284);
+initializeGenomicElementType(1, c(m1, m2), c(1, 0.818138));
+initializeRecombinationRate(0.000106944);
+initializeGenomicElement(g1, 0, 799);
+
+Pleiotropic QTL DFE means: 
+0 0 0 0 0 0 0 0
+
+Pleiotropic QTL DFE variance-covariance matrix (M matrix): 
+         [,0]     [,1]     [,2]     [,3]     [,4]     [,5]     [,6]     [,7]
+[0,]   5.9284 0.428528 0.437996 0.205687 0.286566 0.405697 0.447985 0.226417
+[1,] 0.428528   5.9284 0.764923 0.203421 0.258354 0.408811 0.394447 0.466658
+[2,] 0.437996 0.764923   5.9284 0.481562 0.167406 0.531803 0.459698 0.221208
+[3,] 0.205687 0.203421 0.481562   5.9284 0.623037 0.294612 0.557126 0.250647
+[4,] 0.286566 0.258354 0.167406 0.623037   5.9284 0.514401 0.240773 0.362284
+[5,] 0.405697 0.408811 0.531803 0.294612 0.514401   5.9284 0.263741 0.300854
+[6,] 0.447985 0.394447 0.459698 0.557126 0.240773 0.263741   5.9284 0.482709
+[7,] 0.226417 0.466658 0.221208 0.250647 0.362284 0.300854 0.482709   5.9284
+
+// Starting run at generation <start>:
+1 
+
+  adding: pbs/tmpdir/pbs.358168.tinmgr2/agent-c2c43a51-bdd0-4560-aa6c-4cc80fbf817d/c23cd33e-aafd-4d29-87f2-b7a21e91aaf1/tmp/matrices/ (stored 0%)
+  adding: pbs/tmpdir/pbs.358168.tinmgr2/agent-c2c43a51-bdd0-4560-aa6c-4cc80fbf817d/c23cd33e-aafd-4d29-87f2-b7a21e91aaf1/tmp/matrices/model87/ (stored 0%)

@@ -1,0 +1,41 @@
+PBS_O_WORKDIR is /home/s4395747/SLiM/Scripts/Nimrod/Final/AIM1
+/home/s4395747/SLiM/Scripts/Nimrod/Final/AIM1/Outputs/TEST_109_69.txt
+// Initial random seed:
+1410827373
+
+// RunInitializeCallbacks():
+initializeMutationRate(8.045e-06);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(2, 0.5, "g", -0.03, 0.2);
+initializeMutationType(3, 0.5, "f", 0);
+initializeMutationType(4, 0.5, "n", 0, 8.30004);
+initializeMutationType(5, 0.5, "n", 0, 8.30004);
+initializeMutationType(6, 0.5, "n", 0, 8.30004);
+initializeMutationType(7, 0.5, "n", 0, 8.30004);
+initializeMutationType(8, 0.5, "n", 0, 8.30004);
+initializeMutationType(9, 0.5, "n", 0, 8.30004);
+initializeMutationType(10, 0.5, "n", 0, 8.30004);
+initializeMutationType(11, 0.5, "n", 0, 8.30004);
+initializeGenomicElementType(1, c(m1, m2), c(1, 0.841322));
+initializeRecombinationRate(5.0566e-05);
+initializeGenomicElement(g1, 0, 799);
+
+Pleiotropic QTL DFE means: 
+0 0 0 0 0 0 0 0
+
+Pleiotropic QTL DFE variance-covariance matrix (M matrix): 
+          [,0]      [,1]      [,2]      [,3]      [,4]      [,5]      [,6]      [,7]
+[0,]   8.30004 0.0220206  0.015913 0.0311612 0.0179712  0.047029 0.0198617 0.0258483
+[1,] 0.0220206   8.30004 0.0211301 0.0542071 0.0309168 0.0388838  0.042824 0.0394893
+[2,]  0.015913 0.0211301   8.30004 0.0448138 0.0178686 0.0256146 0.0329965 0.0269126
+[3,] 0.0311612 0.0542071 0.0448138   8.30004 0.0370327 0.0378728 0.0613734  0.036889
+[4,] 0.0179712 0.0309168 0.0178686 0.0370327   8.30004 0.0291186 0.0252709  0.027778
+[5,]  0.047029 0.0388838 0.0256146 0.0378728 0.0291186   8.30004 0.0124121  0.025218
+[6,] 0.0198617  0.042824 0.0329965 0.0613734 0.0252709 0.0124121   8.30004 0.0132146
+[7,] 0.0258483 0.0394893 0.0269126  0.036889  0.027778  0.025218 0.0132146   8.30004
+
+// Starting run at generation <start>:
+1 
+
+  adding: pbs/tmpdir/pbs.358168.tinmgr2/agent-69e6101d-ccc8-444c-aa88-ca58381101d4/3df22027-d92c-46f3-8bf3-8c3d13c46a3c/tmp/matrices/ (stored 0%)
+  adding: pbs/tmpdir/pbs.358168.tinmgr2/agent-69e6101d-ccc8-444c-aa88-ca58381101d4/3df22027-d92c-46f3-8bf3-8c3d13c46a3c/tmp/matrices/model109/ (stored 0%)

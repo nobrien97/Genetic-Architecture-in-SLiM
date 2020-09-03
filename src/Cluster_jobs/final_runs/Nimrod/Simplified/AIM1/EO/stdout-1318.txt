@@ -1,0 +1,55 @@
+PBS_O_WORKDIR is /home/s4395747/SLiM/Scripts/Nimrod/Final/AIM1
+/home/s4395747/SLiM/Scripts/Nimrod/Final/AIM1/Outputs/TEST_38_6.txt
+// Initial random seed:
+2947990758
+
+// RunInitializeCallbacks():
+initializeMutationRate(8.045e-06);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(2, 0.5, "g", -0.03, 0.2);
+initializeMutationType(3, 0.5, "f", 0);
+initializeMutationType(4, 0.5, "n", 0, 5.24569);
+initializeMutationType(5, 0.5, "n", 0, 5.24569);
+initializeMutationType(6, 0.5, "n", 0, 5.24569);
+initializeMutationType(7, 0.5, "n", 0, 5.24569);
+initializeMutationType(8, 0.5, "n", 0, 5.24569);
+initializeMutationType(9, 0.5, "n", 0, 5.24569);
+initializeMutationType(10, 0.5, "n", 0, 5.24569);
+initializeMutationType(11, 0.5, "n", 0, 5.24569);
+initializeGenomicElementType(1, c(m1, m2), c(1, 0.761262));
+initializeRecombinationRate(0.000106648);
+initializeGenomicElement(g1, 0, 799);
+
+Pleiotropic QTL DFE means: 
+0 0 0 0 0 0 0 0
+
+Pleiotropic QTL DFE variance-covariance matrix (M matrix): 
+          [,0]      [,1]      [,2]      [,3]      [,4]      [,5]      [,6]      [,7]
+[0,]   5.24569  0.262964  0.330653  0.223947  0.269346  0.213875  0.261249  0.218909
+[1,]  0.262964   5.24569  0.120254  0.197377   0.19197  0.137615  0.151558  0.153387
+[2,]  0.330653  0.120254   5.24569  0.172774  0.103954  0.135163  0.339961  0.216348
+[3,]  0.223947  0.197377  0.172774   5.24569  0.151309  0.156081  0.158229   0.10895
+[4,]  0.269346   0.19197  0.103954  0.151309   5.24569   0.18106  0.232831  0.382149
+[5,]  0.213875  0.137615  0.135163  0.156081   0.18106   5.24569  0.146094 0.0702968
+[6,]  0.261249  0.151558  0.339961  0.158229  0.232831  0.146094   5.24569   0.11421
+[7,]  0.218909  0.153387  0.216348   0.10895  0.382149 0.0702968   0.11421   5.24569
+
+// Starting run at generation <start>:
+1 
+
+#WARNING (Eidos_ExecuteFunction_writeFile): function writeFile() encountered stream errors while writing to file at path out_8T_null_means.csv.
+#WARNING (Eidos_ExecuteFunction_writeFile): function writeFile() encountered stream errors while writing to file at path out_8T_null_means.csv.
+#WARNING (Eidos_ExecuteFunction_writeFile): function writeFile() encountered stream errors while writing to file at path out_8T_null_means.csv.
+#WARNING (Eidos_ExecuteFunction_writeFile): function writeFile() encountered stream errors while writing to file at path out_8T_null_means.csv.
+#WARNING (Eidos_ExecuteFunction_writeFile): function writeFile() encountered stream errors while writing to file at path out_8T_null_means.csv.
+#WARNING (Eidos_ExecuteFunction_writeFile): function writeFile() encountered stream errors while writing to file at path out_8T_null_means.csv.
+#WARNING (Eidos_ExecuteFunction_writeFile): function writeFile() encountered stream errors while writing to file at path out_8T_null_means.csv.
+#WARNING (Eidos_ExecuteFunction_writeFile): function writeFile() encountered stream errors while writing to file at path out_8T_null_means.csv.
+#WARNING (Eidos_ExecuteFunction_writeFile): function writeFile() encountered stream errors while writing to file at path out_8T_null_means.csv.
+#WARNING (Eidos_ExecuteFunction_writeFile): function writeFile() encountered stream errors while writing to file at path out_8T_null_means.csv.
+#WARNING (Eidos_ExecuteFunction_writeFile): function writeFile() encountered stream errors while writing to file at path out_8T_null_means.csv.
+#WARNING (Eidos_ExecuteFunction_writeFile): function writeFile() encountered stream errors while writing to file at path out_8T_null_means.csv.
+#WARNING (Eidos_ExecuteFunction_writeFile): function writeFile() encountered stream errors while writing to file at path out_8T_null_means.csv.
+#WARNING (Eidos_ExecuteFunction_writeFile): function writeFile() encountered stream errors while writing to file at path out_8T_null_means.csv.
+#WARNING (Eidos_ExecuteFunction_writeFile): function writeFile() encountered stream errors while writing to file at path out_8T_null_means.csv.
+#WARNING (Eidos_ExecuteFunction_writeFile): function writeFile() encountered stream errors while writing to file at path out_8T

@@ -79,13 +79,13 @@ Rscript $RSCRIPTNAME ${NIMROD_VAR_SEED} ${NIMROD_VAR_LS}
 
 zip -r /30days/$USER/matrices_sel.zip /$TMPDIR/matrices
 
-cat /${TMPDIR}/out_8T_stabsel_means.csv >> /30days/${USER}/out_8T_stabsel_means.csv
+cat /${TMPDIR}/out_8T_stabsel_means.csv >> /30days/${USER}/out_8T_stabsel_means_32.csv
 
-cat /${TMPDIR}/out_8T_stabsel_muts.csv >> /30days/${USER}/out_8T_stabsel_muts.csv
+cat /${TMPDIR}/out_8T_stabsel_muts.csv >> /30days/${USER}/out_8T_stabsel_muts_32.csv
 
-cat /${TMPDIR}/out_8T_stabsel_chr.csv >> /30days/${USER}/out_8T_stabsel_chr.csv
+cat /${TMPDIR}/out_8T_stabsel_chr.csv >> /30days/${USER}/out_8T_stabsel_chr_32.csv
 
-cat /${TMPDIR}/out_8T_stabsel_burnin.csv >> /30days/${USER}/out_8T_stabsel_burnin.csv
+cat /${TMPDIR}/out_8T_stabsel_burnin.csv >> /30days/${USER}/out_8T_stabsel_burnin_32.csv
 
-cat /${TMPDIR}/out_8T_stabsel_opt.csv >> /30days/${USER}/out_8T_stabsel_opt.csv
+cat /${TMPDIR}/out_8T_stabsel_opt.csv >> /30days/${USER}/out_8T_stabsel_opt_32.csv
 

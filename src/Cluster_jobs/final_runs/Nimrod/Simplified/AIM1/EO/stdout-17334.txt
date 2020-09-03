@@ -1,0 +1,44 @@
+PBS_O_WORKDIR is /home/s4395747/SLiM/Scripts/Nimrod/Final/AIM1
+/home/s4395747/SLiM/Scripts/Nimrod/Final/AIM1/Outputs/TEST_182_68.txt
+// Initial random seed:
+767405138
+
+// RunInitializeCallbacks():
+initializeMutationRate(8.045e-06);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(2, 0.5, "g", -0.03, 0.2);
+initializeMutationType(3, 0.5, "f", 0);
+initializeMutationType(4, 0.5, "n", 0, 4.15397);
+initializeMutationType(5, 0.5, "n", 0, 4.15397);
+initializeMutationType(6, 0.5, "n", 0, 4.15397);
+initializeMutationType(7, 0.5, "n", 0, 4.15397);
+initializeMutationType(8, 0.5, "n", 0, 4.15397);
+initializeMutationType(9, 0.5, "n", 0, 4.15397);
+initializeMutationType(10, 0.5, "n", 0, 4.15397);
+initializeMutationType(11, 0.5, "n", 0, 4.15397);
+initializeGenomicElementType(1, c(m1, m2), c(1, 0.901811));
+initializeRecombinationRate(1.38665e-05);
+initializeGenomicElement(g1, 0, 799);
+
+Pleiotropic QTL DFE means: 
+0 0 0 0 0 0 0 0
+
+Pleiotropic QTL DFE variance-covariance matrix (M matrix): 
+          [,0]      [,1]      [,2]      [,3]      [,4]      [,5]      [,6]      [,7]
+[0,]   4.15397  0.299306  0.339415  0.348297  0.224281  0.296267  0.279426   0.26941
+[1,]  0.299306   4.15397  0.394232   0.29331  0.126768  0.293375  0.227549  0.311869
+[2,]  0.339415  0.394232   4.15397  0.526249   0.34405  0.277119  0.176744  0.372291
+[3,]  0.348297   0.29331  0.526249   4.15397  0.280611  0.183282  0.305885  0.121242
+[4,]  0.224281  0.126768   0.34405  0.280611   4.15397  0.166883  0.469341  0.274367
+[5,]  0.296267  0.293375  0.277119  0.183282  0.166883   4.15397 0.0786405  0.368093
+[6,]  0.279426  0.227549  0.176744  0.305885  0.469341 0.0786405   4.15397  0.291284
+[7,]   0.26941  0.311869  0.372291  0.121242  0.274367  0.368093  0.291284   4.15397
+
+// Starting run at generation <start>:
+1 
+
+  adding: pbs/tmpdir/pbs.358168.tinmgr2/agent-2b6b261c-11e5-4f72-9081-382253231fc0/81779422-9843-4bc1-aab5-f7781565cf55/tmp/matrices/ (stored 0%)
+  adding: pbs/tmpdir/pbs.358168.tinmgr2/agent-2b6b261c-11e5-4f72-9081-382253231fc0/81779422-9843-4bc1-aab5-f7781565cf55/tmp/matrices/model182/ (stored 0%)
+	zip warning: new zip file left as: /30days/s4395747/ziJf9O98
+zip I/O error: No such file or directory
+zip error: Could not create output file (was replacing the original zip file)

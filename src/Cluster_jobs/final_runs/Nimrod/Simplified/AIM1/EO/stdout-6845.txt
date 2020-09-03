@@ -1,0 +1,41 @@
+PBS_O_WORKDIR is /home/s4395747/SLiM/Scripts/Nimrod/Final/AIM1
+/home/s4395747/SLiM/Scripts/Nimrod/Final/AIM1/Outputs/TEST_701_27.txt
+// Initial random seed:
+3925196109
+
+// RunInitializeCallbacks():
+initializeMutationRate(8.045e-06);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(2, 0.5, "g", -0.03, 0.2);
+initializeMutationType(3, 0.5, "f", 0);
+initializeMutationType(4, 0.5, "n", 0, 9.57541);
+initializeMutationType(5, 0.5, "n", 0, 9.57541);
+initializeMutationType(6, 0.5, "n", 0, 9.57541);
+initializeMutationType(7, 0.5, "n", 0, 9.57541);
+initializeMutationType(8, 0.5, "n", 0, 9.57541);
+initializeMutationType(9, 0.5, "n", 0, 9.57541);
+initializeMutationType(10, 0.5, "n", 0, 9.57541);
+initializeMutationType(11, 0.5, "n", 0, 9.57541);
+initializeGenomicElementType(1, c(m1, m2), c(1, 0.529245));
+initializeRecombinationRate(0.000121475);
+initializeGenomicElement(g1, 0, 799);
+
+Pleiotropic QTL DFE means: 
+0 0 0 0 0 0 0 0
+
+Pleiotropic QTL DFE variance-covariance matrix (M matrix): 
+         [,0]     [,1]     [,2]     [,3]     [,4]     [,5]     [,6]     [,7]
+[0,]  9.57541 0.500025 0.579737 0.674568  0.58643 0.541269 0.446498 0.750807
+[1,] 0.500025  9.57541 0.544291 0.575877 0.393292 0.503869 0.384688 0.439808
+[2,] 0.579737 0.544291  9.57541 0.667748 0.591544 0.738974 0.292794 0.566288
+[3,] 0.674568 0.575877 0.667748  9.57541 0.480324 0.242427 0.773507  0.48993
+[4,]  0.58643 0.393292 0.591544 0.480324  9.57541 0.506439  0.59421 0.206598
+[5,] 0.541269 0.503869 0.738974 0.242427 0.506439  9.57541  0.66574 0.439775
+[6,] 0.446498 0.384688 0.292794 0.773507  0.59421  0.66574  9.57541 0.457111
+[7,] 0.750807 0.439808 0.566288  0.48993 0.206598 0.439775 0.457111  9.57541
+
+// Starting run at generation <start>:
+1 
+
+  adding: pbs/tmpdir/pbs.358170.tinmgr2/agent-6f884dab-813f-4bdd-b33e-7d3e1153e0d3/f6d62491-c12e-4353-a45e-63aece240c20/tmp/matrices/ (stored 0%)
+  adding: pbs/tmpdir/pbs.358170.tinmgr2/agent-6f884dab-813f-4bdd-b33e-7d3e1153e0d3/f6d62491-c12e-4353-a45e-63aece240c20/tmp/matrices/model701/ (stored 0%)

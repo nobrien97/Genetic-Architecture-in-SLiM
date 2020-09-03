@@ -1,0 +1,47 @@
+PBS_O_WORKDIR is /home/s4395747/SLiM/Scripts/Nimrod/Final/AIM1
+/home/s4395747/SLiM/Scripts/Nimrod/Final/AIM1/Outputs/TEST_38_29.txt
+// Initial random seed:
+3409443468
+
+// RunInitializeCallbacks():
+initializeMutationRate(8.045e-06);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(2, 0.5, "g", -0.03, 0.2);
+initializeMutationType(3, 0.5, "f", 0);
+initializeMutationType(4, 0.5, "n", 0, 5.24569);
+initializeMutationType(5, 0.5, "n", 0, 5.24569);
+initializeMutationType(6, 0.5, "n", 0, 5.24569);
+initializeMutationType(7, 0.5, "n", 0, 5.24569);
+initializeMutationType(8, 0.5, "n", 0, 5.24569);
+initializeMutationType(9, 0.5, "n", 0, 5.24569);
+initializeMutationType(10, 0.5, "n", 0, 5.24569);
+initializeMutationType(11, 0.5, "n", 0, 5.24569);
+initializeGenomicElementType(1, c(m1, m2), c(1, 0.761262));
+initializeRecombinationRate(0.000106648);
+initializeGenomicElement(g1, 0, 799);
+
+Pleiotropic QTL DFE means: 
+0 0 0 0 0 0 0 0
+
+Pleiotropic QTL DFE variance-covariance matrix (M matrix): 
+          [,0]      [,1]      [,2]      [,3]      [,4]      [,5]      [,6]      [,7]
+[0,]   5.24569  0.274766  0.417007  0.151409  0.101864  0.379694  0.109339  0.142153
+[1,]  0.274766   5.24569  0.166313  0.124981  0.201019  0.128394  0.273744  0.319951
+[2,]  0.417007  0.166313   5.24569  0.170351  0.217083  0.136768 0.0839212  0.221365
+[3,]  0.151409  0.124981  0.170351   5.24569  0.198847  0.202056  0.228777  0.231184
+[4,]  0.101864  0.201019  0.217083  0.198847   5.24569  0.206228  0.106497   0.25369
+[5,]  0.379694  0.128394  0.136768  0.202056  0.206228   5.24569  0.295028  0.148978
+[6,]  0.109339  0.273744 0.0839212  0.228777  0.106497  0.295028   5.24569  0.234961
+[7,]  0.142153  0.319951  0.221365  0.231184   0.25369  0.148978  0.234961   5.24569
+
+// Starting run at generation <start>:
+1 
+
+#WARNING (Eidos_ExecuteFunction_writeFile): function writeFile() encountered stream errors while writing to file at path out_8T_null_means.csv.
+#WARNING (Eidos_ExecuteFunction_writeFile): function writeFile() encountered stream errors while writing to file at path out_8T_null_means.csv.
+#WARNING (Eidos_ExecuteFunction_writeFile): function writeFile() encountered stream errors while writing to file at path out_8T_null_means.csv.
+#WARNING (Eidos_ExecuteFunction_writeFile): function writeFile() encountered stream errors while writing to file at path out_8T_null_means.csv.
+#WARNING (Eidos_ExecuteFunction_writeFile): function writeFile() encountered stream errors while writing to file at path out_8T_null_means.csv.
+#WARNING (Eidos_ExecuteFunction_writeFile): function writeFile() encountered stream errors while writing to file at path out_8T_null_muts.csv.
+  adding: pbs/tmpdir/pbs.358168.tinmgr2/agent-6d18ac1e-5f75-4d6f-bd05-5c4797a11d49/aa50e7cb-fd02-46cc-9a5c-0236c15dc443/tmp/matrices/ (stored 0%)
+  adding: pbs/tmpdir/pbs.358168.tinmgr2/agent-6d18ac1e-5f75-4d6f-bd05-5c4797a11d49/aa50e7cb-fd02-46cc-9a5c-0236c15dc443/tmp/matrices/model38/ (stored 0%)

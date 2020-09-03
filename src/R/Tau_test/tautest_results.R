@@ -97,9 +97,9 @@ euc_dist <- function(dat, opt) {
   dists <- lapply(seq_along(dat), function(x) {
     lapply(seq_along(dat[[x]]), function(y) {
       lapply(seq_along(dat[[x]][[y]]), function(z) {
-        opt_x <- as.numeric(opt[[y]][[z]]) # Get the index of the second level of the list; for use in getting the right opt
-        dist_x <- as.numeric(dat[[x]][[y]][[z]])
-        dist(rbind(dist_x, opt_x))
+        opt_x <- as.numeric(opt[[y]][[z]]) # Get the index of the second and third levels of the list (seed, modelindex); for use in getting the right opt
+        dist_x <- as.numeric(dat[[x]][[y]][[z]]) # Choose the right sampled vector of means (gen, seed, modelindex)
+        dist(rbind(dist_x, opt_x)) # Euclidean distance calculation between given vector of means and associated optimum vector
       })
     })
   })
@@ -109,13 +109,23 @@ euc_dist <- function(dat, opt) {
 euc_test <- euc_dist(d_tau_nodup, d_tau_opt)
 
 
+# Convert to data frame for plotting: need to take outer list as gen, next level as seed, and next level as model
+
+
+
+
+
+# Code Graveyard: Testing stuff
+
 mean_list_lv1 <- mean_list[[1]][[1]]
-mean_list_lv2 <- mean_list[[1]][[1]][[1]]
+mean_list_lv2 <- mean_list[[1]][[1]][[1]] # Checking subsets to decide how many levels we need to get to the right level in the data
 
-match(mean_list_lv2, unlist(mean_list_lv1))
+match(mean_list_lv2, unlist(mean_list_lv1)) # Attempting to get the index of a lapply loop with match() - didn't work, and theoretically kind of slow so I abandoned that
 
 
-opt <- arrange(d_tau_opt, tau, seed)
+opt <- arrange(d_tau_opt, tau, seed) # Double checking to see how arranging data would influence order of the nested list
+
+# Example distance calculations for validation that this function ( dist() ) actually works as expected
 dist_ex <- as.numeric(d_tau_means[d_tau_means$gen == 15000 & d_tau_means$tau == 10 & d_tau_means$seed == 167,][36:43])
 
 dist_ex2 <- as.numeric(d_tau_means[d_tau_means$gen == 15000 & d_tau_means$tau == 1000 & d_tau_means$seed == 167,][36:43])
