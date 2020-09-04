@@ -12,8 +12,8 @@
 #PBS -A qris-uq
 #
 #Use more resources if you need.
-#PBS -l select=10:ncpus=24:mem=120GB:ompthreads=1 
-#10 nodes, 24 cores, 120GB per node
+#PBS -l select=12:ncpus=24:mem=120GB:ompthreads=1 
+#12 nodes, 24 cores, 120GB per node
 #PBS -l walltime=128:00:00
 #
 #Job name for ease of recognition: SLiM AIM1 1-256
@@ -79,12 +79,12 @@ module load R/3.5.0-gnu
 
 Rscript $RSCRIPTNAME ${NIMROD_VAR_SEED} ${NIMROD_VAR_LS}
 
-zip -r /30days/$USER/matrices_null.zip /$TMPDIR/matrices
+cp -r /${TMPDIR}/matrices/* /30days/${USER}/matrices/
 
-cat /${TMPDIR}/out_8T_null_means.csv >> /30days/${USER}/out_8T_null_means.csv
+cat /${TMPDIR}/out_8T_null_means.csv >> /30days/${USER}/out_8T_null_means_256.csv
 
-cat /${TMPDIR}/out_8T_null_muts.csv >> /30days/${USER}/out_8T_null_muts.csv
+cat /${TMPDIR}/out_8T_null_muts.csv >> /30days/${USER}/out_8T_null_muts_256.csv
 
-cat /${TMPDIR}/out_8T_null_chr.csv >> /30days/${USER}/out_8T_null_chr.csv
+cat /${TMPDIR}/out_8T_null_chr.csv >> /30days/${USER}/out_8T_null_chr_256.csv
 
-cat /${TMPDIR}/out_8T_null_burnin.csv >> /30days/${USER}/out_8T_null_burnin.csv
+cat /${TMPDIR}/out_8T_null_burnin.csv >> /30days/${USER}/out_8T_null_burnin_256.csv

@@ -127,132 +127,104 @@ MCmat_gen <- function(dat, cores) {
       })
     }) 
   }, mc.cores = cores)
-  dat <- lapply(dat, function(x) {
-    lapply(x, function(y) {
-      mats <- simplify2array(y) # simplify the last nesting to an array (so all models within a seed are part of an array rather than a list)
-    })
-  })
+ 
   dat
 }
 
 matgentest <- MCmat_gen(d_null_mat, 4)
 
-# To return a single matrix from the list - e.g. at generation 50000, first seed, first model:
-matgentest[["50000"]][[1]][,,1]
-
-
 
 
 
 # Eigentensor analysis - Take G matrices from mat_gen, make sure they are positive definite, decompose, ET analysis
+# Using evolqg EigenTensorDecomposition()
+# G is a list of lists of lists: gen -> seed -> models, each of these has a G matrix
+# cores is number of cores to use concurrently when calculating eigentensors and eigenvalues
+# nmats for the number of eigentensors to keep and do an eigenanalysis on
 library(evolqg)
 MCG_ET <- function(G, cores, nmats) {
-  G <- lapply(G, function(x) {
+  G <- parallel::mclapply(G, function(x) {
     lapply(x, function(y) {
-     G[[x]][[y]] <- G[[x]][[y]][matrixcalc::is.positive.definite(mats) == T] # make sure we only use the mats that are positive definite
+      lapply(y, function(z) { # make sure we only use the mats that are positive definite
+        if (!matrixcalc::is.positive.definite(z)) 
+        {
+          z <- NULL     # Set the values that aren't positive definite as NULL to tag for removal later
+        }
+        else 
+          z <- z        # Required or the rest of the values are empty
+      })
     })
-  })
-    
+  }, mc.cores = cores)
+  
   Gmax <- parallel::mclapply(G, function(x) {
     lapply(x, function(y) {
-      evolqg::EigenTensorDecomposition(mats, return.projection = F)$matrices[1:nmats]
+      eigen(evolqg::EigenTensorDecomposition(simplify2array(compact(y)), # Compact removes NULL values
+                                             return.projection = F)$matrices[,,1:nmats], 
+                                            symmetric = T, only.values = F)
     })
   }, mc.cores = cores)
-  Es <- parallel::mclapply(Gmax, function(x) {
-    lapply(x, function(y) {
-      eigen(y, symmetric = T, only.values = T)
-    })
-  }, mc.cores = cores)
-  Es
+  
+ Gmax
 }
-matgentest_T <- matgentest
-matgentest_pd <- lapply(matgentest, function(x) {
-  lapply(x, function(y) {
-    lapply(y, function(z) {
-      matgentest_T[[x]][[y]][,,z] <- matrixcalc::is.positive.definite((matgentest[[x]][[y]][,,z])) # make sure we only use the mats that are positive definite
-      matgentest <- matgentest[matgentest_T[[x]][[y]][,,z] == T]
-    })
-  })
-})
+
+testGs <- MCG_ET(matgentest[1], 4, 1)     # Just do it for one time point for trial
 
 
-is.positive.definite(testGs[[1]][[1]][,,1])
-# first is subsetting by generation, then seed, then last is getting each model's matrix as element of array
+# Single core test for error output/debug
 
 G_ET <- function(G, nmats) {
-  Gmax <- lapply(G, function(x) {
-    lapply(x, function(y) {
-      mats <- simplify2array(y)
-      mats <- mats[,,matrixcalc::is.positive.definite(y) == T]
-       evolqg::EigenTensorDecomposition(mats, return.projection = F)$matrices[1:nmats]
-  #   })
-  # })
-  # Es <- lapply(Gmax, function(x) {
-  #   lapply(x, function(y) {
-  #     eigen(y, symmetric = T, only.values = T)
-  #   })
-  # })
-  # Es
-    }) })
-  Gmax
-}
-
-
-
-  
-
-
-
-library(evolqg)
-mats_test <- array(unlist(testmatrices[[1]][1]), c(8,8,3))
-ETOutput <- EigenTensorDecomposition(mats_test, return.projection = F)$matrices[,,1:2]
-EigOutput <- eigen(ETOutput[,,1], symmetric = T, only.values = T)
-
-
-# E.g. with d_null_mat
-
-G_null_mean <- simplify2array(matstruc_test)
-
-G_null_se <- as.array(matse_construct(d_null_mat))
-
-
-
-
-# Eigentensor analysis: Using evolqg EigenTensorDecomposition()
-
-library(evolqg)
-
-Gmean_ET <- function(G) {
-  Gmax <- lapply(G, function(x) {
-      evolqg::EigenTensorDecomposition(x, return.projection = F)$matrices[,,1:2]
-  })
-    Es <- lapply(Gmax, function(x) {
-      eigen(x, symmetric = T, only.values = T)
+  G <- lapply(G, function(x) {
+         lapply(x, function(y) {
+           lapply(y, function(z) { # make sure we only use the mats that are positive definite
+            if (!matrixcalc::is.positive.definite(z)) 
+              {
+                z <- NULL
+            }
+             else 
+               z <- z
+        })
     })
-    Es
+  })
+  GET <- lapply(G, function(x) {
+    lapply(x, function(y) {
+      y <- compact(simplify2array(y))
+      evolqg::EigenTensorDecomposition(y, return.projection = F)$matrices[,,1:nmats]
+    })
+  })
+  Es <- lapply(GET, function(x) {
+    lapply(function(y) {
+      eigen(y, symmetric = T, only.values = T)
+    })
+  })
+  Es
 }
 
+# Test for diagnostics
+testGs <- G_ET(matgentest, 1)
 
-Gmax_test <- lapply(matstruc_test, function(x) {
-  evolqg::EigenTensorDecomposition(x, return.projection = F)$matrices[,,1:2]
-})
-
-
-
-
-ET_Decomp_Gnull <- EigenTensorDecomposition(G_null_mean)
-
-E_Decomp_ETnull <- eigen(ET_Decomp_Gnull$matrices[,,1])
-
-#> sum(E_Decomp_ETnull$values[1:2]) / sum(E_Decomp_ETnull$values)
-#[1] 0.3819765
-# Linear combinations of traits 1 and 2 of eigentensor 1 explain 38.2% of the divergence between populations (?) 
 
 
 
 # RandomSkewers analysis: also using evolqg, RandomSkewers()
 
-RandomSkewers(as.list(G_null_mat))
+
+# Function for calculating random skewers between models
+
+MCskew <- function(G, cores) {
+  G <- lapply(G, function(x) {
+    lapply(x, function(y) {
+      lapply(y, function(z) { # make sure we only use the mats that are positive definite
+        if (!matrixcalc::is.positive.definite(z)) 
+        {
+          z <- NULL
+        }
+        else 
+          z <- z
+      })
+    })
+  })
+  
+}
 
 # rPCA
 library(vcvComp)
@@ -265,6 +237,10 @@ library(Matrix)
 library(vsp)
 
 vsp()
+
+
+
+
 
 
 # Recom model, same stuff
@@ -380,3 +356,84 @@ testGs <- lapply(testmatrices, function(x) {
     lapply(x, `[[`, 1) # Extracts values - ??? 
   })
 })
+
+
+
+# To return a single matrix from the list - e.g. at generation 50000, first seed, first model:
+matgentest[["50000"]][[1]][[1]]
+# or
+matgentest[[1]][[1]][[1]]
+
+
+
+
+
+G_ET <- function(G, nmats) {
+  Gmax <- lapply(G, function(x) {
+    lapply(x, function(y) {
+      mats <- simplify2array(y)
+      mats <- mats[,,matrixcalc::is.positive.definite(y) == T]
+      evolqg::EigenTensorDecomposition(mats, return.projection = F)$matrices[1:nmats]
+      #   })
+      # })
+      # Es <- lapply(Gmax, function(x) {
+      #   lapply(x, function(y) {
+      #     eigen(y, symmetric = T, only.values = T)
+      #   })
+      # })
+      # Es
+    }) })
+  Gmax
+}
+
+
+
+is.positive.definite(testGs[[1]][[1]][[1]])
+# first is subsetting by generation, then seed, then last is getting each model's matrix as element of array
+
+
+
+library(evolqg)
+mats_test <- array(unlist(testmatrices[[1]][1]), c(8,8,3))
+ETOutput <- EigenTensorDecomposition(mats_test, return.projection = F)$matrices[,,1:2]
+EigOutput <- eigen(ETOutput[,,1], symmetric = T, only.values = T)
+
+
+# E.g. with d_null_mat
+
+G_null_mean <- simplify2array(matstruc_test)
+
+G_null_se <- as.array(matse_construct(d_null_mat))
+
+
+# Function for calculating ET of mean matrix across seeds
+
+library(evolqg)
+
+Gmean_ET <- function(G) {
+  Gmax <- lapply(G, function(x) {
+    evolqg::EigenTensorDecomposition(x, return.projection = F)$matrices[,,1:2]
+  })
+  Es <- lapply(Gmax, function(x) {
+    eigen(x, symmetric = T, only.values = T)
+  })
+  Es
+}
+
+
+Gmax_test <- lapply(matstruc_test, function(x) {
+  evolqg::EigenTensorDecomposition(x, return.projection = F)$matrices[,,1:2]
+})
+
+ET_Decomp_Gnull <- EigenTensorDecomposition(G_null_mean)
+
+E_Decomp_ETnull <- eigen(ET_Decomp_Gnull$matrices[,,1])
+
+#> sum(E_Decomp_ETnull$values[1:2]) / sum(E_Decomp_ETnull$values)
+#[1] 0.3819765
+# Linear combinations of traits 1 and 2 of eigentensor 1 explain 38.2% of the divergence between populations (?) 
+
+
+
+# Random Skewers test
+RandomSkewers(as.list(G_null_mat))
