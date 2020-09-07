@@ -1,0 +1,202 @@
+---
+title: "Tau Values"
+author: "Nick O'Brien"
+date: "07/09/2020"
+header-includes:
+  - \usepackage{bbm}
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+Following my genome restructure, I have been experimenting with a new fitness function. The old function was bsed on the normal distribution, taking an individual's phenotype from the optimum (for the individual's distance from the optimum) per trait, taking the density probability of having that distance from a Normal distribution centred around 0, with some selection strength indicating the variance of that curve, and summing those for all traits for distance from the multivariate optimum. This indicated relative fitness, and SLiM would rank individuals against each other to determine who would mate more or less.
+This approach is used in the SLiM manual to some success, however can be sped up: we don't need to treat everything anything as a probability, so the division to scale for a probability in the normal density function is not necessary.
+That function is given by:
+$$w(x_i)=1+\frac{e^{−(x_i−μ)^2/(2σ^2)}}{\sqrt{σ2π}}$$
+Where $x_i$ is the individual's trait value for trait i, $\mu$ is the average of the normal distribution, and $\sigma$ is the variance of the normal distribution (with $\sigma^2$ representing the standard deviation). 1 is added to ensure minimum fitness is 1, however this is unnecessary as fitness is relative in SLiM regardless, so in the new function this is removed.
+
+The new function is very similar, but without the scaling for probabilities, and a new fitness multiplier, tau. This value represents the flatness of the curve as an individual extends from the optimum. So a higher tau value represents a smaller fitness difference between an individual 5 units from the optimum and one at the optimum versus a smaller tau value (where the fitness difference is greater). This is similar to the effect of $\sigma$ in the old function:
+$$w(x_i)=1-s(1-e^{-\frac{1}{\tau}\sum_{i=1}^{n} {x_i^2}})$$
+
+Where s is a selection coefficient, and $\tau$ represents selection strength (by fitness differences between individuals with some distance between them in their own distances from the optimum).
+In my models s is fixed at 0.1, as adding more parameters is computationally costly (to properly sample the space, each parameter increases the total number of hypercube samples to get one independent sample in each dimension by an exponent of 2). This sets a minimum relative fitness at 0.1, and a maximum at 1, so an individual infinitely far from the optimum can be a maximum of 10 times less fit than one at the optimum. This value changes depending on $\tau$ however, which adjusts the curve of the function, as described above. I adjusted $\tau$ to three values to assess the impact of each on reaching the optimum, and staying there. 
+
+## Plotting $\tau$
+
+I chose three values of tau: 10, 100, and 1000 to investigate how they'd impact time to reach the optimum, and ability to stay there. I expected that $\tau$ = 10 would have some difficulty, as the selection pressure is so great that very few mutations would be able to drive the population close enough to the optimum to have a sizeable impact on fitness (such that it is selected for). Otherwise, since this is a Wright-Fisher model, it is more likely that this value would result in random drift. 
+$\tau$ = 100 and 1000 I thought would lead to strong and weak selection, with $\tau$ = 100 leading to rapid movement towards the optimum, and reasonably strict adherence to it over time, whereas $\tau$ = 1000 would be slower and fluctuate more once it had reached the optimum.
+All models started a fixed distance away from the multivariate optimum (I should mention, this is modelling 8 traits, the optimum is in 8D space). This distance was set at 100 mutation steps away from the end-of-burn-in phenotype mean vector. I first estimated the number of mutational steps/events in the burn-in period as
+$$n_\mu = \mu * n_{loci}*n_{gens}$$
+Where $\mu$ is the per-generation, per-locus mutation rate, $n_{loci}$ is the number of loci that could mutate to affect the trait, and $n_{gens}$ is the number of generations of burn-in.
+Assuming my burn-in of $n_{gens} = 50000$, and my number of loci as $n_{loci} = 100$, with a mutation rate of $\mu = 8.045\times10^{-6}$, that gives us $n_\mu = 31.5$ mutational steps.
+To find the expected phenotype means after 100 steps, we can do the following:
+$$optima = \frac{100}{31.5}\cdot{\bar{\boldsymbol{x}}}$$ 
+Where 100 represents the number of mutational steps to reach the optimum, 31.5 is the number of mutational steps done in burn-in to reach the current phenotype values, and $\bar{\boldsymbol{x}}$ is the vector of phenotype means post-burn-in.
+
+Hence, the distance from the optimum is proportional to the effect size (parameter locisigma), as well as nloci (however this remains fixed in this model).
+
+I ran three models with those three tau values, with every other parameter fixed: 
+
+```{r table, echo = FALSE}
+dat <- data.frame(
+  Ne=8000,
+  locisigma=10.0,
+  pleiorate=0.5,
+  delmu=1.0,
+  rwide=1.241e-4,
+  pleio_cov=0.5
+)
+knitr::kable(
+  dat, align = "r", col.names = c("Population size", "Additive effect size", "Rate of pleiotropy", "Ratio of deleterious to non-deleterious mutations", "Genome-wide recombination rate", "Mean mutational pleiotropic covariance"),  caption = "Table 1: Fixed parameter values for tau value testing.")
+
+```
+
+I ran each model three times with randomly-generated seeds 167, 78478, and 244978.
+
+Anyway, without further adieu, here is what I found: 
+
+```{r tau, echo=FALSE, message = FALSE, warning = FALSE}
+
+library(tidyverse)
+d_tau_means <- read.csv("Z:/Documents/GitHub/Genetic-Architecture-in-SLiM/src/Cluster_jobs/Tau_test/Output/out_8T_stabsel_means.csv", header = F)
+
+d_tau_opt <- read.csv("Z:/Documents/GitHub/Genetic-Architecture-in-SLiM/src/Cluster_jobs/Tau_test/Output/out_8T_stabsel_opt.csv", header = F)
+
+# Names
+
+names(d_tau_means)[1:7] <- c("gen", "seed", "modelindex", "rsd", "rwide", "delmu", "tau")
+
+names(d_tau_means)[8:35] <-  c(paste0("pleiocov_0", 1:7), paste0("pleiocov_1", 2:7), paste0("pleiocov_2", 3:7), paste0("pleiocov_3", 4:7), paste0("pleiocov_4", 5:7), paste0("pleiocov_5", 6:7), paste0("pleiocov_6", 7))
+
+names(d_tau_means)[36:43] <- paste0("mean", 0:7)
+
+names(d_tau_means)[44:51] <- paste0("var", 0:7)
+
+names(d_tau_means)[52:79] <- c(paste0("phenocov_0", 1:7), paste0("phenocov_1", 2:7), paste0("phenocov_2", 3:7), paste0("phenocov_3", 4:7), paste0("phenocov_4", 5:7), paste0("phenocov_5", 6:7), paste0("phenocov_6", 7))
+
+names(d_tau_means)[80:107] <- c(paste0("phenocor_0", 1:7), paste0("phenocor_1", 2:7), paste0("phenocor_2", 3:7), paste0("phenocor_3", 4:7), paste0("phenocor_4", 5:7), paste0("phenocor_5", 6:7), paste0("phenocor_6", 7))
+
+names(d_tau_means)[108] <- "H"
+
+
+names(d_tau_opt) <- c("seed", "tau", paste0("opt", 0:7))
+
+
+# Function to convert a single line from dataframe to just the mean values
+dat_to_mean <- function(dat) {
+  dat <- as.vector(t(dat))
+  means <- dat[36:43]
+  means
+}
+
+# Function to rearrange data into list sorted by variables
+mean_gen <- function(dat) {
+  dat <- dplyr::arrange(dat, gen, tau, seed) # should be modelindex instead of tau in final function
+  dat <- dplyr::group_split(dat, gen) %>% setNames(unique(dat$gen))
+  dat <- lapply(dat, function(x) { dplyr::group_split(x, seed) }) # %>% setNames(unique(x$seed))}) Don't need names of seeds
+  dat <- lapply(dat, function(x) { lapply(x, function(y) {
+    split(as.matrix(y), row(y))
+  })
+  })
+  dat <- lapply(dat, function(x) { 
+    lapply(x, function(y) { 
+      lapply(y, function(z) { 
+        dat_to_mean(z) 
+      })
+    }) 
+  })
+  dat
+}
+
+# Convert optimums into a list for easier comparison
+opt_gen <- function(opt) {
+  opt <- dplyr::arrange(opt, tau, seed) # should be modelindex instead of tau in final function
+  opt <- dplyr::group_split(opt, seed) # %>% setNames(unique(opt$seed)) Don't need names of seeds
+  opt <- lapply(opt, function (x) {
+    x <- x[,3:10]
+    split(as.matrix(x), row(x))
+  })
+  opt
+}
+
+# Arrange into ascending order
+d_tau_nodup <- dplyr::arrange(d_tau_means %>% distinct(seed, gen, tau, .keep_all = T), gen, tau, seed)
+
+# Test the functions
+
+mean_list <- mean_gen(d_tau_nodup)
+
+opt_list <- opt_gen(d_tau_opt)
+
+
+# Euclidean distance: needs to be for each time point, model and seed combo
+
+# Function needs to go into list, lapply level 1 is generation, level 2 is seed, level 3 is model/tau
+# So go to level 3, calculate distance between that and the optimum (where optimum value is from another data frame)
+
+euc_dist <- function(dat, opt) {
+  dat <- mean_gen(dat)
+  opt <- opt_gen(opt)
+  dists <- lapply(seq_along(dat), function(x) {
+    lapply(seq_along(dat[[x]]), function(y) {
+      lapply(seq_along(dat[[x]][[y]]), function(z) {
+        opt_x <- as.numeric(opt[[y]][[z]]) # Get the index of the second and third levels of the list (seed, modelindex); for use in getting the right opt
+        dist_x <- as.numeric(dat[[x]][[y]][[z]]) # Choose the right sampled vector of means (gen, seed, modelindex)
+        dist(rbind(dist_x, opt_x)) # Euclidean distance calculation between given vector of means and associated optimum vector
+      })
+    })
+  })
+  dists
+}
+
+euc_test <- euc_dist(d_tau_nodup, d_tau_opt)
+
+
+# Convert to data frame for plotting: need to take outer list as gen, next level as seed, and next level as model
+
+test_df <- data.frame(
+  gen = rep(unique(d_tau_nodup$gen), each = length(unique(d_tau_nodup$seed))*length(unique(d_tau_nodup$tau))),
+  seed = rep(unique(d_tau_nodup$seed), each = length(unique(d_tau_nodup$tau))),
+  modelindex = unique(d_tau_nodup$tau),
+  distance = unlist(euc_test)
+)
+
+# Plot data - mean of seeds, and standard errors
+
+# Simple function to calculate standard error
+
+std.error <-  function(x) {
+  n <- length(x)
+  sd <- sd(x)
+  sd/sqrt(n)
+}
+
+
+
+test_df_means <- test_df[c(1, 3:4)] %>%
+  group_by(gen, modelindex) %>%
+  summarise_all(list(groupmean = mean, se = std.error))
+
+
+plot_euc <- ggplot(test_df_means,
+                   aes(x = gen, y = groupmean, color = as.factor(modelindex))) +
+  geom_ribbon(aes(ymin = (groupmean - se), ymax = (groupmean + se)), alpha=0.3, show.legend = F, linetype=0) +
+  geom_line() +
+  theme_classic() +
+  labs(x = "Generation", y = "Distance from optimum", color = substitute(paste(s, tau, e), list(s = "Tau (", e = ")")))
+
+plot_euc
+
+```
+
+As predicted, $\tau$ = 10 was too small, and population means seem to be drifting away from the optimum, a la drift. Indeed, the large amount of variance indicates that the population is not constrained by selection, and so can go wherever: with many seeds the distribution of effects would approach normal around a mean distance equal to the starting distance. Under a non-WF model, this model would result in the extinction of that population, with individuals dying as they cannot reach a fit phenotype. 
+It could also be that given the time of this trial (15,000 generations), there was not adequate time for large mutations to appear to influence fitness. Hence, over time, large-effect mutations to the extent where they are not likely to be lost by drift may arise, leading to movement towards the optimum. Regardless, $\tau = 10$ clearly represents very weak selection, to the point where drift overrides much of its effect (at least in the short term of 15,000 generations).
+
+What was not predicted was the effects of $\tau = (100, 1000)$. Here, both approach the optimum quickly and are able to stay around it fairly well. With $\tau$ = 1000, it appears to be limited somewhat above the optimum compared to $\tau$ = 100, and there is more fluctuation around that value, but the effect is still quite strong.
+Somewhere between 10 and 100 would be an example of weak selection, but it seems that both 100 and 1000 represent quite strong selection, relative to the starting distance of around 35. This will of course differ with effect size, as larger effects will result in larger post-burn-in phenotype means, and thus larger mutational steps and therefore larger starting distances from the optima, although each mutational step is likely to lead to a similar sized step towards the optimum. Hence, this graph in my final runs should be scaled by the effect size to control for this.
+
+From this, I figure that a parameter range of 10-1000 seems reasonable for encompassing the total space of selection strengths, from no, or very weak selection (drift), to very strong selection.

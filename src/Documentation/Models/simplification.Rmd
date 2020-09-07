@@ -1,0 +1,28 @@
+---
+title: "Model Simplifications"
+author: "Nick O'Brien"
+date: "07/09/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+Based on my tests with my near-final model, it was becoming clear that it was too complex to realistically explore in Honours, I had to cut down the model in two ways: the number of parameters, and the processing time. 
+My final time tests estimated my null model would take around 45 hours to run, my recombination models would take around 47 hours to run, and the selection model would take 110 hours to run. Note that this is for a single run, and I was aiming for 50 replicates of 100 hypercube samples. In addition, my hypercube sampling was hugely sparse: 8 (or 9 in the case of selection) parameters spread across 100 models was not even enough for 3 independent samples per parameter, so it was obvious that needed to be cut down. By deciding to focus on the effects of pleiotropy and deleterious mutation on adaptation (with the context of linkage by recombination between loci), we were able to cut many parameters that didn't serve to explain these questions.
+
+## Model Adjustments
+
+To reduce the computational cost of my models, I decided to cut the number of loci down from 20680 to 800, fixing the number of loci per trait to 100, and removing the need to track any non-trait neutral mutations. Given our results from heterozygosity and burn-in, we were confident that this would not affect our ability to reach equilibrium. We also cut the chromosome treatment to model 800 loci on a single chromosome, further reducing our hypercube sampling space. This in turn negated the need for the second aim, massively reducing the time to run all experiments. 
+We also decided to fix population size at 8000, as this was another parameter that was not necessary for what I wanted to focus on.
+This led to a final hypercube parameter list of n = 5:
+locisigma, rwide, delmu, pleiorate, and pleio_cov
+Under the selection model, the additional parameter tau was added (as explained in another document).
+
+Together, these simplifications reduced the null model to take around an hour to run per model, greatly extending the number of hypercube samples we could take. We decided on 1024 models with 100 replicates each, indicating 32 samples of each parameter.
+For the null model, the time was reduced to 48 hours, meaning that we could not go as high on the number of replicates. We decided on 192 models to build, but we'd start with running 128 and run the rest if we had time (since with 24 cores on 48 nodes, 128 models with 100 replicates will still take 22 days to run). 
+
+This means that we can't gain insight into the genomic side of quantitative and population genetics with my project, but the model is still there in the future to build off of. What we can gain insight into though is the effects of deleterious mutation on constraining polygenic adaptation, whether that interacts with pleiotropic effects and linkage, and the repeatability of polygenic adaptation (via replicates showing different paths to the optimum)

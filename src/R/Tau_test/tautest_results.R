@@ -76,8 +76,8 @@ opt_gen <- function(opt) {
   opt
 }
 
-d_tau_nodup <- d_tau_means %>% distinct(seed, gen, tau, .keep_all = T)
-dat_test <- arrange(d_tau_means, gen, tau, seed)
+# Arrange into ascending order
+d_tau_nodup <- arrange(d_tau_means %>% distinct(seed, gen, tau, .keep_all = T), gen, tau, seed)
 
 # Test the functions
 
@@ -111,7 +111,38 @@ euc_test <- euc_dist(d_tau_nodup, d_tau_opt)
 
 # Convert to data frame for plotting: need to take outer list as gen, next level as seed, and next level as model
 
+library(tidyverse)
 
+test_df <- data.frame(
+  gen = rep(unique(d_tau_nodup$gen), each = length(unique(d_tau_nodup$seed))*length(unique(d_tau_nodup$tau))),
+  seed = rep(unique(d_tau_nodup$seed), each = length(unique(d_tau_nodup$tau))),
+  modelindex = unique(d_tau_nodup$tau),
+  distance = unlist(euc_test)
+)
+
+# Plot data - mean of seeds, and standard errors
+
+# Simple function to calculate standard error
+
+std.error <-  function(x) {
+  n <- length(x)
+  sd <- sd(x)
+  sd/sqrt(n)
+}
+
+
+
+test_df_means <- test_df[c(1, 3:4)] %>%
+  group_by(gen, modelindex) %>%
+  summarise_all(list(groupmean = mean, se = std.error))
+
+
+plot_euc <- ggplot(test_df_means,
+                   aes(x = gen, y = groupmean, color = as.factor(modelindex))) +
+  geom_ribbon(aes(ymin = (groupmean - se), ymax = (groupmean + se)), alpha=0.3, show.legend = F, linetype=0) +
+  geom_line() +
+  theme_classic() +
+  labs(x = "Generation", y = "Distance from optimum", color = substitute(paste(s, tau, e), list(s = "Tau (", e = ")")))
 
 
 

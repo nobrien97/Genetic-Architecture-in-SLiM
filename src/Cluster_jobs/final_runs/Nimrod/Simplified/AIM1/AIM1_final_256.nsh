@@ -70,16 +70,12 @@ if [ -f ${OUTFILE} ]; then
   exit 0
 fi
 
-mkdir -p ./matrices/model${NIMROD_VAR_LS}
-
 RSCRIPTNAME="${PBS_O_WORKDIR}/R/${RUNNAME}.R" 
 
 module purge
 module load R/3.5.0-gnu
 
 Rscript $RSCRIPTNAME ${NIMROD_VAR_SEED} ${NIMROD_VAR_LS}
-
-cp -r /${TMPDIR}/matrices/* /30days/${USER}/matrices/
 
 cat /${TMPDIR}/out_8T_null_means.csv >> /30days/${USER}/out_8T_null_means_256.csv
 
