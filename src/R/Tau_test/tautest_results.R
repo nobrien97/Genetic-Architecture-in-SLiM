@@ -27,17 +27,7 @@ names(d_tau_opt) <- c("seed", "tau", paste0("opt", 0:7))
 library(dplyr)
 d_master <- right_join(d_tau_opt[,2:10], d_tau_means, by = "tau")
 
-#dists <- numeric(length = length(unique(modelindex))*length(unique(seed))* length(unique(gen)))
-dists <- numeric(length = 261)
-for (i in unique(d_tau_means$seed)) {
-  for (j in unique(d_tau_means$tau)) {
-    for (k in unique(d_tau_means$gen)) {
-    dist_ex <- as.numeric(d_tau_means[d_tau_means$gen == unique(d_tau_means$gen)[k] & d_tau_means$tau == unique(d_tau_means$tau)[j] & d_tau_means$seed == unique(d_tau_means$seed)[i],][36:43])
-    dists[] <- dist(rbind(dist_ex, as.numeric(d_tau_opt[d_tau_opt$seed == unique(d_tau_opt$seed)[i] & d_tau_opt$tau == unique(d_tau_opt$tau)[j],][3:10])))
-    }
-    
-  }
-}
+
 
 # Function to convert a single line from dataframe to just the mean values
 dat_to_mean <- function(dat) {
@@ -165,3 +155,15 @@ dist_ex3 <- as.numeric(d_tau_means[d_tau_means$gen == 15000 & d_tau_means$tau ==
 
 
 dist(rbind(dist_ex3, as.numeric(d_tau_opt[6,][3:10])))
+
+#dists <- numeric(length = length(unique(modelindex))*length(unique(seed))* length(unique(gen)))
+dists <- numeric(length = 261)
+for (i in unique(d_tau_means$seed)) {
+  for (j in unique(d_tau_means$tau)) {
+    for (k in unique(d_tau_means$gen)) {
+      dist_ex <- as.numeric(d_tau_means[d_tau_means$gen == unique(d_tau_means$gen)[k] & d_tau_means$tau == unique(d_tau_means$tau)[j] & d_tau_means$seed == unique(d_tau_means$seed)[i],][36:43])
+      dists[] <- dist(rbind(dist_ex, as.numeric(d_tau_opt[d_tau_opt$seed == unique(d_tau_opt$seed)[i] & d_tau_opt$tau == unique(d_tau_opt$tau)[j],][3:10])))
+    }
+    
+  }
+}

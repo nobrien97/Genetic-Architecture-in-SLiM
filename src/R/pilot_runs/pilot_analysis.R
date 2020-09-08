@@ -114,9 +114,9 @@ matgentest <- mat_gen(d_null_mat)
 MCmat_gen <- function(dat, cores) {
   dat <- dplyr::arrange(dat, gen, modelindex, seed)
   dat <- dplyr::group_split(dat, gen) %>% setNames(unique(dat$gen)) # split data frame by generation
-  dat <- parallel::mclapply(dat, function(x) { dplyr::group_split(x, seed)}, mc.cores = cores) # split by seed
+  dat <- parallel::mclapply(dat, function(x) { dplyr::group_split(x, seed) %>% setNames(unique(x$seed))}, mc.cores = cores) # split by seed
   dat <- parallel::mclapply(dat, function(x) { lapply(x, function(y) {
-    split(as.matrix(y), row(y)) # split the dataframe of seed values by their row (models), treat as a matrix instead of dataframe for dat_to_mat
+    split(as.matrix(y), row(y)) %>% setNames(unique(y$modelindex)) # split the dataframe of seed values by their row (models), treat as a matrix instead of dataframe for dat_to_mat
   })
   }, mc.cores = cores)
   
@@ -135,6 +135,24 @@ matgentest <- MCmat_gen(d_null_mat, 4)
 
 
 
+# Ensure matrices are positive definite, get rid of any that aren't
+
+MCG_PD <- function(G, cores) {
+  G <- parallel::mclapply(G, function(x) {
+    lapply(x, function(y) {
+      lapply(y, function(z) {
+        if (!matrixcalc::is.positive.definite(z))
+          z <- NULL # Set the values that aren't positive definite as NULL to tag for removal later
+        else
+          z <- z # Required or the rest of the values are empty
+      })
+    })
+  }, mc.cores = cores)
+  G
+}
+
+matgentest_pdt <- MCG_PD(matgentest, 4)
+
 
 # Eigentensor analysis - Take G matrices from mat_gen, make sure they are positive definite, decompose, ET analysis
 # Using evolqg EigenTensorDecomposition()
@@ -143,19 +161,6 @@ matgentest <- MCmat_gen(d_null_mat, 4)
 # nmats for the number of eigentensors to keep and do an eigenanalysis on
 library(evolqg)
 MCG_ET <- function(G, cores, nmats) {
-  G <- parallel::mclapply(G, function(x) {
-    lapply(x, function(y) {
-      lapply(y, function(z) { # make sure we only use the mats that are positive definite
-        if (!matrixcalc::is.positive.definite(z)) 
-        {
-          z <- NULL     # Set the values that aren't positive definite as NULL to tag for removal later
-        }
-        else 
-          z <- z        # Required or the rest of the values are empty
-      })
-    })
-  }, mc.cores = cores)
-  
   Gmax <- parallel::mclapply(G, function(x) {
     lapply(x, function(y) {
       eigen(evolqg::EigenTensorDecomposition(simplify2array(compact(y)), # Compact removes NULL values
@@ -167,41 +172,7 @@ MCG_ET <- function(G, cores, nmats) {
  Gmax
 }
 
-testGs <- MCG_ET(matgentest[1], 4, 1)     # Just do it for one time point for trial
-
-
-# Single core test for error output/debug
-
-G_ET <- function(G, nmats) {
-  G <- lapply(G, function(x) {
-         lapply(x, function(y) {
-           lapply(y, function(z) { # make sure we only use the mats that are positive definite
-            if (!matrixcalc::is.positive.definite(z)) 
-              {
-                z <- NULL
-            }
-             else 
-               z <- z
-        })
-    })
-  })
-  GET <- lapply(G, function(x) {
-    lapply(x, function(y) {
-      y <- compact(simplify2array(y))
-      evolqg::EigenTensorDecomposition(y, return.projection = F)$matrices[,,1:nmats]
-    })
-  })
-  Es <- lapply(GET, function(x) {
-    lapply(function(y) {
-      eigen(y, symmetric = T, only.values = T)
-    })
-  })
-  Es
-}
-
-# Test for diagnostics
-testGs <- G_ET(matgentest, 1)
-
+testGs <- MCG_ET(matgentest_pdt[1], 4, 1)     # Just do it for one time point for trial
 
 
 
@@ -211,24 +182,90 @@ testGs <- G_ET(matgentest, 1)
 # Function for calculating random skewers between models
 
 MCskew <- function(G, cores) {
-  G <- lapply(G, function(x) {
-    lapply(x, function(y) {
-      lapply(y, function(z) { # make sure we only use the mats that are positive definite
-        if (!matrixcalc::is.positive.definite(z)) 
-        {
-          z <- NULL
-        }
-        else 
-          z <- z
-      })
+  G <- parallel::mclapply(G, function(x) {
+    lapply(x, function(y) { # RandomSkewers() act on list of matrices, cov.x
+        evolqg::RandomSkewers(compact(y))
     })
-  })
-  
+  }, mc.cores = cores)
+  G
 }
+
+testGskew <- MCskew(matgentest_pdt, 4)
 
 # rPCA
 library(vcvComp)
-eigen(mat.sq.dist(G_null_mean, dist. = "Euclidean"))
+eigen(mat.sq.dist(G_null_mean, dist. = "Riemannian"))
+
+# Multicore function to do Principal Coordinates Analysis on our data: adapted from https://cran.r-project.org/web/packages/vcvComp/vignettes/vcvComp-worked-example.html
+
+MC_PCOA <- function(G, cores) {
+  parallel::mclapply(G, function(x) {
+    lapply(x, function(y) {
+      sqdist <- vcvComp::mat.sq.dist(simplify2array(compact(y)), dist. = "Riemannian")
+      ord <- vcvComp::pr.coord(sqdist)
+      ord
+    })
+  }, mc.cores = cores)
+}
+
+# Test the rPCA function
+G_rPCA <- MC_PCOA(matgentest_pdt, 4)
+
+# Plot principal coordinates from PCOA: https://cran.r-project.org/web/packages/vcvComp/vignettes/vcvComp-worked-example.html
+
+# Mean data across seeds for each model - need to flip list around to model first then seed?
+
+MC_PCOA_plot <- function(G, cores) {
+  parallel::mclapply(G, function(x) {
+    lapply(x, function(y) {
+      sqdist <- vcvComp::mat.sq.dist(simplify2array(compact(y)), dist. = "Riemannian")
+      ord <- vcvComp::pr.coord(sqdist)$PCoords[,1:3]
+      lapply(seq_len(nrow(ord)), function(z) {
+        ord[z,]
+      })
+    })
+  }, mc.cores = cores)
+  
+}
+
+
+
+G_PCOA_plot <- MC_PCOA_plot(matgentest_pdt, 4)
+
+
+d_null_arr <- arrange(d_null_mat %>% distinct(seed, gen, modelindex, .keep_all = T), gen, modelindex, seed)
+
+test_df <- data.frame( # matgentest_pdt[[1]] is seed, compact([[1]][[1]]) is modelindex which is PD
+  gen = rep(as.integer(names(matgentest)), each = length(matgentest_pdt[[1]])*length(compact(matgentest_pdt[[1]][[1]]))),
+  seed = rep(names(matgentest[[1]]), each = length(compact(matgentest_pdt[[1]][[1]]))),
+  modelindex = names(compact(matgentest_pdt[[1]][[1]])),
+  pc <- paste(unlist(G_PCOA_plot), sep=",")
+)
+
+library(tidyverse)
+G_PCOA_plot %>%
+  map_df(transpose) %>%
+  mutate_at(vars(c('PCo1', 'PCo2', 'PCo3')), funs(unlist))
+
+# Visualization of PCo1, PCo2 and PCo3 (fig. 2)
+coul.pop <- "blue" # colors
+pco3d <- c(1, 2, 3)  # dimensions
+xyzlab <- c(paste("PCoord", pco3d[1]), 
+            paste("PCoord", pco3d[2]), 
+            paste("PCoord", pco3d[3]))
+s3d <- scatterplot3d:::scatterplot3d(G_rPCA[["150000"]][[1]]$PCoords[, pco3d[1:3]],
+                                     xlab = xyzlab[1], ylab = xyzlab[2], zlab = xyzlab[3],
+                                     color = coul.pop, pch = 19, angle = 55,
+                                     type = "h", lty.hplot = 3, 
+                                     cex.symbols = 1, cex.axis = 0.8)
+s3d.coords <- s3d$xyz.convert(G_rPCA[["150000"]][[1]]$PCoords[, pco3d[1:3]])
+text(s3d.coords$x, s3d.coords$y, 
+     labels = row.names(G_rPCA[["150000"]][[1]]$PCoords), 
+     pos = 4, cex = 0.7, col = coul.pop)
+
+
+
+
 
 
 # VFA
@@ -433,7 +470,62 @@ E_Decomp_ETnull <- eigen(ET_Decomp_Gnull$matrices[,,1])
 #[1] 0.3819765
 # Linear combinations of traits 1 and 2 of eigentensor 1 explain 38.2% of the divergence between populations (?) 
 
+# Single core test of eigentensors for error output/debug
+
+G_ET <- function(G, nmats) {
+  G <- lapply(G, function(x) {
+    lapply(x, function(y) {
+      lapply(y, function(z) { # make sure we only use the mats that are positive definite
+        if (!matrixcalc::is.positive.definite(z)) 
+        {
+          z <- NULL
+        }
+        else 
+          z <- z
+      })
+    })
+  })
+  GET <- lapply(G, function(x) {
+    lapply(x, function(y) {
+      y <- compact(simplify2array(y))
+      evolqg::EigenTensorDecomposition(y, return.projection = F)$matrices[,,1:nmats]
+    })
+  })
+  Es <- lapply(GET, function(x) {
+    lapply(function(y) {
+      eigen(y, symmetric = T, only.values = T)
+    })
+  })
+  Es
+}
+
+# Test for diagnostics
+testGs <- G_ET(matgentest, 1)
 
 
 # Random Skewers test
 RandomSkewers(as.list(G_null_mat))
+
+# rPCA test
+
+dists <- lapply(matgentest_pdt, function(x) {
+  lapply(x, function(y) {
+    G <- simplify2array(compact(y))
+    vcvComp::mat.sq.dist(G, dist. = "Riemannian")
+  })
+})
+
+
+test_PCOA <- lapply(matgentest_pdt[1:2], function(x) {
+  lapply(x, function(y) {
+    sqdist <- vcvComp::mat.sq.dist(simplify2array(compact(y)), dist. = "Riemannian")
+    ord <- vcvComp::pr.coord(sqdist)$PCoords[,1:3]
+    ord
+    lapply(seq_len(nrow(ord)), function(z) ord[z,])
+  })
+})
+
+sqdist <- vcvComp::mat.sq.dist(simplify2array(compact(matgentest_pdt[[1]][[1]])), dist. = "Riemannian")
+ord <- vcvComp::pr.coord(sqdist)$PCoords[,1:3]
+
+ord[1,]
