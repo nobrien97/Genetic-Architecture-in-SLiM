@@ -1,0 +1,1 @@
+Same as tau test 1 except Ne = 800 (for speed), and testing effects of tau = 100 - 10000

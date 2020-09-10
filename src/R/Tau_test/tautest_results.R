@@ -1,4 +1,4 @@
-# Analysis ofdifferent Tau values and how they affect movement to the optimum over time
+# Analysis of different Tau values and how they affect movement to the optimum over time
 
 d_tau_means <- read.csv("Z:/Documents/GitHub/Genetic-Architecture-in-SLiM/src/Cluster_jobs/Tau_test/Output/out_8T_stabsel_means.csv", header = F)
 
@@ -22,11 +22,6 @@ names(d_tau_means)[108] <- "H"
 
 
 names(d_tau_opt) <- c("seed", "tau", paste0("opt", 0:7))
-
-# Join the frames together
-library(dplyr)
-d_master <- right_join(d_tau_opt[,2:10], d_tau_means, by = "tau")
-
 
 
 # Function to convert a single line from dataframe to just the mean values
@@ -99,6 +94,8 @@ euc_dist <- function(dat, opt) {
 euc_test <- euc_dist(d_tau_nodup, d_tau_opt)
 
 
+
+
 # Convert to data frame for plotting: need to take outer list as gen, next level as seed, and next level as model
 
 library(tidyverse)
@@ -135,8 +132,70 @@ plot_euc <- ggplot(test_df_means,
   labs(x = "Generation", y = "Distance from optimum", color = substitute(paste(s, tau, e), list(s = "Tau (", e = ")")))
 
 
+##########################################################
+#               Tau = 100 - 10000 tests                  #
+##########################################################
 
-# Code Graveyard: Testing stuff
+d_tau_means2 <- read.csv("Z:/Documents/GitHub/Genetic-Architecture-in-SLiM/src/Cluster_jobs/Tau_test/Tau_test2/Output/out_8T_stabsel_means.csv", header = F)
+
+d_tau_opt2 <- read.csv("Z:/Documents/GitHub/Genetic-Architecture-in-SLiM/src/Cluster_jobs/Tau_test/Tau_test2/Output/out_8T_stabsel_opt.csv", header = F)
+
+# Names
+
+names(d_tau_means2)[1:7] <- c("gen", "seed", "modelindex", "rsd", "rwide", "delmu", "tau")
+
+names(d_tau_means2)[8:35] <-  c(paste0("pleiocov_0", 1:7), paste0("pleiocov_1", 2:7), paste0("pleiocov_2", 3:7), paste0("pleiocov_3", 4:7), paste0("pleiocov_4", 5:7), paste0("pleiocov_5", 6:7), paste0("pleiocov_6", 7))
+
+names(d_tau_means2)[36:43] <- paste0("mean", 0:7)
+
+names(d_tau_means2)[44:51] <- paste0("var", 0:7)
+
+names(d_tau_means2)[52:79] <- c(paste0("phenocov_0", 1:7), paste0("phenocov_1", 2:7), paste0("phenocov_2", 3:7), paste0("phenocov_3", 4:7), paste0("phenocov_4", 5:7), paste0("phenocov_5", 6:7), paste0("phenocov_6", 7))
+
+names(d_tau_means2)[80:107] <- c(paste0("phenocor_0", 1:7), paste0("phenocor_1", 2:7), paste0("phenocor_2", 3:7), paste0("phenocor_3", 4:7), paste0("phenocor_4", 5:7), paste0("phenocor_5", 6:7), paste0("phenocor_6", 7))
+
+names(d_tau_means2)[108] <- "H"
+
+
+names(d_tau_opt2) <- c("seed", "tau", paste0("opt", 0:7))
+
+library(tidyverse)
+
+# Arrange in ascending order and get rid of duplicate entries
+d_tau2_nodup <- arrange(d_tau_means2 %>% distinct(seed, gen, tau, .keep_all = T), gen, tau, seed)
+
+# Euclidean distances
+euc_test2 <- euc_dist(d_tau2_nodup, d_tau_opt2)
+
+
+test_df2 <- data.frame(
+  gen = rep(unique(d_tau2_nodup$gen), each = length(unique(d_tau2_nodup$seed))*length(unique(d_tau2_nodup$tau))),
+  seed = rep(unique(d_tau2_nodup$seed), each = length(unique(d_tau2_nodup$tau))),
+  modelindex = unique(d_tau2_nodup$tau),
+  distance = unlist(euc_test2)
+)
+
+test_df_means2 <- test_df2[c(1, 3:4)] %>%
+  group_by(gen, modelindex) %>%
+  summarise_all(list(groupmean = mean, se = std.error))
+
+plot_euc2 <- ggplot(test_df_means2,
+                   aes(x = gen, y = groupmean, color = as.factor(modelindex))) +
+  geom_ribbon(aes(ymin = (groupmean - se), ymax = (groupmean + se)), alpha=0.3, show.legend = F, linetype=0) +
+  geom_line() +
+  theme_classic() +
+  labs(x = "Generation", y = "Distance from optimum", color = substitute(paste(s, tau, e), list(s = "Tau (", e = ")")))
+
+
+plot_euc2
+
+
+
+
+#################################
+# Code Graveyard: Testing stuff #
+#################################
+
 
 mean_list_lv1 <- mean_list[[1]][[1]]
 mean_list_lv2 <- mean_list[[1]][[1]][[1]] # Checking subsets to decide how many levels we need to get to the right level in the data

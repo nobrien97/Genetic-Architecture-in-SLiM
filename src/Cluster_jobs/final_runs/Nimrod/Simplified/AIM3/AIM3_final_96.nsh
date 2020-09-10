@@ -10,8 +10,8 @@
 #PBS -A qris-uq
 #
 #Use more resources if you need.
-#PBS -l select=40:ncpus=24:mem=120GB:ompthreads=1 
-#40 nodes, 24 cores, 120GB per node
+#PBS -l select=12:ncpus=24:mem=120GB:ompthreads=1 
+#12 nodes, 24 cores, 120GB per node
 #PBS -l walltime=336:00:00
 #
 #Job name for ease of recognition
@@ -29,7 +29,7 @@
 # =============================================================================
 
 #The parameters for the 128 latin squares are rows in the input file.
-#NIM parameter LS integer range from 65 to 96 step 1
+#NIM parameter LS integer range from 81 to 96 step 1
 
 #Repeat 100 times for each hypercube with a different SEED value
 #NIM parameter SEED integer range from 1 to 100 step 1
@@ -68,16 +68,12 @@ if [ -f ${OUTFILE} ]; then
   exit 0
 fi
 
-mkdir -p ./matrices/model${NIMROD_VAR_LS}
-
 RSCRIPTNAME="${PBS_O_WORKDIR}/R/${RUNNAME}.R" 
 
 module purge
 module load R/3.5.0-gnu
 
 Rscript $RSCRIPTNAME ${NIMROD_VAR_SEED} ${NIMROD_VAR_LS}
-
-zip -r /30days/$USER/matrices_sel.zip /$TMPDIR/matrices
 
 cat /${TMPDIR}/out_8T_stabsel_means.csv >> /30days/${USER}/out_8T_stabsel_means_96.csv
 
