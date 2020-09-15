@@ -1,0 +1,20 @@
+########################### Execution Started #############################
+JobId:384385.tinmgr2
+UserName:s4395747
+GroupName:qris-uq
+ExecutionHost:tn125c
+###############################################################################
+Loading required package: iterators
+Loading required package: parallel
+########################### Job Execution History #############################
+JobId:384385.tinmgr2
+UserName:s4395747
+GroupName:qris-uq
+JobName:slim_supp_512
+SessionId:7244
+ResourcesRequested:mem=120gb,ncpus=24,place=free,walltime=03:00:00
+ResourcesUsed:cpupercent=2400,cput=26:08:31,mem=2090640kb,ncpus=24,vmem=10220816kb,walltime=01:26:07
+QueueUsed:Short
+AccountString:qris-uq
+ExitStatus:0
+###############################################################################

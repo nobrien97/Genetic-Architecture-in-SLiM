@@ -247,6 +247,14 @@ G_PCOA_plot %>%
   map_df(transpose) %>%
   mutate_at(vars(c('PCo1', 'PCo2', 'PCo3')), funs(unlist))
 
+PCOA_df <- function(PCOA) {
+  require(dplyr)
+  PCOA %>%
+    map_df(transpose) %>%
+    mutate_at(vars(c('PCo1', 'PCo2', 'PCo3')), funs(unlist))
+}
+
+
 # Visualization of PCo1, PCo2 and PCo3 (fig. 2)
 coul.pop <- "blue" # colors
 pco3d <- c(1, 2, 3)  # dimensions

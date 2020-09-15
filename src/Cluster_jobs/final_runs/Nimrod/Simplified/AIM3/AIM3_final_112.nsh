@@ -12,7 +12,7 @@
 #Use more resources if you need.
 #PBS -l select=12:ncpus=24:mem=120GB:ompthreads=1 
 #12 nodes, 24 cores, 120GB per node
-#PBS -l walltime=336:00:00
+#PBS -l walltime=110:00:00
 #
 #Job name for ease of recognition
 #PBS -N Nim_SLiMAIM3-112
