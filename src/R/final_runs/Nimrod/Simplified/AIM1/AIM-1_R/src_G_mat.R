@@ -231,15 +231,27 @@ MCOrg <- function(G, cores) {
 }
 
 
-# https://stackoverflow.com/a/41882883
-flattenlist <- function(x){  
-  morelists <- sapply(x, function(xprime) class(xprime)[1]=="list")
-  out <- c(x[!morelists], unlist(x[morelists], recursive=FALSE))
-  if(sum(morelists)){ 
-    Recall(out)
-  }else{
-    return(out)
-  }
+# Nested List to Data frame using rrapply
+# Thanks to answers at: https://stackoverflow.com/questions/63895533/converting-a-deeply-nested-list-to-a-dataframe
+
+ListToDF <- function(Glist, columns, responses, predictor) {
+  require(rrapply)
+  require(tidyr)
+  rrapply(Glist, how = "melt") %>%
+    pivot_wider(names_from = columns) %>%
+    unnest(responses) %>%
+    rename(gen = L1, seed = L2, predictor = L3)
 }
 
 
+# Fst calculation
+
+
+
+# Don't call this directly, called from within Fst()
+Fst_calc <- function(dat) {
+  H <- dat[107]
+  Ft <- H[1] + H[2]
+  Fs <- H
+  Fst <- (Fs - Ft)/ Ft
+}
