@@ -53,30 +53,34 @@ dplot_null <- d_null[,c(6, 43:78, 107)] %>%
 
 source("src_plot.R")
 
-var_plots <- lapply(colnames(dplot_null_cat[2:9]), plot_data_column, data = dplot_null_cat, 
+var_plots <- lapply(colnames(dplot_null_cat[2:9]), plot_data_line, data = dplot_null_cat, 
                     x_dat = colnames(dplot_null_cat[1]),
                     xlabel = "Background selection")
-
-
 
 
 
 # Covariance plots
 
 
-cov_plots <- lapply(colnames(dplot_null_cat[10:37]), plot_data_column, data = dplot_null_cat, 
+cov_plots <- lapply(colnames(dplot_null_cat[10:37]), plot_data_line, data = dplot_null_cat, 
                     x_dat = colnames(dplot_null_cat[1]),
                     xlabel = "Background selection")
 
 
 # Heterozygosity plot
 
-het_plot <-  ggplot(dplot_null_cat, aes(x = delmu.cat, y = H_groupmean)) +
-               geom_col(fill = "white", colour = "black") +
+het_plot <-  ggplot(dplot_null_cat, aes(x = delmu.cat, y = H_groupmean, group = 1)) +
+               geom_line() +
                geom_errorbar(aes(ymin = H_groupmean - H_se, ymax = H_groupmean + H_se), width = 0.2) +
                 theme_classic() +
                theme(legend.position = "none") +
             labs(x = "Background selection", y = "Genome-wide heterozygosity")
+
+# FST - ask more about this - how do we do it without more info on mutation frequencies? Since we only have heterozygosity
+
+source("src_G_mat.R")
+
+d_Fst <- MCFst(d_null, d_null$delmu, 4)
 
 
 
@@ -98,29 +102,52 @@ G_PC_delmu <- MCPCA(G_null_delmu, 4)
 
 test_org <- MCOrg(G_PC_delmu, 4)
 
-PC_df <- data.frame( # G_PC_delmulow/med/hi: list level 1 is gen, lvl 2 is seed, lvl 3 is model (doesn't matter, they are all the same delmu treatment)
-  seed = rep(names(G_PC_delmu[[1]]), each = length(G_PC_delmu[[1]][[1]])), # Total length for each seed is the total number of models
-  delmu = names(G_PC_delmu[[1]][[1]]),
-  Gmax.val = unname(lapply(unlist(test_org, recursive = F), `[[`, 1)),
-  G2.val = unname(lapply(unlist(test_org, recursive = F), `[[`, 2)),
-  Gmax.vec = unname(lapply(unlist(test_org, recursive = F), `[[`, 3)),
-  G2.vec = unname(lapply(unlist(test_org, recursive = F), `[[`, 4))
-)
-# Remove row names
-rownames(PC_df) <- c()
+test_org2 <- MCOrg_vec(G_PC_delmu, 4)
 
-test_unlist <- unlist(G_PC_delmu)
-test_unlist <- rbind(test_unlist)
-test_unlist <- bind_at_any_depth_src(test_org)
+# Names for data frame columns
 
+Gvecs <- c(paste0("Gmax.vec", 1:8), paste0("G2.vec", 1:8))
 
+# Generate data frame
+#d_G_PC_delmu <- ListToDF(test_org2, c("Gmax.val", "G2.val", "Gmax.vec", "G2.vec"), delmu) # Need to split vectors into separate columns so they don't get averaged together
+d_G_PC_delmu <- ListToDF(test_org, Gvecs, delmu)
+
+# Coerce data for analysis/averaging
+d_G_PC_delmu$delmu <- as.numeric(d_G_PC_delmu$delmu)
+d_G_PC_delmu$Gmax.val <- as.numeric(d_G_PC_delmu$Gmax.val)
+d_G_PC_delmu$G2.val <- as.numeric(d_G_PC_delmu$G2.val)
 
 
+# Plot Gmax/G2: first calculate means of each value
+# And group delmu values...
 
 
+d_G_PC_delmu$delmu.cat <- cut(d_G_PC_delmu$delmu, breaks = 8) 
 
 
+dplot_G_PC_delmu <- d_G_PC_delmu[-c(1, 2, 3)] %>%
+  group_by(delmu.cat) %>%
+  summarise_all(list(groupmean = mean, se = std.error))
 
+# Now we need to put the Gvecs into their own Gvec column
+
+# names_sep is \\. because . needs to be escaped
+dplot_G_PC_delmu <- pivot_longer(dplot_G_PC_delmu, cols = -c(delmu.cat, Gmax.val_groupmean, G2.val_groupmean, Gmax.val_se, G2.val_se), 
+                           names_to = c("PC", "Vec"), names_sep = "\\.", values_to = "Vecmean")
+
+test_pivot <-  pivot_wider(dplot_G_PC_delmu, names_from = PC, values_from = "Vecmean")
+
+
+dplot_GmaxG2_delmu <- test_pivot
+dplot_GmaxG2_delmu <- test_pivot$Vec
+dplot_GmaxG2_delmu<-test_pivot[!(test_pivot$Vec=="vec1_se" | test_pivot$Vec=="vec2_se" | test_pivot$Vec=="vec3_se" | test_pivot$Vec=="vec4_se" | test_pivot$Vec=="vec5_se" | test_pivot$Vec=="vec6_se" | test_pivot$Vec=="vec7_se" | test_pivot$Vec=="vec8_se"),]
+
+# Plot with ggplot
+
+plot_GEllipse <- ggplot(dplot_GmaxG2_delmu, aes(x = Gmax, y = G2, colour = delmu.cat)) +
+  geom_point() +
+  stat_ellipse() +
+  theme_classic()
 
 ###############################################################
 #                           Deprecated                        #
@@ -151,3 +178,17 @@ plot_var1 <- ggplot(dplot_null_cat,
   theme_classic() +
   theme(legend.position = "none") +
   labs(x = "Background selection", y = "Variance (Trait 1)")
+
+
+# Organising nested list into data frame
+
+PC_df <- data.frame( # G_PC_delmulow/med/hi: list level 1 is gen, lvl 2 is seed, lvl 3 is model (doesn't matter, they are all the same delmu treatment)
+  seed = rep(names(G_PC_delmu[[1]]), each = length(G_PC_delmu[[1]][[1]])), # Total length for each seed is the total number of models
+  delmu = names(G_PC_delmu[[1]][[1]]),
+  Gmax.val = unname(lapply(unlist(test_org, recursive = F), `[[`, 1)),
+  G2.val = unname(lapply(unlist(test_org, recursive = F), `[[`, 2)),
+  Gmax.vec = unname(lapply(unlist(test_org, recursive = F), `[[`, 3)),
+  G2.vec = unname(lapply(unlist(test_org, recursive = F), `[[`, 4))
+)
+# Remove row names
+rownames(PC_df) <- c()

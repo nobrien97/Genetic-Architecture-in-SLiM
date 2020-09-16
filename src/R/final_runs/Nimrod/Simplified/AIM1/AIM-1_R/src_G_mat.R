@@ -223,35 +223,89 @@ MCOrg <- function(G, cores) {
       lapply(y, function(z) {
           list(Gmax.val = z$values[1],
                G2.val = z$values[2],
-               Gmax.vec = z$vectors[,1],
-               G2.vec = z$vectors[,2])
+               Gmax.vec1 = z$vectors[1,1],
+               Gmax.vec2 = z$vectors[2,1],
+               Gmax.vec3 = z$vectors[3,1],
+               Gmax.vec4 = z$vectors[4,1],
+               Gmax.vec5 = z$vectors[5,1],
+               Gmax.vec6 = z$vectors[6,1],
+               Gmax.vec7 = z$vectors[7,1],
+               Gmax.vec8 = z$vectors[8,1],
+               G2.vec1 = z$vectors[1,2],
+               G2.vec2 = z$vectors[2,2],
+               G2.vec3 = z$vectors[3,2],
+               G2.vec4 = z$vectors[4,2],
+               G2.vec5 = z$vectors[5,2],
+               G2.vec6 = z$vectors[6,2],
+               G2.vec7 = z$vectors[7,2],
+               G2.vec8 = z$vectors[8,2]
+               )
+      })
+    })
+  }, mc.cores = cores)
+}
+
+# Keep vectors intact
+MCOrg_vec <- function(G, cores) {
+  require(tidyverse)
+  parallel::mclapply(G, function(x) {
+    lapply(x, function(y) {
+      lapply(y, function(z) {
+        list(Gmax.val = z$values[1],
+             G2.val = z$values[2],
+             Gmax.vec = z$vectors[,1], # Each column in the eigenvectors matrix is a different PC
+             G2.vec = z$vectors[,2]
+        )
       })
     })
   }, mc.cores = cores)
 }
 
 
+
 # Nested List to Data frame using rrapply
 # Thanks to answers at: https://stackoverflow.com/questions/63895533/converting-a-deeply-nested-list-to-a-dataframe
 
-ListToDF <- function(Glist, columns, responses, predictor) {
+ListToDF <- function(Glist, responses, predictor) {
   require(rrapply)
   require(tidyr)
   rrapply(Glist, how = "melt") %>%
-    pivot_wider(names_from = columns) %>%
+    pivot_wider(names_from = "L4") %>%
     unnest(responses) %>%
-    rename(gen = L1, seed = L2, predictor = L3)
+    rename(gen = L1, seed = L2, {{ predictor }} := L3)
 }
 
 
 # Fst calculation
 
+MCFst <- function(dat, v, cores) {
+  require(parallel)
+  require(dplyr)
+  dat <- dplyr::arrange(dat, gen, v, seed)
+  dat <- dplyr::group_split(dat, gen) %>% setNames(unique(dat$gen)) # split data frame by generation
+  dat <- parallel::mclapply(dat, function(x) { dplyr::group_split(x, seed) %>% setNames(unique(x$seed))}, mc.cores = cores) # split by seed
+  dat <- parallel::mclapply(dat, function(x) { lapply(x, function(y) {
+    split(as.matrix(y), (0:(nrow(y) %/% 2))) %>% setNames(unique(v)) # split the dataframe of seed values into sets of 2 rows (delmu), treat as a matrix instead of dataframe for dat_to_mat
+  })
+  }, mc.cores = cores)
+  
+  dat <- parallel::mclapply(dat, function(x) { 
+    lapply(x, function(y) { 
+      lapply(y, function(z) { 
+        Fst_calc(z) # Convert each line (model/seed/generation combination) into a G matrix
+      })
+    }) 
+  }, mc.cores = cores)
+  
+  dat
+}
 
 
 # Don't call this directly, called from within Fst()
 Fst_calc <- function(dat) {
   H <- dat[107]
-  Ft <- H[1] + H[2]
+  Ft <- H[1,] + H[2,]
   Fs <- H
   Fst <- (Fs - Ft)/ Ft
+  Fst
 }
