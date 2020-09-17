@@ -23,9 +23,25 @@ names(d_null)[79:106] <- c(paste0("phenocor_0", 1:7), paste0("phenocor_1", 2:7),
 names(d_null)[107] <- "H"
 
 
+ 
+
+
 nrow(unique(d_null[d_null$gen == 150000,][,c('seed', 'modelindex')]))
 d_null <- d_null[d_null$gen == 150000] # Only deal with final timepoint
 
+# Order by modelindex and add on missing predictors from the lscombos dataframe
+d_null <- d_null[order(modelindex),]
+
+# Add actual pleiocov line (value from the latin hypercube)
+ls_combos <- read.csv("Z:/Documents/GitHub/Genetic-Architecture-in-SLiM/src/R/pilot_runs/Pilot_Project/lscombos_null.csv")
+
+d_null$pleiocov <- rep(ls_combos[1:256,]$pleiocov, each = 100) # Repeat each by 100 seeds
+d_null$locisigma <- rep(ls_combos[1:256,]$locisigma, each = 100)
+d_null$pleiorate <- rep(ls_combos[1:256,]$pleiorate, each = 100)
+
+# Order predictors to front of data frame for clarity
+
+d_null <- d_null[,c(1:6, 109, 111, 110, 8:108)]
 
 
 
@@ -39,14 +55,24 @@ d_null$delmu.cat <- cut(d_null$delmu, breaks = 8)
 # Load ggplot etc.
 library(tidyverse)
 
+
+
 # Get means and standard errors of data for plotting variance
-dplot_null_cat <- d_null[,c(108, 43:78, 107)] %>%
-  group_by(delmu.cat) %>%
+dplot_null_cat <- d_null[,c(5:6, 8:9, 47:82, 111)] %>%
+  group_by(delmu.cat) %>% # Need bins for the other predictors as well
   summarise_all(list(groupmean = mean, se = std.error))
 
-dplot_null <- d_null[,c(6, 43:78, 107)] %>%
-  group_by(delmu) %>%
+
+# Continuous data - for JMP preliminary visualisation
+
+dplot_null <- d_null[,c(3, 5:7, 9:10, 47:82, 111)] %>%
+  group_by(modelindex, delmu, rwide, pleiocov, pleiorate, locisigma) %>%
   summarise_all(list(groupmean = mean, se = std.error))
+
+
+write.table(dplot_null, "d_means.csv", sep = ",", row.names = F)
+
+# Look at this in JMP - heterozygosity vs delmu, pleiocov, recombination
 
 # Plot trait variances: how background selection affects populations within traits
 
@@ -146,8 +172,78 @@ dplot_GmaxG2_delmu<-test_pivot[!(test_pivot$Vec=="vec1_se" | test_pivot$Vec=="ve
 
 plot_GEllipse <- ggplot(dplot_GmaxG2_delmu, aes(x = Gmax, y = G2, colour = delmu.cat)) +
   geom_point() +
-  stat_ellipse() +
-  theme_classic()
+  stat_ellipse(segments=201)
+
+# Draw major and minor axes of ellipse: thanks https://stackoverflow.com/a/38782622/13586824 and https://stackoverflow.com/a/60518443/13586824
+
+# Get ellipse coordinates from plot
+calc_GEllipse <- ggplot_build(plot_GEllipse)
+el <- calc_GEllipse$data[[2]][c("x","y", "group")]
+
+ellipse_areas <- data.frame()
+ell_group_list <- unique(el$group)
+
+# Loop over the groups
+for (i in 1:length(ell_group_list)) {
+  
+  #Subset to separate into individual ellipse groups - if you used shape in addition to colour you'll want to change this as well
+  sbst_el <- subset(el, 
+                  group == ell_group_list[i])
+  
+  #Remove grouping column
+  sbst_el <- sbst_el[-3]
+  
+  # Center of ellipse
+  ctr <- MASS::cov.trob(sbst_el)$center  
+  
+  # Calculate distance to center from each point on the ellipse
+  dist2center <- sqrt(rowSums((t(t(sbst_el)-ctr))^2))
+
+  # Calculate area of ellipse from semi-major and semi-minor axes. 
+  # These are, respectively, the largest and smallest values of dist2center. 
+  # Find the dist2center value and grab the corresponding coordinates
+  # 2*dist2center is the major/minor axes of the ellipse - 2*distcenter away from one vertex should be the other one
+  
+  max_halfs <- c(max(dist2center[1:((0.5*length(dist2center))+1)]), max(dist2center[((0.5*length(dist2center)-1):length(dist2center))]))
+  min_halfs <- c(min(dist2center[1:((0.5*length(dist2center))+1)]), min(dist2center[((0.5*length(dist2center)-1):length(dist2center))]))
+  
+  min_dist <- min(dist2center)
+  max_dist <- max(dist2center)
+  area <- pi*min_dist*max_dist
+  ratio <- (2*max_dist) / (2*min_dist)
+  maj_x1 <- sbst_el$x[match(max_halfs[1], dist2center)]
+  maj_y1 <- sbst_el$y[match(max_halfs[1], dist2center)]
+  maj_x2 <- sbst_el$x[match(max_halfs[2], dist2center)]
+  maj_y2 <- sbst_el$y[match(max_halfs[2], dist2center)]
+  min_x1 <- sbst_el$x[match(min_halfs[1], dist2center)]
+  min_y1 <- sbst_el$y[match(min_halfs[1], dist2center)]
+  min_x2 <- sbst_el$x[match(min_halfs[2], dist2center)]
+  min_y2 <- sbst_el$y[match(min_halfs[2], dist2center)]
+  
+  #Store in the area list
+  ellipse_areas <- rbind(ellipse_areas, data.frame(ell_group_list[i], area, ratio, maj_x1, maj_y1, min_x1, min_y1, 
+                                                   maj_x2, maj_y2, min_x2, min_y2))
+} 
+names(ellipse_areas)[1] <- "delmu.cat"
+
+pivot_ellipse <- pivot_longer(ellipse_areas, c("maj_x1", "maj_y1", "min_x1", "min_y1", 
+                                               "maj_x2", "maj_y2", "min_x2", "min_y2"), 
+                              names_to = c("axis", "coord"), names_sep = "_")
+
+pivot_ellipse <- pivot_wider(pivot_ellipse, names_from = "coord", values_from = "value")
+
+pivot_ellipse$delmu.cat <- rep(unique(dplot_GmaxG2_delmu$delmu.cat), each = 2)
+
+
+# Now plot the data from ellipse_areas for our major and minor axes
+
+ 
+plot_GEllipse_axes <- ggplot(dplot_GmaxG2_delmu, aes(x = Gmax, y = G2, colour = delmu.cat)) +
+  geom_point() +
+  stat_ellipse(segments=201) +
+  geom_segment(mapping = aes(x = x1, y = y1, xend = x2, yend = y2, colour = delmu.cat, group = 1), data = pivot_ellipse[pivot_ellipse$axis == "maj",])
+##  geom_segment(mapping = aes(x = x1, y = y1, xend = x2, yend = y2, colour = delmu.cat, group = 1), data = pivot_ellipse[pivot_ellipse$axis == "min",])
+
 
 ###############################################################
 #                           Deprecated                        #
