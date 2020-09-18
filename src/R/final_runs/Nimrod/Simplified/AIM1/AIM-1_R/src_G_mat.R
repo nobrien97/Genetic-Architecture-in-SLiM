@@ -130,7 +130,7 @@ PCOA_df <- function(PCOA) {
 # Function to convert a single line from dataframe to just the mean values
 dat_to_mean <- function(dat) {
   dat <- as.vector(t(dat))
-  means <- dat[36:43]
+  means <- dat[35:42]
   means
 }
 
@@ -150,6 +150,30 @@ mean_gen <- function(dat) {
       })
     }) 
   })
+  dat
+}
+
+
+# Multithread get mean values from populations, store in list as usual
+MCmean_gen <- function(dat, v, cores) {
+  require(parallel)
+  require(dplyr)
+  dat <- dplyr::arrange(dat, gen, v, seed)
+  dat <- dplyr::group_split(dat, gen) %>% setNames(unique(dat$gen)) # split data frame by generation
+  dat <- parallel::mclapply(dat, function(x) { dplyr::group_split(x, seed) %>% setNames(unique(x$seed))}, mc.cores = cores) # split by seed
+  dat <- parallel::mclapply(dat, function(x) { lapply(x, function(y) {
+    split(as.matrix(y), row(y)) %>% setNames(unique(v)) # split the dataframe of seed values by their row (models), treat as a matrix instead of dataframe for dat_to_mat
+  })
+  }, mc.cores = cores)
+  dat
+  dat <- parallel::mclapply(dat, function(x) { 
+    lapply(x, function(y) { 
+      lapply(y, function(z) { 
+        dat_to_mean(z) # Convert each line (model/seed/generation combination) into a G matrix
+      })
+    }) 
+  }, mc.cores = cores)
+  
   dat
 }
 
@@ -216,7 +240,7 @@ MCPCA <- function(G, cores) {
 
 # Organise into list with 1 value each list element, so unlist works properly: separate eigenvalues/vectors into columns
 # Makes S3 eigen into list, cuts down to only Gmax and G2
-MCOrg <- function(G, cores) {
+MCOrg_G <- function(G, cores) {
   require(tidyverse)
   parallel::mclapply(G, function(x) {
     lapply(x, function(y) {
@@ -245,22 +269,27 @@ MCOrg <- function(G, cores) {
   }, mc.cores = cores)
 }
 
-# Keep vectors intact
-MCOrg_vec <- function(G, cores) {
+
+# Organise means
+
+MCOrg_means <- function(means, cores) {
   require(tidyverse)
-  parallel::mclapply(G, function(x) {
+  parallel::mclapply(means, function(x) {
     lapply(x, function(y) {
       lapply(y, function(z) {
-        list(Gmax.val = z$values[1],
-             G2.val = z$values[2],
-             Gmax.vec = z$vectors[,1], # Each column in the eigenvectors matrix is a different PC
-             G2.vec = z$vectors[,2]
+        list(T0_mean = as.numeric(z[1]),
+             T1_mean = as.numeric(z[2]),
+             T2_mean = as.numeric(z[3]),
+             T3_mean = as.numeric(z[4]),
+             T4_mean = as.numeric(z[5]),
+             T5_mean = as.numeric(z[6]),
+             T6_mean = as.numeric(z[7]),
+             T7_mean = as.numeric(z[8])
         )
       })
     })
   }, mc.cores = cores)
 }
-
 
 
 # Nested List to Data frame using rrapply
