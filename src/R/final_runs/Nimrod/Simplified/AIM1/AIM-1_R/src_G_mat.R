@@ -34,6 +34,21 @@ dat_to_mat <- function(dat) {
   M
 }
 
+# 2 trait version
+
+dat_to_mat_2T <- function(dat) {
+  dat <- as.vector(t(dat))
+  vars <- dat[4:5]
+  covs <- dat[12]
+  M <- matrix(data = c(
+    vars[1], covs[1],
+    covs[1], vars[2]), nrow = 2, byrow = T
+  )
+  mode(M) = "numeric"
+  M
+}
+
+
 # mat_gen generates G matrices in nested list format - need to convert the last bit into arrays (so for each seed we have an array of matrices, one for each model index)
 # Requires dplyr
 # Uses parallel, dplyr
@@ -53,6 +68,30 @@ MCmat_gen <- function(dat, v, cores) {
     lapply(x, function(y) { 
       lapply(y, function(z) { 
         dat_to_mat(z) # Convert each line (model/seed/generation combination) into a G matrix
+      })
+    }) 
+  }, mc.cores = cores)
+  
+  dat
+}
+
+# 2T version
+
+MCmat2T_gen <- function(dat, v, cores) {
+  require(parallel)
+  require(dplyr)
+  dat <- dplyr::arrange(dat, gen, v, seed)
+  dat <- dplyr::group_split(dat, gen) %>% setNames(unique(dat$gen)) # split data frame by generation
+  dat <- parallel::mclapply(dat, function(x) { dplyr::group_split(x, seed) %>% setNames(unique(x$seed))}, mc.cores = cores) # split by seed
+  dat <- parallel::mclapply(dat, function(x) { lapply(x, function(y) {
+    split(as.matrix(y), row(y)) %>% setNames(unique(v)) # split the dataframe of seed values by their row (models), treat as a matrix instead of dataframe for dat_to_mat
+  })
+  }, mc.cores = cores)
+  
+  dat <- parallel::mclapply(dat, function(x) { 
+    lapply(x, function(y) { 
+      lapply(y, function(z) { 
+        dat_to_mat_2T(z) # Convert each line (model/seed/generation combination) into a G matrix
       })
     }) 
   }, mc.cores = cores)

@@ -129,7 +129,7 @@ d_null_mat <- d_null[,c(1:2, 6, 43:78)]
 source("src_G_mat.R")
 
 # Get population means for each trait, trait 0 to trait 7 (or 1 to 8)
-means_null_delmu <- d_null[,c(1:3, 5:8, 10, 39:46)]
+means_null_delmu <- d_null[,c(1:2, 6, 9, 39:46)]
 # Group delmu values...
 means_null_delmu$delmu.cat <- cut(means_null_delmu$delmu, breaks = 8) 
 
@@ -235,106 +235,96 @@ dplot_GmaxG2_delmu$Vec <- test_pivot$Vec
 dplot_GmaxG2_delmu<-test_pivot[!(test_pivot$Vec=="vec1_se" | test_pivot$Vec=="vec2_se" | test_pivot$Vec=="vec3_se" | test_pivot$Vec=="vec4_se" | test_pivot$Vec=="vec5_se" | test_pivot$Vec=="vec6_se" | test_pivot$Vec=="vec7_se" | test_pivot$Vec=="vec8_se"),]
 
 # Simple run for 1 ellipse to get the idea of it
+# Center of ellipse is the sum of the traits' eigenvectors times their mean
+# Thanks to https://github.com/JonesLabIdaho/GmatrixCommandLine/blob/master/Gmatrix_Plotter_R.R 
 
-dtest_ellipse <- dplot_GmaxG2_delmu[1:8,]
-dtest_vars <- dplot_vars_delmu[1,]
+
+dtest_ellipse <- dplot_GmaxG2_delmu[57:64,]
+dtest_vars <- dplot_vars_delmu[8,] 
+dtest_means <- dplot_means_delmu[c(113:114),]
 theta <- atan2((dtest_ellipse$Gmax.val_groupmean[1] - dtest_vars$var0_groupmean), dtest_vars$phenocov_groupmean) # In radians
+dplot_ellipse <- data.frame(major_len = (1.96*sqrt(dtest_ellipse[1,2])),
+                            minor_len = (1.96*sqrt(dtest_ellipse[1,3])),
+                            vert_x = (cos(theta*pi/180))*(1.96*sqrt(dtest_ellipse[1,2])),
+                            vert_y = (sin(theta*pi/180))*(1.96*sqrt(dtest_ellipse[1,2])),
+                            covert_x = (cos((theta-90)*pi/180))*(1.96*sqrt(dtest_ellipse[1,3])),
+                            covert_y = (sin((theta-90)*pi/180))*(1.96*sqrt(dtest_ellipse[1,3])),
+                            mean_t0 = (dtest_means$Value[1]),
+                            mean_t1 = (dtest_means$Value[2]),
+                            theta = theta)
+
+names(dplot_ellipse) <- c("major_len", "minor_len", "vert_x", "vert_y", "covert_x", "covert_y", "mean_t0", "mean_t1", "theta")
+
+library(shape)
+plotscalar <- 100
+plot(NULL, xlim=c(dplot_ellipse$mean_t0-sqrt(dplot_ellipse$mean_t0)*plotscalar, dplot_ellipse$mean_t0+sqrt(dplot_ellipse$mean_t0)*plotscalar), ylim=c(dplot_ellipse$mean_t1-sqrt(dplot_ellipse$mean_t1)*plotscalar, dplot_ellipse$mean_t1+sqrt(dplot_ellipse$mean_t1)*plotscalar), xlab="Trait 0", ylab="Trait 1")
+
+plotellipse(rx = dplot_ellipse$major_len, ry = dplot_ellipse$minor_len, mid=c(dplot_ellipse$mean_t0, dplot_ellipse$mean_t1), angle=dplot_ellipse$theta, lcol="red", lwd=2)
+segments(dplot_ellipse$mean_t0, dplot_ellipse$mean_t1, dplot_ellipse$vert_x + dplot_ellipse$mean_t0, dplot_ellipse$vert_y + dplot_ellipse$mean_t1, lwd=3, col="red")
+segments(dplot_ellipse$mean_t0, dplot_ellipse$mean_t1, dplot_ellipse$mean_t0 - dplot_ellipse$vert_x, dplot_ellipse$mean_t1 - dplot_ellipse$vert_y, lwd=3, col="red")
+segments(dplot_ellipse$mean_t0, dplot_ellipse$mean_t1, dplot_ellipse$covert_x + dplot_ellipse$mean_t0, dplot_ellipse$covert_y + dplot_ellipse$mean_t1, lwd=3, col="red")
+segments(dplot_ellipse$mean_t0, dplot_ellipse$mean_t1, dplot_ellipse$mean_t0 - dplot_ellipse$covert_x, dplot_ellipse$mean_t1 - dplot_ellipse$covert_y, lwd=3, col="red")
 
 
+# Plotting the actual thing: need a data frame to store the major/minor axes, vertex/covertex positions, trait means, and angle
+# Use ggplot and ggforce geom_ellipse() for that, geom_ellipse aesthetics are:
+# x0 = trait 0 mean; y0 = trait 1 mean; a = semi-major axis; b = semi-minor axis; angle = theta; colour = delmu treatment
+# geom_segment to draw the major axes
+# Need to get data for each model: grouped by delmu.cat, but not averaged for seed: average the data frame prior to plotting
+
+#First sort data frames so they are in the same order
+means_null_delmu <- arrange(means_null_delmu, seed, delmu)
+d_G_PC_delmu <- arrange(d_G_PC_delmu, seed, delmu)
+vars_null_delmu <- arrange(vars_null_delmu, seed, delmu)
 
 
-# Plot Ellipse with ggplot
+d_G_El_delmu <- data.frame(
+  seed = d_G_PC_delmu$seed,
+  delmu = d_G_PC_delmu$delmu,
+  delmu.cat = d_G_PC_delmu$delmu.cat,
+  meanT0 = means_null_delmu$mean0,
+  meanT1 = means_null_delmu$mean1,
+  theta = (atan2((d_G_PC_delmu$Gmax.val - vars_null_delmu$var0), vars_null_delmu$phenocov_01))*(180/pi),
+  major_len = (1.96*sqrt(d_G_PC_delmu$Gmax.val)),
+  minor_len = (1.96*sqrt(d_G_PC_delmu$G2.val))
+)
 
-plot_GEllipse <- ggplot(dplot_GmaxG2_delmu[dplot_GmaxG2_delmu$delmu.cat == "(0.0454,0.157]",], aes(x = Gmax, y = G2, colour = delmu.cat)) +
-  geom_point() +
-  stat_ellipse(segments=601)
+d_G_El_delmu$vert_x <- (cos(d_G_El_delmu$theta*(pi/180)))*(d_G_El_delmu$major_len)
+d_G_El_delmu$vert_y <- (sin(d_G_El_delmu$theta*(pi/180)))*(d_G_El_delmu$major_len)
+d_G_El_delmu$covert_x <- (cos((d_G_El_delmu$theta-90)*(pi/180)))*(d_G_El_delmu$minor_len)
+d_G_El_delmu$covert_y <- (sin((d_G_El_delmu$theta-90)*(pi/180)))*(d_G_El_delmu$minor_len)
 
-# Draw major and minor axes of ellipse: thanks https://stackoverflow.com/a/38782622/13586824 and https://stackoverflow.com/a/60518443/13586824
 
-# Get ellipse coordinates from plot
-calc_GEllipse <- ggplot_build(plot_GEllipse)
-el <- calc_GEllipse$data[[2]][c("x","y", "group")]
+# Beautiful things for ellipses, now we just need to get the mean and se of each group of delmu.cat and plot it
+# Calculate the vertices again for the mean ellipses so they are completely accurate
+# Statistical tests between groups: could be differences in theta and means, major/minor ratio
 
-ellipse_areas <- data.frame()
-ell_group_list <- unique(el$group)
+dplot_G_El_delmu <- d_G_El_delmu[-c(1, 2, 9:12)] %>%
+  group_by(delmu.cat) %>%
+  summarise_all(list(groupmean = mean, se = std.error))
 
-# Loop over the groups
-for (i in 1:length(ell_group_list)) {
+
+dplot_G_El_delmu$vert_x_groupmean <- (cos(dplot_G_El_delmu$theta_groupmean*(pi/180)))*(dplot_G_El_delmu$major_len_groupmean)
+dplot_G_El_delmu$vert_y_groupmean <- (sin(dplot_G_El_delmu$theta_groupmean*(pi/180)))*(dplot_G_El_delmu$major_len_groupmean)
+dplot_G_El_delmu$covert_x_groupmean <- (cos((dplot_G_El_delmu$theta_groupmean-90)*(pi/180)))*(dplot_G_El_delmu$minor_len_groupmean)
+dplot_G_El_delmu$covert_y_groupmean <- (sin((dplot_G_El_delmu$theta_groupmean-90)*(pi/180)))*(dplot_G_El_delmu$minor_len_groupmean)
+
+
+library(ggforce)
+
+plot_GEllipse <- ggplot() +
+  geom_ellipse(data = dplot_G_El_delmu, aes(x0 = meanT0_groupmean, y0 = meanT1_groupmean, 
+                   a = major_len_groupmean, b = minor_len_groupmean, angle = (theta_groupmean * pi/180))) +
+  geom_segment(data = dplot_G_El_delmu, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean + vert_x_groupmean), yend = (meanT1_groupmean + vert_y_groupmean))) +
+  geom_segment(data = dplot_G_El_delmu, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean - vert_x_groupmean), yend = (meanT1_groupmean - vert_y_groupmean))) +
+  geom_segment(data = dplot_G_El_delmu, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean + covert_x_groupmean), yend = (meanT1_groupmean + covert_y_groupmean))) +
+  geom_segment(data = dplot_G_El_delmu, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean - covert_x_groupmean), yend = (meanT1_groupmean - covert_y_groupmean))) +
+  coord_fixed() +
+  theme_classic() +
+  facet_wrap(~ delmu.cat) +
+  xlab("Trait 0 variance") +
+  ylab("Trait 1 variance")
   
-  #Subset to separate into individual ellipse groups - if you used shape in addition to colour you'll want to change this as well
-  sbst_el <- subset(el, 
-                  group == ell_group_list[i])
-  
-  #Remove grouping column
-  sbst_el <- sbst_el[-3]
-  
-  # Center of ellipse
-  ctr <- MASS::cov.trob(sbst_el)$center  
-  
-  # Calculate distance to center from each point on the ellipse
-  dist2center <- sqrt(rowSums((t(t(sbst_el)-ctr))^2))
-
-  # Calculate area of ellipse from semi-major and semi-minor axes. 
-  # These are, respectively, the largest and smallest values of dist2center. 
-  # Find the dist2center value and grab the corresponding coordinates
-  # 2*dist2center is the major/minor axes of the ellipse - 2*distcenter away from one vertex should be the other one
-  # average eigenvector for each pc is a direction, put those together for major/minor axes?
-  
-
-  
-  
-  max_halfs <- c(max(dist2center[1:((0.5*length(dist2center)))]), max(dist2center[((0.5*length(dist2center)):length(dist2center))]))
-  min_halfs <- c(min(dist2center[1:((0.5*length(dist2center)))]), min(dist2center[((0.5*length(dist2center)):length(dist2center))]))
-  
-  min_dist <- min(dist2center)
-  max_dist <- max(dist2center)
-  area <- pi*min_dist*max_dist
-  ratio <- (2*max_dist) / (2*min_dist)
-  maj_x1 <- sbst_el$x[match(max_halfs[1], dist2center)] - ctr[1]
-  maj_y1 <- sbst_el$y[match(max_halfs[1], dist2center)] - ctr[2]
-  maj_x2 <- sbst_el$x[match(max_halfs[2], dist2center)] - ctr[1]
-  maj_y2 <- sbst_el$y[match(max_halfs[2], dist2center)] - ctr[2]
-  
-  min_x1 <- sbst_el$x[match(min_halfs[1], dist2center)] - ctr[1]
-  min_y1 <- sbst_el$y[match(min_halfs[1], dist2center)] - ctr[2]
-  min_x2 <- sbst_el$x[match(min_halfs[2], dist2center)] - ctr[1]
-  min_y2 <- sbst_el$y[match(min_halfs[2], dist2center)] - ctr[2]
-  
-  
-  #Store in the area list
-  ellipse_areas <- rbind(ellipse_areas, data.frame(ell_group_list[i], area, ratio, maj_x1, maj_y1, min_x1, min_y1, 
-                                                   maj_x2, maj_y2, min_x2, min_y2))
-} 
-names(ellipse_areas)[1] <- "delmu.cat"
-
-pivot_ellipse <- pivot_longer(ellipse_areas, c("maj_x1", "maj_y1", "min_x1", "min_y1", 
-                                               "maj_x2", "maj_y2", "min_x2", "min_y2"), 
-                              names_to = c("axis", "coord"), names_sep = "_")
-
-pivot_ellipse <- pivot_wider(pivot_ellipse, names_from = "coord", values_from = "value")
-
-pivot_ellipse$delmu.cat <- rep(unique(dplot_GmaxG2_delmu$delmu.cat), each = 2)
-
-pivot_ellipse$delmu.cat <- dplot_GmaxG2_delmu$delmu.cat[1]
-# Now plot the data from ellipse_areas for our major and minor axes
-
- 
-plot_GEllipse_axes <- ggplot(dplot_GmaxG2_delmu, aes(x = Gmax, y = G2, colour = delmu.cat)) +
-  geom_point() +
-  stat_ellipse(segments=401) +
-  geom_segment(mapping = aes(x = x1, y = y1, xend = x2, yend = y2, colour = delmu.cat, group = 1), data = pivot_ellipse[pivot_ellipse$axis == "maj",]) +
-  geom_segment(mapping = aes(x = x1, y = y1, xend = x2, yend = y2, colour = delmu.cat, group = 1), data = pivot_ellipse[pivot_ellipse$axis == "min",])
-
-plot_GEllipse + geom_point(mapping = aes(x = -0.1159722, y = -0.1034117)) + 
-  geom_point(mapping = aes(x = 0.03314969, y = 0.05097675)) +
-  geom_point(mapping = aes(x = -0.06411465, y = -0.003280899)) + 
-  geom_point(mapping = aes(x = -0.0183048, y = -0.04837566)) +
-  geom_segment(mapping = aes(x = -0.1159722, y = -0.1034117, xend = 0.03314969, yend =  0.05097675)) +
-  geom_segment(mapping = aes(x = -0.06411465, y = -0.003280899, xend = -0.0183048, yend =  -0.04837566))
-
-
-plot_GEllipse + geom_segment(mapping = aes(x = x1, y = y1, xend = x2, yend = y2, colour = delmu.cat, group = 1), data = pivot_ellipse[pivot_ellipse$axis == "maj",]) +
-  geom_segment(mapping = aes(x = x1, y = y1, xend = x2, yend = y2, colour = delmu.cat, group = 1), data = pivot_ellipse[pivot_ellipse$axis == "min",])
 
 
 ###############################################################
@@ -380,3 +370,104 @@ PC_df <- data.frame( # G_PC_delmulow/med/hi: list level 1 is gen, lvl 2 is seed,
 )
 # Remove row names
 rownames(PC_df) <- c()
+
+
+# Ellipse plotting: here I was plotting eigenvectors directly, should have beent he actual data
+
+
+# Plot Ellipse with ggplot
+
+plot_GEllipse <- ggplot(dplot_GmaxG2_delmu[dplot_GmaxG2_delmu$delmu.cat == "(0.0454,0.157]",], aes(x = Gmax, y = G2, colour = delmu.cat)) +
+  geom_point() +
+  stat_ellipse(segments=601)
+
+# Draw major and minor axes of ellipse: thanks https://stackoverflow.com/a/38782622/13586824 and https://stackoverflow.com/a/60518443/13586824
+
+# Get ellipse coordinates from plot
+calc_GEllipse <- ggplot_build(plot_GEllipse)
+el <- calc_GEllipse$data[[2]][c("x","y", "group")]
+
+ellipse_areas <- data.frame()
+ell_group_list <- unique(el$group)
+
+# Loop over the groups
+for (i in 1:length(ell_group_list)) {
+  
+  #Subset to separate into individual ellipse groups - if you used shape in addition to colour you'll want to change this as well
+  sbst_el <- subset(el, 
+                    group == ell_group_list[i])
+  
+  #Remove grouping column
+  sbst_el <- sbst_el[-3]
+  
+  # Center of ellipse
+  ctr <- MASS::cov.trob(sbst_el)$center  
+  
+  # Calculate distance to center from each point on the ellipse
+  dist2center <- sqrt(rowSums((t(t(sbst_el)-ctr))^2))
+  
+  # Calculate area of ellipse from semi-major and semi-minor axes. 
+  # These are, respectively, the largest and smallest values of dist2center. 
+  # Find the dist2center value and grab the corresponding coordinates
+  # 2*dist2center is the major/minor axes of the ellipse - 2*distcenter away from one vertex should be the other one
+  # average eigenvector for each pc is a direction, put those together for major/minor axes?
+  
+  
+  
+  
+  max_halfs <- c(max(dist2center[1:((0.5*length(dist2center)))]), max(dist2center[((0.5*length(dist2center)):length(dist2center))]))
+  min_halfs <- c(min(dist2center[1:((0.5*length(dist2center)))]), min(dist2center[((0.5*length(dist2center)):length(dist2center))]))
+  
+  min_dist <- min(dist2center)
+  max_dist <- max(dist2center)
+  area <- pi*min_dist*max_dist
+  ratio <- (2*max_dist) / (2*min_dist)
+  maj_x1 <- sbst_el$x[match(max_halfs[1], dist2center)] - ctr[1]
+  maj_y1 <- sbst_el$y[match(max_halfs[1], dist2center)] - ctr[2]
+  maj_x2 <- sbst_el$x[match(max_halfs[2], dist2center)] - ctr[1]
+  maj_y2 <- sbst_el$y[match(max_halfs[2], dist2center)] - ctr[2]
+  
+  min_x1 <- sbst_el$x[match(min_halfs[1], dist2center)] - ctr[1]
+  min_y1 <- sbst_el$y[match(min_halfs[1], dist2center)] - ctr[2]
+  min_x2 <- sbst_el$x[match(min_halfs[2], dist2center)] - ctr[1]
+  min_y2 <- sbst_el$y[match(min_halfs[2], dist2center)] - ctr[2]
+  
+  
+  #Store in the area list
+  ellipse_areas <- rbind(ellipse_areas, data.frame(ell_group_list[i], area, ratio, maj_x1, maj_y1, min_x1, min_y1, 
+                                                   maj_x2, maj_y2, min_x2, min_y2))
+} 
+names(ellipse_areas)[1] <- "delmu.cat"
+
+pivot_ellipse <- pivot_longer(ellipse_areas, c("maj_x1", "maj_y1", "min_x1", "min_y1", 
+                                               "maj_x2", "maj_y2", "min_x2", "min_y2"), 
+                              names_to = c("axis", "coord"), names_sep = "_")
+
+pivot_ellipse <- pivot_wider(pivot_ellipse, names_from = "coord", values_from = "value")
+
+pivot_ellipse$delmu.cat <- rep(unique(dplot_GmaxG2_delmu$delmu.cat), each = 2)
+
+pivot_ellipse$delmu.cat <- dplot_GmaxG2_delmu$delmu.cat[1]
+# Now plot the data from ellipse_areas for our major and minor axes
+
+
+plot_GEllipse_axes <- ggplot(dplot_GmaxG2_delmu, aes(x = Gmax, y = G2, colour = delmu.cat)) +
+  geom_point() +
+  stat_ellipse(segments=401) +
+  geom_segment(mapping = aes(x = x1, y = y1, xend = x2, yend = y2, colour = delmu.cat, group = 1), data = pivot_ellipse[pivot_ellipse$axis == "maj",]) +
+  geom_segment(mapping = aes(x = x1, y = y1, xend = x2, yend = y2, colour = delmu.cat, group = 1), data = pivot_ellipse[pivot_ellipse$axis == "min",])
+
+plot_GEllipse + geom_point(mapping = aes(x = -0.1159722, y = -0.1034117)) + 
+  geom_point(mapping = aes(x = 0.03314969, y = 0.05097675)) +
+  geom_point(mapping = aes(x = -0.06411465, y = -0.003280899)) + 
+  geom_point(mapping = aes(x = -0.0183048, y = -0.04837566)) +
+  geom_segment(mapping = aes(x = -0.1159722, y = -0.1034117, xend = 0.03314969, yend =  0.05097675)) +
+  geom_segment(mapping = aes(x = -0.06411465, y = -0.003280899, xend = -0.0183048, yend =  -0.04837566))
+
+
+plot_GEllipse + geom_segment(mapping = aes(x = x1, y = y1, xend = x2, yend = y2, colour = delmu.cat, group = 1), data = pivot_ellipse[pivot_ellipse$axis == "maj",]) +
+  geom_segment(mapping = aes(x = x1, y = y1, xend = x2, yend = y2, colour = delmu.cat, group = 1), data = pivot_ellipse[pivot_ellipse$axis == "min",])
+
+
+
+
