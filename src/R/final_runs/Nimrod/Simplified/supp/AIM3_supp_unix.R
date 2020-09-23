@@ -40,7 +40,7 @@ foreach(i=combo$X) %dopar% {
     # then run SLiM with system(),
 	j <- combo[i,]$model
     slim_out <- system(sprintf("/home/$USER/SLiM/slim -s %s -d rwide=%s -d pleio_cov=%f -d pleiorate=%f -d delmu=%f -d locisigma=%f -d tau=%f -d modelindex=%i /home/$USER/SLiM/Scripts/Nimrod/Final/AIM3/Inputs/stabsel_recom_8T100L.slim", 
-                               as.character(combo[i,]$seed), as.character(lscombos_sel[j,]$rwide), lscombos_sel[j,]$pleiocov, lscombos_sel[j,]$pleiorate, lscombos_sel[j,]$delmu, lscombos_sel[j,]$locisigma, ls_combos_sel[j,]$tau, j, intern=T))
+                               as.character(combo[i,]$seed), as.character(lscombos_sel[j,]$rwide), lscombos_sel[j,]$pleiocov, lscombos_sel[j,]$pleiorate, lscombos_sel[j,]$delmu, lscombos_sel[j,]$locisigma, lscombos_sel[j,]$tau, j, intern=T))
   }
 
 stopCluster(cl)

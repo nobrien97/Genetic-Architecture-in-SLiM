@@ -227,3 +227,10 @@ rsample <- as.character(round(runif(100, 1, (2^32 - 1)))) # Pull from 32 bit int
 write.table(c("Seed", rsample), file = "seeds.csv", row.names = FALSE, col.names = FALSE, sep=",")
 
 plot_rsample <- hist(as.numeric(rsample))
+
+
+
+# Augmenting the selection one to 256 nruns since we have time
+
+ls_combos_sel_aug <- lhs.augment(lscombos_sel_maxi, m = 128, type = "optAugment", seed = 2086426644) # seed sampled from sample(1:2147483647, 1)
+write.csv(ls_combos_sel_aug, "lscombos_sel.csv")

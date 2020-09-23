@@ -13,6 +13,7 @@ d_null <- data.table::fread("/mnt/f/Uni/AIM1/OUTPUT/out_8T_null_means_256.csv", 
 
 
 
+
 names(d_null)[1:6] <- c("gen", "seed", "modelindex", "rsd", "rwide", "delmu")
 # d_null$seed <- as.factor(d_null$seed)
 
@@ -57,6 +58,15 @@ delmu_bp <- c(0.0, 0.33, 0.66, 1.0)
 # Cut delmu into a categorical variable: have to do this to average out effects of other parameters, which are approximately uniformally distributed in any given bin of delmu
 d_null$delmu.cat <- cut(d_null$delmu, breaks = 8) 
 
+##################################################################################################
+# Import BIG data: all 1024 models - all of the below analysis works for both 256 and 1024 files #
+##################################################################################################
+d_null_big <- read.csv("d_null_1024.csv")
+
+# Get rid of first useless column
+d_null_big <- d_null_big[,-1]
+
+##################################################################################################
 
 # Load ggplot etc.
 library(tidyverse)
@@ -123,21 +133,30 @@ d_Fst <- MCFst(d_null, d_null$delmu, 4)
 
 
 # Get output in form that dat_to_mat expects: 39 variables, replacing modelindex with delmu for this case
-d_null_mat <- d_null[,c(1:2, 6, 43:78)]
+d_null_mat <- d_null[,c(1:2, 6, 47:82)]
+
+# 1024 version
+d_null_mat <- d_null_big[,c(1:2, 6, 47:82)]
 
 
 source("src_G_mat.R")
 
 # Get population means for each trait, trait 0 to trait 7 (or 1 to 8)
-means_null_delmu <- d_null[,c(1:2, 6, 9, 39:46)]
+means_null_delmu <- d_null[,c(1:2, 6, 39:46)]
 # Group delmu values...
 means_null_delmu$delmu.cat <- cut(means_null_delmu$delmu, breaks = 8) 
 
+# pop means 1024 version
+means_null_delmu <- d_null_big[,c(1:2, 6, 39:46)]
+
+
 # Get mean of means for calculating origin of G ellipses
 
-dplot_means_delmu <- means_null_delmu[,-c(1:8)] %>%
+dplot_means_delmu <- means_null_delmu[,-c(1:2)] %>%
   group_by(delmu.cat) %>%
   summarise_all(list(groupmean = mean, se = std.error))
+
+
 
 # Organise dplot_means_delmu so it matches the G eigenanalysis data frame
 
@@ -149,8 +168,13 @@ dplot_means_delmu <- pivot_longer(dplot_means_delmu, cols = -c(delmu.cat),
 vars_null_delmu <- d_null[,c(1:3, 5:8, 10, 47:48, 55)]
 vars_null_delmu$delmu.cat <- cut(vars_null_delmu$delmu, breaks = 8) 
 
+# 1024 version
+
+vars_null_delmu <- d_null_big[,c(1:2, 6, 47:48, 55)]
+
+
 # Mean variances, goes with mean eigenvalues/eigenvectors
-dplot_vars_delmu <- vars_null_delmu[,-c(1:8)] %>%
+dplot_vars_delmu <- vars_null_delmu[,-c(1:3)] %>%
   group_by(delmu.cat) %>%
   summarise_all(list(groupmean = mean, se = std.error))
 
@@ -159,8 +183,8 @@ names(dplot_vars_delmu)[4] <- "phenocov_groupmean"
 names(dplot_vars_delmu)[7] <- "phenocov_se"
 
 
-dplot_vars_delmu <- pivot_longer(dplot_vars_delmu, cols = -c(delmu.cat), 
-                                  names_to = c("Trait", "Stat"), names_sep = "_", values_to = "Value")
+#dplot_vars_delmu <- pivot_longer(dplot_vars_delmu, cols = -c(delmu.cat), 
+ #                                 names_to = c("Trait", "Stat"), names_sep = "_", values_to = "Value")
 
 
 
@@ -178,7 +202,7 @@ G_org <- MCOrg_G(G_PC_delmu, 4)
 Gvecs <- c(paste0("Gmax.vec", 1:8), paste0("G2.vec", 1:8))
 
 # Generate data frame of eigenvalues and vectors
-d_G_PC_delmu <- ListToDF(test_org, Gvecs, delmu)
+d_G_PC_delmu <- ListToDF(G_org, Gvecs, delmu)
 
 # Coerce data for analysis/averaging
 d_G_PC_delmu$delmu <- as.numeric(d_G_PC_delmu$delmu)
@@ -284,19 +308,23 @@ d_G_El_delmu <- data.frame(
   delmu.cat = d_G_PC_delmu$delmu.cat,
   meanT0 = means_null_delmu$mean0,
   meanT1 = means_null_delmu$mean1,
-  theta = (atan2((d_G_PC_delmu$Gmax.val - vars_null_delmu$var0), vars_null_delmu$phenocov_01))*(180/pi),
+  theta = (atan2((d_G_PC_delmu$Gmax.val - vars_null_delmu$var0), vars_null_delmu$phenocov_01))*(180/pi), # Convert to degrees with 180/pi
   major_len = (1.96*sqrt(d_G_PC_delmu$Gmax.val)),
   minor_len = (1.96*sqrt(d_G_PC_delmu$G2.val))
 )
-
+# Convert to radians with pi/180, calculate where the vertices and covertices should go
 d_G_El_delmu$vert_x <- (cos(d_G_El_delmu$theta*(pi/180)))*(d_G_El_delmu$major_len)
 d_G_El_delmu$vert_y <- (sin(d_G_El_delmu$theta*(pi/180)))*(d_G_El_delmu$major_len)
 d_G_El_delmu$covert_x <- (cos((d_G_El_delmu$theta-90)*(pi/180)))*(d_G_El_delmu$minor_len)
 d_G_El_delmu$covert_y <- (sin((d_G_El_delmu$theta-90)*(pi/180)))*(d_G_El_delmu$minor_len)
+d_G_El_delmu$ratio <- d_G_El_delmu$major_len/d_G_El_delmu$minor_len
+
+# Calculate area of the ellipse, for comparison
+d_G_El_delmu$area <- pi*d_G_El_delmu$major_len*d_G_El_delmu$minor_len
 
 
-# Beautiful things for ellipses, now we just need to get the mean and se of each group of delmu.cat and plot it
-# Calculate the vertices again for the mean ellipses so they are completely accurate
+# Now we have the points for drawing ellipses, now we just need to get the mean and se of each group of delmu.cat and plot it
+# Calculate the vertices again for the mean ellipses so they are completely accurate, same with area
 # Statistical tests between groups: could be differences in theta and means, major/minor ratio
 
 dplot_G_El_delmu <- d_G_El_delmu[-c(1, 2, 9:12)] %>%
@@ -308,11 +336,13 @@ dplot_G_El_delmu$vert_x_groupmean <- (cos(dplot_G_El_delmu$theta_groupmean*(pi/1
 dplot_G_El_delmu$vert_y_groupmean <- (sin(dplot_G_El_delmu$theta_groupmean*(pi/180)))*(dplot_G_El_delmu$major_len_groupmean)
 dplot_G_El_delmu$covert_x_groupmean <- (cos((dplot_G_El_delmu$theta_groupmean-90)*(pi/180)))*(dplot_G_El_delmu$minor_len_groupmean)
 dplot_G_El_delmu$covert_y_groupmean <- (sin((dplot_G_El_delmu$theta_groupmean-90)*(pi/180)))*(dplot_G_El_delmu$minor_len_groupmean)
+dplot_G_El_delmu$area_groupmean <- pi*dplot_G_El_delmu$major_len_groupmean*dplot_G_El_delmu$minor_len_groupmean
 
+# Plot the ellipses
 
 library(ggforce)
-
-plot_GEllipse <- ggplot() +
+# geom_ellipse() expects angle in radians
+plot_GEllipse_delmu <- ggplot() +
   geom_ellipse(data = dplot_G_El_delmu, aes(x0 = meanT0_groupmean, y0 = meanT1_groupmean, 
                    a = major_len_groupmean, b = minor_len_groupmean, angle = (theta_groupmean * pi/180))) +
   geom_segment(data = dplot_G_El_delmu, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean + vert_x_groupmean), yend = (meanT1_groupmean + vert_y_groupmean))) +
@@ -321,10 +351,205 @@ plot_GEllipse <- ggplot() +
   geom_segment(data = dplot_G_El_delmu, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean - covert_x_groupmean), yend = (meanT1_groupmean - covert_y_groupmean))) +
   coord_fixed() +
   theme_classic() +
-  facet_wrap(~ delmu.cat) +
-  xlab("Trait 0 variance") +
-  ylab("Trait 1 variance")
+  facet_grid(~ delmu.cat) +
+  xlab("Trait 0") +
+  ylab("Trait 1") +
+  ggtitle("Effect of background selection rate on Gmax and G2 for two traits")
+
+# Write data for reading with JMP
+write.table(d_G_El_delmu, "d_Ellipse_delmu.csv", sep = ",", row.names = F)
+
   
+
+# pleiotropy: pleiorate vs pleiocov: can expand our current G ellipse frame with new columns by sorting both d_null
+# and dplot_G_El_delmu so seed and delmu values align
+
+d_G_El_delmu <- arrange(d_G_El_delmu, seed, delmu)
+d_null <- arrange(d_null, seed, delmu)
+
+d_G_El <- d_G_El_delmu 
+
+d_G_El$pleiocov <- d_null$pleiocov
+d_G_El$pleiorate <- d_null$pleiorate
+d_G_El$locisigma <- d_null$locisigma
+d_G_El$rwide <- d_null$rwide
+
+d_G_El <- d_G_El[c(1:3, 15:18, 4:14)]
+
+# Write table for JMP
+write.table(d_G_El, "d_Ellipse.csv", sep = ",", row.names = F)
+
+
+# Categorise values for plotting
+d_G_El$pleiocov.cat <- cut(d_G_El$pleiocov, breaks = 8) 
+d_G_El$pleiorate.cat <- cut(d_G_El$pleiorate, breaks = 8) 
+d_G_El$locisigma.cat <- cut(d_G_El$locisigma, breaks = 8) 
+d_G_El$rwide.cat <- cut(d_G_El$rwide, breaks = 8) 
+# Rearrange columns
+d_G_El <- d_G_El[c(1:4, 19, 5, 20, 6, 21, 7, 22, 8:18)]
+
+# Calculate means
+
+#Pleiotropic mutational covariance
+dplot_G_El_pleiocov <- d_G_El[-c(1:4, 6:11, 17:20)] %>%
+  group_by(pleiocov.cat) %>%
+  summarise_all(list(groupmean = mean, se = std.error))
+
+# Mean vertices and covertices
+dplot_G_El_pleiocov$vert_x_groupmean <- (cos(dplot_G_El_pleiocov$theta_groupmean*(pi/180)))*(dplot_G_El_pleiocov$major_len_groupmean)
+dplot_G_El_pleiocov$vert_y_groupmean <- (sin(dplot_G_El_pleiocov$theta_groupmean*(pi/180)))*(dplot_G_El_pleiocov$major_len_groupmean)
+dplot_G_El_pleiocov$covert_x_groupmean <- (cos((dplot_G_El_pleiocov$theta_groupmean-90)*(pi/180)))*(dplot_G_El_pleiocov$minor_len_groupmean)
+dplot_G_El_pleiocov$covert_y_groupmean <- (sin((dplot_G_El_pleiocov$theta_groupmean-90)*(pi/180)))*(dplot_G_El_pleiocov$minor_len_groupmean)
+dplot_G_El_pleiocov$area_groupmean <- pi*dplot_G_El_pleiocov$major_len_groupmean*dplot_G_El_pleiocov$minor_len_groupmean
+
+
+########################################################
+
+# Pleiotropy rate
+
+dplot_G_El_pleiorate <- d_G_El[-c(1:6, 8:11, 17:20)] %>%
+  group_by(pleiorate.cat) %>%
+  summarise_all(list(groupmean = mean, se = std.error))
+
+# Mean vertices and covertices
+dplot_G_El_pleiorate$vert_x_groupmean <- (cos(dplot_G_El_pleiorate$theta_groupmean*(pi/180)))*(dplot_G_El_pleiorate$major_len_groupmean)
+dplot_G_El_pleiorate$vert_y_groupmean <- (sin(dplot_G_El_pleiorate$theta_groupmean*(pi/180)))*(dplot_G_El_pleiorate$major_len_groupmean)
+dplot_G_El_pleiorate$covert_x_groupmean <- (cos((dplot_G_El_pleiorate$theta_groupmean-90)*(pi/180)))*(dplot_G_El_pleiorate$minor_len_groupmean)
+dplot_G_El_pleiorate$covert_y_groupmean <- (sin((dplot_G_El_pleiorate$theta_groupmean-90)*(pi/180)))*(dplot_G_El_pleiorate$minor_len_groupmean)
+dplot_G_El_pleiorate$area_groupmean <- pi*dplot_G_El_pleiorate$major_len_groupmean*dplot_G_El_pleiorate$minor_len_groupmean
+
+
+#######################################################
+
+# Additive effect size distribution
+
+dplot_G_El_locisigma <- d_G_El[-c(1:8, 10:11, 17:20)] %>%
+  group_by(locisigma.cat) %>%
+  summarise_all(list(groupmean = mean, se = std.error))
+
+# Mean vertices and covertices
+dplot_G_El_locisigma$vert_x_groupmean <- (cos(dplot_G_El_locisigma$theta_groupmean*(pi/180)))*(dplot_G_El_locisigma$major_len_groupmean)
+dplot_G_El_locisigma$vert_y_groupmean <- (sin(dplot_G_El_locisigma$theta_groupmean*(pi/180)))*(dplot_G_El_locisigma$major_len_groupmean)
+dplot_G_El_locisigma$covert_x_groupmean <- (cos((dplot_G_El_locisigma$theta_groupmean-90)*(pi/180)))*(dplot_G_El_locisigma$minor_len_groupmean)
+dplot_G_El_locisigma$covert_y_groupmean <- (sin((dplot_G_El_locisigma$theta_groupmean-90)*(pi/180)))*(dplot_G_El_locisigma$minor_len_groupmean)
+dplot_G_El_locisigma$area_groupmean <- pi*dplot_G_El_locisigma$major_len_groupmean*dplot_G_El_locisigma$minor_len_groupmean
+
+#######################################################
+
+# Recombination rate
+
+dplot_G_El_rwide <- d_G_El[-c(1:10, 17:20)] %>%
+  group_by(rwide.cat) %>%
+  summarise_all(list(groupmean = mean, se = std.error))
+
+# Mean vertices and covertices
+dplot_G_El_rwide$vert_x_groupmean <- (cos(dplot_G_El_rwide$theta_groupmean*(pi/180)))*(dplot_G_El_rwide$major_len_groupmean)
+dplot_G_El_rwide$vert_y_groupmean <- (sin(dplot_G_El_rwide$theta_groupmean*(pi/180)))*(dplot_G_El_rwide$major_len_groupmean)
+dplot_G_El_rwide$covert_x_groupmean <- (cos((dplot_G_El_rwide$theta_groupmean-90)*(pi/180)))*(dplot_G_El_rwide$minor_len_groupmean)
+dplot_G_El_rwide$covert_y_groupmean <- (sin((dplot_G_El_rwide$theta_groupmean-90)*(pi/180)))*(dplot_G_El_rwide$minor_len_groupmean)
+dplot_G_El_rwide$area_groupmean <- pi*dplot_G_El_rwide$major_len_groupmean*dplot_G_El_rwide$minor_len_groupmean
+
+
+#####################################################################
+
+# Plot the ellipses for pleiocov, pleiorate, locisigma, and rwide
+
+library(ggforce)
+# geom_ellipse() expects angle in radians
+plot_GEllipse_pleiocov <- ggplot() +
+  geom_ellipse(data = dplot_G_El_pleiocov, aes(x0 = meanT0_groupmean, y0 = meanT1_groupmean, 
+                                            a = major_len_groupmean, b = minor_len_groupmean, angle = (theta_groupmean * pi/180))) +
+  geom_segment(data = dplot_G_El_pleiocov, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean + vert_x_groupmean), yend = (meanT1_groupmean + vert_y_groupmean))) +
+  geom_segment(data = dplot_G_El_pleiocov, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean - vert_x_groupmean), yend = (meanT1_groupmean - vert_y_groupmean))) +
+  geom_segment(data = dplot_G_El_pleiocov, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean + covert_x_groupmean), yend = (meanT1_groupmean + covert_y_groupmean))) +
+  geom_segment(data = dplot_G_El_pleiocov, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean - covert_x_groupmean), yend = (meanT1_groupmean - covert_y_groupmean))) +
+  coord_fixed() +
+  theme_classic() +
+  facet_grid(~ pleiocov.cat) +
+  xlab("Trait 0") +
+  ylab("Trait 1") +
+  ggtitle("Effect of pleiotropic mutational covariance on Gmax and G2 for two traits")
+
+
+# # # # # # # # # # # # # # # # # # 
+
+plot_GEllipse_pleiorate <- ggplot() +
+  geom_ellipse(data = dplot_G_El_pleiorate, aes(x0 = meanT0_groupmean, y0 = meanT1_groupmean, 
+                                               a = major_len_groupmean, b = minor_len_groupmean, angle = (theta_groupmean * pi/180))) +
+  geom_segment(data = dplot_G_El_pleiorate, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean + vert_x_groupmean), yend = (meanT1_groupmean + vert_y_groupmean))) +
+  geom_segment(data = dplot_G_El_pleiorate, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean - vert_x_groupmean), yend = (meanT1_groupmean - vert_y_groupmean))) +
+  geom_segment(data = dplot_G_El_pleiorate, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean + covert_x_groupmean), yend = (meanT1_groupmean + covert_y_groupmean))) +
+  geom_segment(data = dplot_G_El_pleiorate, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean - covert_x_groupmean), yend = (meanT1_groupmean - covert_y_groupmean))) +
+  coord_fixed() +
+  theme_classic() +
+  facet_grid(~ pleiorate.cat) +
+  xlab("Trait 0") +
+  ylab("Trait 1") +
+  ggtitle("Effect of pleiotropy rate on Gmax and G2 for two traits")
+
+
+# # # # # # # # # # # # # # # # # # 
+
+plot_GEllipse_locisigma <- ggplot() +
+  geom_ellipse(data = dplot_G_El_locisigma, aes(x0 = meanT0_groupmean, y0 = meanT1_groupmean, 
+                                                a = major_len_groupmean, b = minor_len_groupmean, angle = (theta_groupmean * pi/180))) +
+  geom_segment(data = dplot_G_El_locisigma, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean + vert_x_groupmean), yend = (meanT1_groupmean + vert_y_groupmean))) +
+  geom_segment(data = dplot_G_El_locisigma, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean - vert_x_groupmean), yend = (meanT1_groupmean - vert_y_groupmean))) +
+  geom_segment(data = dplot_G_El_locisigma, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean + covert_x_groupmean), yend = (meanT1_groupmean + covert_y_groupmean))) +
+  geom_segment(data = dplot_G_El_locisigma, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean - covert_x_groupmean), yend = (meanT1_groupmean - covert_y_groupmean))) +
+  coord_fixed() +
+  theme_classic() +
+  facet_grid(~ locisigma.cat) +
+  xlab("Trait 0") +
+  ylab("Trait 1") +
+  ggtitle("Effect of additive effect size on Gmax and G2 for two traits")
+
+
+# # # # # # # # # # # # # # # # # # 
+
+plot_GEllipse_rwide <- ggplot() +
+  geom_ellipse(data = dplot_G_El_rwide, aes(x0 = meanT0_groupmean, y0 = meanT1_groupmean, 
+                                                a = major_len_groupmean, b = minor_len_groupmean, angle = (theta_groupmean * pi/180))) +
+  geom_segment(data = dplot_G_El_rwide, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean + vert_x_groupmean), yend = (meanT1_groupmean + vert_y_groupmean))) +
+  geom_segment(data = dplot_G_El_rwide, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean - vert_x_groupmean), yend = (meanT1_groupmean - vert_y_groupmean))) +
+  geom_segment(data = dplot_G_El_rwide, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean + covert_x_groupmean), yend = (meanT1_groupmean + covert_y_groupmean))) +
+  geom_segment(data = dplot_G_El_rwide, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean - covert_x_groupmean), yend = (meanT1_groupmean - covert_y_groupmean))) +
+  coord_fixed() +
+  theme_classic() +
+  facet_grid(~ rwide.cat) +
+  xlab("Trait 0") +
+  ylab("Trait 1") +
+  ggtitle("Effect of genome-wide recombination rate on Gmax and G2 for two traits")
+
+
+# Do the same with means and variance data frames, drawing plots of variance
+vars_null_delmu <- arrange(vars_null_delmu, seed, delmu)
+means_null_delmu <- arrange(means_null_delmu, seed, delmu)
+
+means_null_delmu$pleiocov <- d_null$pleiocov
+means_null_delmu$pleiorate <- d_null$pleiorate
+means_null_delmu$locisigma <- d_null$locisigma
+means_null_delmu$rwide <- d_null$rwide
+
+vars_null_delmu$pleiocov <- d_null$pleiocov
+vars_null_delmu$pleiorate <- d_null$pleiorate
+vars_null_delmu$locisigma <- d_null$locisigma
+vars_null_delmu$rwide <- d_null$rwide
+
+
+# Relative PCA between groups
+# relGV.multi() - calculates log variance ratios between each group
+# Will do on bins: yet another list of lists: sorted by bin first then seed, then can do relGV.multi() on the array
+
+source("src_G_mat.R")
+d_null_mat_delmu <- d_null_mat
+d_null_mat_delmu$delmu <- cut(d_null_mat_delmu$delmu, breaks = 8) 
+
+G_relGV_delmu <- MCmatMS_gen(d_null_mat_delmu, delmu, 4)
+
+library(vcvComp)
+
+relGV_test <- relGV.multi(simplify2array(G_null_delmu[[1]][[1]]))
 
 
 ###############################################################

@@ -100,6 +100,32 @@ MCmat2T_gen <- function(dat, v, cores) {
 }
 
 
+# Version in opposite order, model first then seed
+
+MCmatMS_gen <- function(dat, v, cores) {
+  require(parallel)
+  require(dplyr)
+  group <- enquo(v)
+  dat <- dplyr::arrange(dat, gen, !!group, seed)
+  dat <- dplyr::group_split(dat, gen) %>% setNames(unique(dat$gen)) # split data frame by generation
+  dat <- parallel::mclapply(dat, function(x) { dplyr::group_split(x, !!group) %>% setNames(unique(dat[, dat$v]))}, mc.cores = cores) # split by seed
+  dat <- parallel::mclapply(dat, function(x) { lapply(x, function(y) {
+    split(as.matrix(y), row(y)) %>% setNames(unique(y$seed)) # split the dataframe of seed values by their row (models), treat as a matrix instead of dataframe for dat_to_mat
+  })
+  }, mc.cores = cores)
+  
+  dat <- parallel::mclapply(dat, function(x) { 
+    lapply(x, function(y) { 
+      lapply(y, function(z) { 
+        dat_to_mat(z) # Convert each line (model/seed/generation combination) into a G matrix
+      })
+    }) 
+  }, mc.cores = cores)
+  
+  dat
+}
+
+
 # Ensure matrices are positive definite, set every one that isn't to NULL, to be removed as needed with compact()
 
 MCG_PD <- function(G, cores) {
