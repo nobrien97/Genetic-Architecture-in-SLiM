@@ -102,15 +102,15 @@ MCmat2T_gen <- function(dat, v, cores) {
 
 # Version in opposite order, model first then seed
 
-MCmatMS_gen <- function(dat, v, cores) {
+MCmatMS_gen <- function(dat, v, modnames, cores) {
   require(parallel)
   require(dplyr)
   group <- enquo(v)
-  dat <- dplyr::arrange(dat, gen, !!group, seed)
+  dat <- dplyr::arrange(dat, gen, v, seed)
   dat <- dplyr::group_split(dat, gen) %>% setNames(unique(dat$gen)) # split data frame by generation
-  dat <- parallel::mclapply(dat, function(x) { dplyr::group_split(x, !!group) %>% setNames(unique(dat[, dat$v]))}, mc.cores = cores) # split by seed
+  dat <- parallel::mclapply(dat, function(x) { dplyr::group_split(x, !!group) %>% setNames(modnames)}, mc.cores = cores) # split by seed
   dat <- parallel::mclapply(dat, function(x) { lapply(x, function(y) {
-    split(as.matrix(y), row(y)) %>% setNames(unique(y$seed)) # split the dataframe of seed values by their row (models), treat as a matrix instead of dataframe for dat_to_mat
+    split(as.matrix(y), row(y)) %>% setNames(y$seed) # split the dataframe of models by their row (seed), treat as a matrix instead of dataframe for dat_to_mat
   })
   }, mc.cores = cores)
   
@@ -402,4 +402,98 @@ Fst_calc <- function(dat) {
   Fs <- H
   Fst <- (Fs - Ft)/ Ft
   Fst
+}
+
+
+# within-group relative PCA: since so many combinations, just randomly sample a certain number
+
+MC_relW.multi <- function(G, n=100, cores) {
+  require(parallel)
+  require(vcvComp)
+  G2cmp <- sample(1:length(G[[1]][[1]]), n) # Sample some matrices to use for comparison
+  parallel::mclapply(G, function(x) {
+    lapply(x, function(y) {
+      ycmp <- y[G2cmp]
+      vcvComp::relGV.multi(simplify2array(ycmp))
+    })
+  }, mc.cores = cores)
+}
+
+# within-group relative PCA 2: this time with relative.eigen and eigen.test
+
+MC_relW <- function(G, n=100, cores) {
+  require(parallel)
+  require(vcvComp)
+  require(dplyr)
+  if (n %% 2 > 0) # if n is odd, then add one so we can properly compare
+    n <- n+1
+  G2cmp <- sample(1:length(G[[1]][[1]]), n) # Sample some matrices to use for comparison
+  parallel::mclapply(G, function(x) {
+    lapply(x, function(y) {
+      ycmp <- y[G2cmp]
+      ycmpseq <- seq(1, length(ycmp), by = 2)
+      lapply(ycmpseq, function(z) {
+        mat1 <- matrix(unlist(ycmp[z]), nrow = 8)
+        mat2 <- matrix(unlist(ycmp[z+1]), nrow = 8)
+        vcvComp::relative.eigen(mat1, mat2)
+      })
+    })
+  }, mc.cores = cores)
+  
+}
+
+# Same as above, but with a different comparison method using combn to find pairwise combinations
+
+MC_relW_PW <- function(G, n=100, cores) {
+  require(parallel)
+  require(vcvComp)
+  require(dplyr)
+  if (n %% 2 > 0) # if n is odd, then add one so we can properly compare
+    n <- n+1
+  combos <- combn(sample(1:length(G[[1]][[1]]), n), 2) # pairwise combinations, in a matrix  
+  parallel::mclapply(G, function(x) {
+    lapply(x, function(y) {
+      ycmpseq <- seq(1, length(combos), by = 2) # Comparisons between elements z and z+1 in combos
+      lapply(ycmpseq, function(z) {
+        mat1 <- matrix(unlist(y[combos[z]]), nrow = 8)
+        mat2 <- matrix(unlist(y[combos[z+1]]), nrow = 8)
+        vcvComp::relative.eigen(mat1, mat2)
+      })
+    })
+  }, mc.cores = cores)
+  
+}
+
+
+
+# Organise into list with 1 value each list element, so unlist works properly: separate relative eigenvalues/vectors 
+# into columns cuts down to only Gmax and G2
+MCOrg_relG <- function(G, cores) {
+  require(tidyverse)
+  parallel::mclapply(G, function(x) {
+    lapply(x, function(y) {
+      lapply(y, function(z) {
+        list(relGmax.val = z$relValues[1],
+             relG2.val = z$relValues[2],
+             logGV = z$logGV,
+             relGmax.vec1 = z$relVectors[1,1],
+             relGmax.vec2 = z$relVectors[2,1],
+             relGmax.vec3 = z$relVectors[3,1],
+             relGmax.vec4 = z$relVectors[4,1],
+             relGmax.vec5 = z$relVectors[5,1],
+             relGmax.vec6 = z$relVectors[6,1],
+             relGmax.vec7 = z$relVectors[7,1],
+             relGmax.vec8 = z$relVectors[8,1],
+             relG2.vec1 = z$relVectors[1,2],
+             relG2.vec2 = z$relVectors[2,2],
+             relG2.vec3 = z$relVectors[3,2],
+             relG2.vec4 = z$relVectors[4,2],
+             relG2.vec5 = z$relVectors[5,2],
+             relG2.vec6 = z$relVectors[6,2],
+             relG2.vec7 = z$relVectors[7,2],
+             relG2.vec8 = z$relVectors[8,2]
+        )
+      })
+    })
+  }, mc.cores = cores)
 }

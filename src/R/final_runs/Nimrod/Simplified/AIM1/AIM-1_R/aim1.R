@@ -345,6 +345,15 @@ library(ggforce)
 plot_GEllipse_delmu <- ggplot() +
   geom_ellipse(data = dplot_G_El_delmu, aes(x0 = meanT0_groupmean, y0 = meanT1_groupmean, 
                    a = major_len_groupmean, b = minor_len_groupmean, angle = (theta_groupmean * pi/180))) +
+  # the second and third ellipses are 95% CI around the mean ellipse
+  geom_ellipse(data = dplot_G_El_delmu, aes(x0 = (meanT0_groupmean+1.96*meanT0_se), y0 = (meanT1_groupmean+1.96*meanT1_se), 
+                                            a = (major_len_groupmean + 1.96*major_len_se), 
+                                            b = (minor_len_groupmean + 1.96*minor_len_se), angle = ((theta_groupmean+1.96*theta_se) * pi/180)), 
+                                            colour = "grey", linetype = "dashed") +
+  geom_ellipse(data = dplot_G_El_delmu, aes(x0 = (meanT0_groupmean-1.96*meanT0_se), y0 = (meanT1_groupmean-1.96*meanT1_se), 
+                                            a = (major_len_groupmean - 1.96*major_len_se), 
+                                            b = (minor_len_groupmean - 1.96*minor_len_se), angle = ((theta_groupmean-1.96*theta_se) * pi/180)), 
+                                            colour = "grey", linetype = "dashed") +
   geom_segment(data = dplot_G_El_delmu, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean + vert_x_groupmean), yend = (meanT1_groupmean + vert_y_groupmean))) +
   geom_segment(data = dplot_G_El_delmu, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean - vert_x_groupmean), yend = (meanT1_groupmean - vert_y_groupmean))) +
   geom_segment(data = dplot_G_El_delmu, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean + covert_x_groupmean), yend = (meanT1_groupmean + covert_y_groupmean))) +
@@ -459,6 +468,14 @@ library(ggforce)
 plot_GEllipse_pleiocov <- ggplot() +
   geom_ellipse(data = dplot_G_El_pleiocov, aes(x0 = meanT0_groupmean, y0 = meanT1_groupmean, 
                                             a = major_len_groupmean, b = minor_len_groupmean, angle = (theta_groupmean * pi/180))) +
+  geom_ellipse(data = dplot_G_El_pleiocov, aes(x0 = (meanT0_groupmean + 1.96*meanT0_se), y0 = (meanT1_groupmean + 1.96*meanT1_se), 
+                                            a = (major_len_groupmean + 1.96*major_len_se), 
+                                            b = (minor_len_groupmean + 1.96*minor_len_se), angle = ((theta_groupmean+1.96*theta_se) * pi/180)), 
+               colour = "grey", linetype = "dashed") +
+  geom_ellipse(data = dplot_G_El_pleiocov, aes(x0 = (meanT0_groupmean - 1.96*meanT0_se), y0 = (meanT1_groupmean - 1.96*meanT1_se), 
+                                            a = (major_len_groupmean - 1.96*major_len_se), 
+                                            b = (minor_len_groupmean - 1.96*minor_len_se), angle = ((theta_groupmean-1.96*theta_se) * pi/180)), 
+               colour = "grey", linetype = "dashed") +
   geom_segment(data = dplot_G_El_pleiocov, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean + vert_x_groupmean), yend = (meanT1_groupmean + vert_y_groupmean))) +
   geom_segment(data = dplot_G_El_pleiocov, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean - vert_x_groupmean), yend = (meanT1_groupmean - vert_y_groupmean))) +
   geom_segment(data = dplot_G_El_pleiocov, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean + covert_x_groupmean), yend = (meanT1_groupmean + covert_y_groupmean))) +
@@ -476,6 +493,14 @@ plot_GEllipse_pleiocov <- ggplot() +
 plot_GEllipse_pleiorate <- ggplot() +
   geom_ellipse(data = dplot_G_El_pleiorate, aes(x0 = meanT0_groupmean, y0 = meanT1_groupmean, 
                                                a = major_len_groupmean, b = minor_len_groupmean, angle = (theta_groupmean * pi/180))) +
+  geom_ellipse(data = dplot_G_El_pleiorate, aes(x0 = (meanT0_groupmean + 1.96*meanT0_se), y0 = (meanT1_groupmean + 1.96*meanT1_se), 
+                                               a = (major_len_groupmean + 1.96*major_len_se), 
+                                               b = (minor_len_groupmean + 1.96*minor_len_se), angle = ((theta_groupmean+1.96*theta_se) * pi/180)), 
+               colour = "grey", linetype = "dashed") +
+  geom_ellipse(data = dplot_G_El_pleiorate, aes(x0 = (meanT0_groupmean - 1.96*meanT0_se), y0 = (meanT1_groupmean - 1.96*meanT1_se), 
+                                               a = (major_len_groupmean - 1.96*major_len_se), 
+                                               b = (minor_len_groupmean - 1.96*minor_len_se), angle = ((theta_groupmean-1.96*theta_se) * pi/180)), 
+               colour = "grey", linetype = "dashed") +
   geom_segment(data = dplot_G_El_pleiorate, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean + vert_x_groupmean), yend = (meanT1_groupmean + vert_y_groupmean))) +
   geom_segment(data = dplot_G_El_pleiorate, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean - vert_x_groupmean), yend = (meanT1_groupmean - vert_y_groupmean))) +
   geom_segment(data = dplot_G_El_pleiorate, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean + covert_x_groupmean), yend = (meanT1_groupmean + covert_y_groupmean))) +
@@ -493,6 +518,14 @@ plot_GEllipse_pleiorate <- ggplot() +
 plot_GEllipse_locisigma <- ggplot() +
   geom_ellipse(data = dplot_G_El_locisigma, aes(x0 = meanT0_groupmean, y0 = meanT1_groupmean, 
                                                 a = major_len_groupmean, b = minor_len_groupmean, angle = (theta_groupmean * pi/180))) +
+  geom_ellipse(data = dplot_G_El_locisigma, aes(x0 = (meanT0_groupmean + 1.96*meanT0_se), y0 = (meanT1_groupmean + 1.96*meanT1_se), 
+                                               a = (major_len_groupmean + 1.96*major_len_se), 
+                                               b = (minor_len_groupmean + 1.96*minor_len_se), angle = ((theta_groupmean+1.96*theta_se) * pi/180)), 
+               colour = "grey", linetype = "dashed") +
+  geom_ellipse(data = dplot_G_El_locisigma, aes(x0 = (meanT0_groupmean - 1.96*meanT0_se), y0 = (meanT1_groupmean - 1.96*meanT1_se), 
+                                               a = (major_len_groupmean - 1.96*major_len_se), 
+                                               b = (minor_len_groupmean - 1.96*minor_len_se), angle = ((theta_groupmean-1.96*theta_se) * pi/180)), 
+               colour = "grey", linetype = "dashed") +
   geom_segment(data = dplot_G_El_locisigma, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean + vert_x_groupmean), yend = (meanT1_groupmean + vert_y_groupmean))) +
   geom_segment(data = dplot_G_El_locisigma, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean - vert_x_groupmean), yend = (meanT1_groupmean - vert_y_groupmean))) +
   geom_segment(data = dplot_G_El_locisigma, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean + covert_x_groupmean), yend = (meanT1_groupmean + covert_y_groupmean))) +
@@ -510,6 +543,14 @@ plot_GEllipse_locisigma <- ggplot() +
 plot_GEllipse_rwide <- ggplot() +
   geom_ellipse(data = dplot_G_El_rwide, aes(x0 = meanT0_groupmean, y0 = meanT1_groupmean, 
                                                 a = major_len_groupmean, b = minor_len_groupmean, angle = (theta_groupmean * pi/180))) +
+  geom_ellipse(data = dplot_G_El_rwide, aes(x0 = (meanT0_groupmean + 1.96*meanT0_se), y0 = (meanT1_groupmean + 1.96*meanT1_se), 
+                                               a = (major_len_groupmean + 1.96*major_len_se), 
+                                               b = (minor_len_groupmean + 1.96*minor_len_se), angle = ((theta_groupmean+1.96*theta_se) * pi/180)), 
+               colour = "grey", linetype = "dashed") +
+  geom_ellipse(data = dplot_G_El_rwide, aes(x0 = (meanT0_groupmean - 1.96*meanT0_se), y0 = (meanT1_groupmean - 1.96*meanT1_se), 
+                                               a = (major_len_groupmean - 1.96*major_len_se), 
+                                               b = (minor_len_groupmean - 1.96*minor_len_se), angle = ((theta_groupmean-1.96*theta_se) * pi/180)), 
+               colour = "grey", linetype = "dashed") +
   geom_segment(data = dplot_G_El_rwide, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean + vert_x_groupmean), yend = (meanT1_groupmean + vert_y_groupmean))) +
   geom_segment(data = dplot_G_El_rwide, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean - vert_x_groupmean), yend = (meanT1_groupmean - vert_y_groupmean))) +
   geom_segment(data = dplot_G_El_rwide, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean + covert_x_groupmean), yend = (meanT1_groupmean + covert_y_groupmean))) +
@@ -545,11 +586,106 @@ source("src_G_mat.R")
 d_null_mat_delmu <- d_null_mat
 d_null_mat_delmu$delmu <- cut(d_null_mat_delmu$delmu, breaks = 8) 
 
-G_relGV_delmu <- MCmatMS_gen(d_null_mat_delmu, delmu, 4)
+G_relGV_delmu <- MCmatMS_gen(d_null_mat_delmu, d_null_mat_delmu$delmu, sort(unique(as.character(d_null_mat_delmu$delmu))), 4)
 
-library(vcvComp)
+# Now need to do relGV.multi on the array within lists
 
-relGV_test <- relGV.multi(simplify2array(G_null_delmu[[1]][[1]]))
+relGV.multi_delmu <- MC_relW.multi(G_relGV_delmu, 1000, cores=4)
+
+
+# Actual relative eigenanalysis: grab so many random matrices to do comparisons between within each group
+
+relGV_delmu <- MC_relW_PW(G_relGV_delmu, 150, cores=4) # 12800/2 = 6400 comparisons per group
+
+
+# Organise into a more reasonable output for transforming to data frame
+relG_org <- MCOrg_relG(relGV_delmu, 4)
+
+# Names of eigenvectors for data frame columns
+
+relGvecs <- c(paste0("relGmax.vec", 1:8), paste0("relG2.vec", 1:8))
+
+# Generate data frame of eigenvalues and vectors
+d_relG_delmu <- ListToDF(relG_org, relGvecs, delmu)
+
+# column names are wrong from reusing this function, but we can rename them
+
+names(d_relG_delmu)[2:3] <- c("delmu.cat", "comparison")
+
+# These values are stored as list objects, make them a regular numeric vector
+d_relG_delmu$relGmax.val <- as.numeric(d_relG_delmu$relGmax.val)
+d_relG_delmu$relG2.val <- as.numeric(d_relG_delmu$relG2.val)
+d_relG_delmu$logGV <- as.numeric(d_relG_delmu$logGV)
+
+# Mean values 
+dplot_relG_delmu <- d_relG_delmu[-c(1, 3)] %>%
+  group_by(delmu.cat) %>%
+  summarise_all(list(groupmean = mean, se = std.error))
+
+# Now we need to put the relGvecs into their own relGvec column
+
+# names_sep is \\. because . needs to be escaped
+dplot_relG_delmu <- pivot_longer(dplot_relG_delmu, cols = -c(delmu.cat, relGmax.val_groupmean, relG2.val_groupmean, relGmax.val_se, relG2.val_se, logGV_groupmean, logGV_se), 
+                                 names_to = c("PC", "Vec"), names_sep = "\\.", values_to = "Vecmean")
+
+dplot_relG_delmu <-  pivot_wider(dplot_relG_delmu, names_from = PC, values_from = "Vecmean")
+
+
+# Plot mean log generalised variance of comparisons by deleterious mutation rate
+
+plot_logGV <- ggplot(dplot_relG_delmu, aes(x = delmu.cat, y = logGV_groupmean, group = 1)) +
+  geom_line() +
+  geom_ribbon(aes(ymin = logGV_groupmean - (1.96*logGV_se), ymax = logGV_groupmean + (1.96*logGV_se)), alpha = 0.2) +
+  theme_classic() +
+  theme(legend.position = "none") +
+  labs(x = "Background selection", y = "Mean pairwise log generalised variance within groups")
+
+# Linear model of deleterious mutation, log generalised variance
+lm_logGV <- lm(logGV ~ delmu.cat, d_relG_delmu)
+summary(lm_logGV)
+
+"
+Call:
+  lm(formula = logGV ~ delmu.cat, data = d_relG_delmu)
+
+Residuals:
+  Min      1Q  Median      3Q     Max 
+-69.959  -9.868   0.020  10.011  72.621 
+
+Coefficients:
+  Estimate Std. Error t value Pr(>|t|)    
+(Intercept)           -0.325970   0.160365  -2.033  0.04209 *  
+  delmu.cat(0.125,0.25]  1.881248   0.226790   8.295  < 2e-16 ***
+  delmu.cat(0.25,0.375] -0.082807   0.226790  -0.365  0.71502    
+delmu.cat(0.375,0.5]   1.361138   0.226790   6.002 1.96e-09 ***
+  delmu.cat(0.5,0.625]  -0.696400   0.226790  -3.071  0.00214 ** 
+  delmu.cat(0.625,0.75] -0.004322   0.226790  -0.019  0.98480    
+delmu.cat(0.75,0.875] -0.370677   0.226790  -1.634  0.10217    
+delmu.cat(0.875,1]     0.486023   0.226790   2.143  0.03211 *  
+  ---
+  Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 16.95 on 89392 degrees of freedom
+Multiple R-squared:  0.002356,	Adjusted R-squared:  0.002278 
+F-statistic: 30.16 on 7 and 89392 DF,  p-value: < 2.2e-16
+"
+# Explaining <1% of variance
+
+
+# is it normal?
+qqnorm(d_relG_delmu$logGV)
+qqline(d_relG_delmu$logGV, col = "steelblue", lwd=2)
+# Not really, but could be worse
+par(mfrow = c(2,2))
+plot(lm_logGV)
+# heteroscedasticity is good though
+
+
+
+
+
+
+
 
 
 ###############################################################
@@ -695,4 +831,8 @@ plot_GEllipse + geom_segment(mapping = aes(x = x1, y = y1, xend = x2, yend = y2,
 
 
 
+# Test for viewing output of relative.eigen() and eigen.test() from vcvComp
+library(vcvComp)
 
+relGV_test <- relative.eigen(matrix(unlist(G_relGV_delmu[[1]][[1]][[1]]), nrow = 8), matrix(unlist(G_relGV_delmu[[1]][[1]][[2]]), nrow=8))
+relGV_testp <- eigen.test(8000, relGV_test$relValues)
