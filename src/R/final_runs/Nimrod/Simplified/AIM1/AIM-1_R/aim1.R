@@ -595,7 +595,7 @@ relGV.multi_delmu <- MC_relW.multi(G_relGV_delmu, 1000, cores=4)
 
 # Actual relative eigenanalysis: grab so many random matrices to do comparisons between within each group
 
-relGV_delmu <- MC_relW_PW(G_relGV_delmu, 150, cores=4) # 12800/2 = 6400 comparisons per group
+relGV_delmu <- MC_relW_PW(G_relGV_delmu, 10, cores=4) # 12800/2 = 6400 comparisons per group
 
 
 # Organise into a more reasonable output for transforming to data frame
@@ -610,26 +610,22 @@ d_relG_delmu <- ListToDF(relG_org, relGvecs, delmu)
 
 # column names are wrong from reusing this function, but we can rename them
 
-names(d_relG_delmu)[2:3] <- c("delmu.cat", "comparison")
+names(d_relG_delmu)[2:3] <- c("delmu", "comparison")
 
 # These values are stored as list objects, make them a regular numeric vector
+d_relG_delmu$delmu <- as.numeric(d_relG_delmu$delmu)
 d_relG_delmu$relGmax.val <- as.numeric(d_relG_delmu$relGmax.val)
 d_relG_delmu$relG2.val <- as.numeric(d_relG_delmu$relG2.val)
 d_relG_delmu$logGV <- as.numeric(d_relG_delmu$logGV)
 
+# group by delmu.cat for that analysis
+
+d_relG_delmu$delmu.cat <- cut(d_relG_delmu$delmu, breaks = 8)
+
 # Mean values 
-dplot_relG_delmu <- d_relG_delmu[-c(1, 3)] %>%
+dplot_relG_delmu <- d_relG_delmu[-c(1:3)] %>%
   group_by(delmu.cat) %>%
   summarise_all(list(groupmean = mean, se = std.error))
-
-# Now we need to put the relGvecs into their own relGvec column
-
-# names_sep is \\. because . needs to be escaped
-dplot_relG_delmu <- pivot_longer(dplot_relG_delmu, cols = -c(delmu.cat, relGmax.val_groupmean, relG2.val_groupmean, relGmax.val_se, relG2.val_se, logGV_groupmean, logGV_se), 
-                                 names_to = c("PC", "Vec"), names_sep = "\\.", values_to = "Vecmean")
-
-dplot_relG_delmu <-  pivot_wider(dplot_relG_delmu, names_from = PC, values_from = "Vecmean")
-
 
 # Plot mean log generalised variance of comparisons by deleterious mutation rate
 
@@ -640,8 +636,38 @@ plot_logGV <- ggplot(dplot_relG_delmu, aes(x = delmu.cat, y = logGV_groupmean, g
   theme(legend.position = "none") +
   labs(x = "Background selection", y = "Mean pairwise log generalised variance within groups")
 
+# Let's add the other variables, it'll be fun
+
+library(splitstackshape)
+
+d_relG_delmu <- arrange(d_relG_delmu, delmu)
+ls_combos_bydelmu <- arrange(ls_combos, delmu)
+ls_combos_bydelmu <- expandRows(ls_combos_bydelmu, 45, count.is.col = F)
+d_relG <- d_relG_delmu 
+
+d_relG$pleiocov <- ls_combos_bydelmu$pleiocov
+d_relG$pleiorate <- ls_combos_bydelmu$pleiorate
+d_relG$locisigma <- ls_combos_bydelmu$locisigma
+d_relG$rwide <- ls_combos_bydelmu$rwide
+d_relG <- d_relG[-3]
+
+d_relG <- d_relG[c(1:2, 22:26, 3:21)]
+
+# Write table for JMP
+write.table(d_relG, "d_relEig.csv", sep = ",", row.names = F)
+
+
+# Categorise values for plotting
+d_relG$pleiocov.cat <- cut(d_relG$pleiocov, breaks = 8) 
+d_relG$pleiorate.cat <- cut(d_relG$pleiorate, breaks = 8) 
+d_relG$locisigma.cat <- cut(d_relG$locisigma, breaks = 8) 
+d_relG$rwide.cat <- cut(d_relG$rwide, breaks = 8) 
+# Rearrange columns
+d_relG <- d_relG[c(1:7, 27:30, 8:26)]
+
+
 # Linear model of deleterious mutation, log generalised variance
-lm_logGV <- lm(logGV ~ delmu.cat, d_relG_delmu)
+lm_logGV <- lm(logGV ~ delmu + pleiocov + pleiorate + rwide + locisigma, d_relG)
 summary(lm_logGV)
 
 "
@@ -670,6 +696,27 @@ Multiple R-squared:  0.002356,	Adjusted R-squared:  0.002278
 F-statistic: 30.16 on 7 and 89392 DF,  p-value: < 2.2e-16
 "
 # Explaining <1% of variance
+"
+Call:
+  lm(formula = logGV ~ delmu, data = d_relG_delmu)
+
+Residuals:
+  Min       1Q   Median       3Q      Max 
+-10.5149  -0.9763   0.0031   0.9837  10.6740 
+
+Coefficients:
+  Estimate Std. Error t value Pr(>|t|)   
+(Intercept)  0.01695    0.01484   1.142  0.25352   
+delmu       -0.07469    0.02570  -2.906  0.00367 **
+  ---
+  Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 1.593 on 46078 degrees of freedom
+Multiple R-squared:  0.0001832,	Adjusted R-squared:  0.0001615 
+F-statistic: 8.443 on 1 and 46078 DF,  p-value: 0.003665
+"
+
+
 
 
 # is it normal?
@@ -686,6 +733,16 @@ plot(lm_logGV)
 
 
 
+
+
+# To plot the mean ellipses of this, we need to wrangle the data some more
+# Ellipses of these relative eigenvectors/values indicate the level of divergence within groups 
+
+# names_sep is \\. because . needs to be escaped
+dplot_relG_delmu <- pivot_longer(dplot_relG_delmu, cols = -c(delmu.cat, relGmax.val_groupmean, relG2.val_groupmean, relGmax.val_se, relG2.val_se, logGV_groupmean, logGV_se), 
+                                 names_to = c("PC", "Vec"), names_sep = "\\.", values_to = "Vecmean")
+
+dplot_relG_delmu <-  pivot_wider(dplot_relG_delmu, names_from = PC, values_from = "Vecmean")
 
 
 ###############################################################

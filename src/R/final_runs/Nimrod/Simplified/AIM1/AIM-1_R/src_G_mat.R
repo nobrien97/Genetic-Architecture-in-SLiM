@@ -451,16 +451,16 @@ MC_relW_PW <- function(G, n=100, cores) {
   if (n %% 2 > 0) # if n is odd, then add one so we can properly compare
     n <- n+1
   combos <- combn(sample(1:length(G[[1]][[1]]), n), 2) # pairwise combinations, in a matrix  
-  parallel::mclapply(G, function(x) {
-    lapply(x, function(y) {
+  lapply(G, function(x) {
+    parallel::mclapply(x, function(y) {
       ycmpseq <- seq(1, length(combos), by = 2) # Comparisons between elements z and z+1 in combos
       lapply(ycmpseq, function(z) {
         mat1 <- matrix(unlist(y[combos[z]]), nrow = 8)
         mat2 <- matrix(unlist(y[combos[z+1]]), nrow = 8)
         vcvComp::relative.eigen(mat1, mat2)
       })
-    })
-  }, mc.cores = cores)
+    }, mc.cores = cores)
+  })
   
 }
 
