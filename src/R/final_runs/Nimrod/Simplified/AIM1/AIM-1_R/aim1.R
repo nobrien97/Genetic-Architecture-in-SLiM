@@ -125,6 +125,12 @@ source("src_G_mat.R")
 d_Fst <- MCFst(d_null, d_null$delmu, 4)
 
 
+# Analyse LHC spread: homogeneity of distances between points in 5D space
+
+LHC.homogen(ls_combos, 10, 4)
+
+
+
 
 # Gmax and G2 of each model: look at how background sel affects populations between traits
 
@@ -593,13 +599,17 @@ G_relGV_delmu <- MCmatMS_gen(d_null_mat_delmu, d_null_mat_delmu$delmu, sort(uniq
 relGV.multi_delmu <- MC_relW.multi(G_relGV_delmu, 1000, cores=4)
 
 
-# Actual relative eigenanalysis: grab so many random matrices to do comparisons between within each group
+# Actual relative eigenanalysis: grab so many random matrices to do comparisons between seeds within each group
+
+    # Run this on Tinaroo with n > 10, at 32 so we can get a better look at the whole picture
 
 relGV_delmu <- MC_relW_PW(G_relGV_delmu, 10, cores=4) # 12800/2 = 6400 comparisons per group
 
 
 # Organise into a more reasonable output for transforming to data frame
-relG_org <- MCOrg_relG(relGV_delmu, 4)
+relG_org <- MCOrg_relG(relGV_delmu_tin, 4)
+
+
 
 # Names of eigenvectors for data frame columns
 
@@ -612,6 +622,10 @@ d_relG_delmu <- ListToDF(relG_org, relGvecs, delmu)
 
 names(d_relG_delmu)[2:3] <- c("delmu", "comparison")
 
+
+# Read the file from Tinaroo to do the rest
+d_relG_delmu <- readRDS("d_relG_delmu.RDS")
+
 # These values are stored as list objects, make them a regular numeric vector
 d_relG_delmu$delmu <- as.numeric(d_relG_delmu$delmu)
 d_relG_delmu$relGmax.val <- as.numeric(d_relG_delmu$relGmax.val)
@@ -621,6 +635,7 @@ d_relG_delmu$logGV <- as.numeric(d_relG_delmu$logGV)
 # group by delmu.cat for that analysis
 
 d_relG_delmu$delmu.cat <- cut(d_relG_delmu$delmu, breaks = 8)
+
 
 # Mean values 
 dplot_relG_delmu <- d_relG_delmu[-c(1:3)] %>%
@@ -642,7 +657,7 @@ library(splitstackshape)
 
 d_relG_delmu <- arrange(d_relG_delmu, delmu)
 ls_combos_bydelmu <- arrange(ls_combos, delmu)
-ls_combos_bydelmu <- expandRows(ls_combos_bydelmu, 45, count.is.col = F)
+ls_combos_bydelmu <- expandRows(ls_combos_bydelmu, 496, count.is.col = F) # 496 is number of pairwise comparisons made for each delmu
 d_relG <- d_relG_delmu 
 
 d_relG$pleiocov <- ls_combos_bydelmu$pleiocov
@@ -893,3 +908,23 @@ library(vcvComp)
 
 relGV_test <- relative.eigen(matrix(unlist(G_relGV_delmu[[1]][[1]][[1]]), nrow = 8), matrix(unlist(G_relGV_delmu[[1]][[1]][[2]]), nrow=8))
 relGV_testp <- eigen.test(8000, relGV_test$relValues)
+
+
+
+# testing for LHC spread function
+homogen_lscombos <- ls_combos[,-1]
+homogen_combos <- combn(sample(1:length(homogen_lscombos[,1]), 5), 2) # pairwise combinations, in matrix
+homogen_cmb_seq <- seq(1, length(homogen_combos), by = 2) # Comparisons between elements x and x+1 in combos
+homogen_d_dist <- double(length = 2*length(homogen_combos))
+
+homogen_d_list <- lapply(homogen_cmb_seq, function(x) {
+  x1 <- c(t(homogen_lscombos[homogen_combos[x],]))
+  x2 <- c(t(homogen_lscombos[homogen_combos[x+1],]))
+  homogen_d_dist[x] <- dist(rbind(x1, x2))
+  homogen_d_dist
+})
+homogen_d_list <- unlist(homogen_d_list)
+homogen_d_list <- homogen_d_list[which(homogen_d_list > 0.0)]
+range(homogen_d_list)
+
+

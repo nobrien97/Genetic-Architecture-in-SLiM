@@ -11,7 +11,33 @@ std.error <- function(x){
   sd/sqrt(n)
 }
 
+# Sampling test: pairwise euclidean distances between scaled hypercube points
+# latin hypercube homogeneity test
 
+LHC.homogen <- function(LHC, samples, cores) {
+  require(doParallel)
+  require(future)
+  require(scales)
+  dat <- LHC[,-1] 
+  # rescale combos to between 0 and 1
+  for (col in colnames(dat)) {
+    dat[col] <- scales::rescale(dat[,col])
+  }
+  dat
+  combos <- combn(sample(1:length(dat[,1]), samples), 2) # pairwise combinations, in matrix
+  cmb_seq <- seq(1, length(combos), by = 2) # Comparisons between elements x and x+1 in combos
+  d_dist <- double(length = 2*length(combos))
+  
+  d_dist_list <- mclapply(cmb_seq, function(x) {
+                    x1 <- c(t(dat[combos[x],]))
+                    x2 <- c(t(dat[combos[x+1],]))
+                    d_dist[x] <- dist(rbind(x1, x2))
+                    d_dist
+                  }, mc.cores = cores)
+  d_dist_list <- unlist(d_dist_list)
+  d_dist <- d_dist_list[which(d_dist_list > 0.0)]
+  range(d_dist)
+}
 
 
 # Data coercion to matrix function: expects a single row of 39 variables: gen, seed, modelindex, 8 variances, 28 covariances
