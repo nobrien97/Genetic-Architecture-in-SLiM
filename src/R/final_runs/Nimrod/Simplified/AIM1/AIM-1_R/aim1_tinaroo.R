@@ -1,6 +1,6 @@
 d_null_mat_delmu <- d_null_mat
 
-G_relGV_btwn_delmu <- MCmat_gen(d_null_mat_delmu, d_null_mat_delmu$delmu, 4) # In this one, we run the regular function for nesting in order gen -> seed -> model
+G_relGV_btwn_delmu <- MCmat_gen(d_null_mat_delmu, d_null_mat_delmu$delmu, 24) # In this one, we run the regular function for nesting in order gen -> seed -> model
 
 
 # Actual relative eigenanalysis: grab so many random matrices to do comparisons between seeds within each group

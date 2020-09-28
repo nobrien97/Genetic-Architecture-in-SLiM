@@ -59,3 +59,7 @@ src/R/final_runs/Nimrod/Simplified/AIM1/JMP/d_relEig.jmp
 src/R/final_runs/Nimrod/Simplified/AIM1/AIM-1_R/d_relG_delmu.RDS
 src/R/final_runs/Nimrod/Simplified/AIM1/AIM-1_R/relGV_delmu.RDS
 src/R/final_runs/Nimrod/Simplified/AIM1/JMP/d_relEig_within.jmp
+src/R/final_runs/Nimrod/Simplified/AIM1/JMP/d_relEig_btwn.jmp
+src/R/final_runs/Nimrod/Simplified/AIM1/AIM-1_R/d_relG_btwn_delmu_tin2.RDS
+src/R/final_runs/Nimrod/Simplified/AIM1/AIM-1_R/d_relG_btwn_delmu_tin.RDS
+src/R/final_runs/Nimrod/Simplified/AIM1/AIM-1_R/d_relG_btwn_delmu_tin.RDS

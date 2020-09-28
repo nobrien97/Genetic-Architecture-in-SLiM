@@ -1,5 +1,9 @@
 source("src_G_mat.R")
 
+# Set the seed
+
+set.seed(1552063597) # sampled using sample(1:2147483647, 1)
+
 # Analysis of Model 1 data: Null 
 
 # Big files: data.table::use fread()
@@ -584,6 +588,25 @@ vars_null_delmu$rwide <- d_null$rwide
 
 ###########################################################################
 
+# Statisical tests for ellipses: can look at ratio and area for a general indicator of the directions of variation in
+# two dimensional space: this may give a good approximation of the total space of the trait space, since our traits
+# are functionally identical
+# Pairwise comparisons between extreme groups (e.g. max and min bins of delmu)
+
+
+
+
+
+
+
+
+
+
+
+
+
+#######################################################################
+
 # Relative PCA between SEEDS
 # relGV.multi() - calculates log variance ratios between each group
 # Will do on bins: yet another list of lists: sorted by bin first then seed, then can do relGV.multi() on the array
@@ -835,12 +858,13 @@ d_relG_btwn_delmu_longer <- arrange(d_relG_btwn_delmu_longer, value)
 delmu_combos <- match(unique(d_relG_btwn_delmu_longer$value), round(ls_combos_bydelmu$delmu, digits = 6)) # For some reason it rounded, adjust for this
 
 
-d_relG_btwn_delmu_longer$value <- rep(ls_combos_bydelmu$delmu[delmu_combos], each = 6300) # Fix rounding errors; each = n-1 * 100 seeds
+d_relG_btwn_delmu_longer$value <- rep(ls_combos_bydelmu$delmu[delmu_combos], each = 12700) # Fix rounding errors; 
+                                                                                          # each = n-1 * 100
 
-d_relG_btwn_delmu_longer$rwide_val <- rep(ls_combos_bydelmu$rwide[delmu_combos], each = 6300) # Add the remaining columns
-d_relG_btwn_delmu_longer$locisigma_val <- rep(ls_combos_bydelmu$locisigma[delmu_combos], each = 6300)
-d_relG_btwn_delmu_longer$pleiorate_val <- rep(ls_combos_bydelmu$pleiorate[delmu_combos], each = 6300)
-d_relG_btwn_delmu_longer$pleiocov_val <- rep(ls_combos_bydelmu$pleiocov[delmu_combos], each = 6300)
+d_relG_btwn_delmu_longer$rwide_val <- rep(ls_combos_bydelmu$rwide[delmu_combos], each = 12700) # Add the remaining columns
+d_relG_btwn_delmu_longer$locisigma_val <- rep(ls_combos_bydelmu$locisigma[delmu_combos], each = 12700)
+d_relG_btwn_delmu_longer$pleiorate_val <- rep(ls_combos_bydelmu$pleiorate[delmu_combos], each = 12700)
+d_relG_btwn_delmu_longer$pleiocov_val <- rep(ls_combos_bydelmu$pleiocov[delmu_combos], each = 12700)
 
 # columns for comparison columns 1 and 2: clone the delmu1 and 2 values, replace names with appropriate predictor
 
@@ -958,35 +982,35 @@ lm(formula = logGV ~ (delmudiff + pleioratediff + pleiocovdiff +
     rwidediff + locisigmadiff)^2, data = d_relG_btwn)
 
 Residuals:
-   Min     1Q Median     3Q    Max 
--46.48 -11.15  -0.35  12.10  43.13 
+    Min      1Q  Median      3Q     Max 
+-66.729 -10.168  -0.415   9.514  71.138 
 
 Coefficients:
                               Estimate Std. Error t value Pr(>|t|)    
-(Intercept)                  5.601e-01  7.013e-01   0.799  0.42456    
-delmudiff                    2.369e+01  1.225e+00  19.340  < 2e-16 ***
-pleioratediff                1.518e+01  2.539e+00   5.980 2.25e-09 ***
-pleiocovdiff                 3.622e+01  2.645e+00  13.690  < 2e-16 ***
-rwidediff                   -2.036e+05  1.071e+04 -19.015  < 2e-16 ***
-locisigmadiff                8.395e-02  1.125e-01   0.746  0.45564    
-delmudiff:pleioratediff     -1.080e+02  3.666e+00 -29.455  < 2e-16 ***
-delmudiff:pleiocovdiff      -6.282e+01  3.418e+00 -18.382  < 2e-16 ***
-delmudiff:rwidediff          1.830e+05  1.509e+04  12.121  < 2e-16 ***
-delmudiff:locisigmadiff     -1.139e+00  1.510e-01  -7.544 4.69e-14 ***
-pleioratediff:pleiocovdiff  -6.117e+01  7.908e+00  -7.735 1.06e-14 ***
-pleioratediff:rwidediff      3.462e+05  2.849e+04  12.150  < 2e-16 ***
-pleioratediff:locisigmadiff -8.120e-01  2.959e-01  -2.744  0.00607 ** 
-pleiocovdiff:rwidediff       2.650e+05  3.253e+04   8.147 3.87e-16 ***
-pleiocovdiff:locisigmadiff  -4.283e+00  3.037e-01 -14.102  < 2e-16 ***
-rwidediff:locisigmadiff      1.510e+04  1.221e+03  12.369  < 2e-16 ***
+(Intercept)                  2.946e+00  1.272e-01  23.162  < 2e-16 ***
+delmudiff                   -1.731e+00  2.294e-01  -7.546 4.51e-14 ***
+pleioratediff               -1.990e+00  4.447e-01  -4.474 7.67e-06 ***
+pleiocovdiff                -4.702e+00  4.654e-01 -10.104  < 2e-16 ***
+rwidediff                   -2.324e+04  1.980e+03 -11.735  < 2e-16 ***
+locisigmadiff               -2.463e-01  2.273e-02 -10.839  < 2e-16 ***
+delmudiff:pleioratediff      1.182e+00  6.417e-01   1.842   0.0654 .  
+delmudiff:pleiocovdiff       2.474e-01  6.657e-01   0.372   0.7102    
+delmudiff:rwidediff          6.166e+04  2.821e+03  21.862  < 2e-16 ***
+delmudiff:locisigmadiff     -1.825e-01  3.261e-02  -5.597 2.18e-08 ***
+pleioratediff:pleiocovdiff   1.164e+01  1.319e+00   8.825  < 2e-16 ***
+pleioratediff:rwidediff     -1.042e+05  5.436e+03 -19.169  < 2e-16 ***
+pleioratediff:locisigmadiff  1.922e+00  6.437e-02  29.865  < 2e-16 ***
+pleiocovdiff:rwidediff       3.207e+04  5.937e+03   5.401 6.63e-08 ***
+pleiocovdiff:locisigmadiff   3.334e-01  6.767e-02   4.927 8.36e-07 ***
+rwidediff:locisigmadiff      1.939e+03  2.845e+02   6.817 9.30e-12 ***
 ---
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
-Residual standard error: 16.21 on 29984 degrees of freedom
-Multiple R-squared:  0.07725,	Adjusted R-squared:  0.07679 
-F-statistic: 167.3 on 15 and 29984 DF,  p-value: < 2.2e-16
+Residual standard error: 16.21 on 812784 degrees of freedom
+Multiple R-squared:  0.003392,	Adjusted R-squared:  0.003374 
+F-statistic: 184.4 on 15 and 812784 DF,  p-value: < 2.2e-16
 "
-# Explaining 7.7% of variance
+# Explaining <1% of variance
 
 
 
@@ -1001,36 +1025,183 @@ plot(lm_logGV_btwn)
 
 # To make sense of any of this: ignore everything except for two bins - will have to bin into separate data frames I think
 
-d_relG_btwn_ex_delmu <- d_relG_btwn[d_relG_btwn$delmu.cat == unique(d_relG_btwn$delmu.cat)[1] | 
-                                  d_relG_btwn$delmu.cat == unique(d_relG_btwn$delmu.cat)[8], ] 
+d_relG_btwn_ex_delmu <- d_relG_btwn[d_relG_btwn$delmu.cat == sort(unique(d_relG_btwn$delmu.cat))[1] | 
+                                  d_relG_btwn$delmu.cat == sort(unique(d_relG_btwn$delmu.cat))[8], ] 
 
 
-d_relG_btwn_ex_rwide <- d_relG_btwn[d_relG_btwn$rwide.cat == unique(d_relG_btwn$rwide.cat)[1] | 
-                                      d_relG_btwn$rwide.cat == unique(d_relG_btwn$rwide.cat)[8], ] 
+d_relG_btwn_ex_rwide <- d_relG_btwn[d_relG_btwn$rwide.cat == sort(unique(d_relG_btwn$rwide.cat))[1] | 
+                                      d_relG_btwn$rwide.cat == sort(unique(d_relG_btwn$rwide.cat))[8], ] 
 
 
-d_relG_btwn_ex_pleiocov <- d_relG_btwn[d_relG_btwn$pleiocov.cat == unique(d_relG_btwn$pleiocov.cat)[1] | 
-                                      d_relG_btwn$pleiocov.cat == unique(d_relG_btwn$pleiocov.cat)[8], ] 
+d_relG_btwn_ex_pleiocov <- d_relG_btwn[d_relG_btwn$pleiocov.cat == sort(unique(d_relG_btwn$pleiocov.cat))[1] | 
+                                      d_relG_btwn$pleiocov.cat == sort(unique(d_relG_btwn$pleiocov.cat))[8], ] 
 
 
-d_relG_btwn_ex_pleiorate <- d_relG_btwn[d_relG_btwn$pleiorate.cat == unique(d_relG_btwn$pleiorate.cat)[1] | 
-                                         d_relG_btwn$pleiorate.cat == unique(d_relG_btwn$pleiorate.cat)[8], ] 
+d_relG_btwn_ex_pleiorate <- d_relG_btwn[d_relG_btwn$pleiorate.cat == sort(unique(d_relG_btwn$pleiorate.cat))[1] | 
+                                         d_relG_btwn$pleiorate.cat == sort(unique(d_relG_btwn$pleiorate.cat))[8], ] 
 
-d_relG_btwn_ex_locisigma <- d_relG_btwn[d_relG_btwn$locisigma.cat == unique(d_relG_btwn$locisigma.cat)[1] | 
-                                          d_relG_btwn$locisigma.cat == unique(d_relG_btwn$locisigma.cat)[8], ] 
+d_relG_btwn_ex_locisigma <- d_relG_btwn[d_relG_btwn$locisigma.cat == sort(unique(d_relG_btwn$locisigma.cat))[1] | 
+                                          d_relG_btwn$locisigma.cat == sort(unique(d_relG_btwn$locisigma.cat))[8], ] 
+
+# Pairwise differences between extreme bins
+##################################################################
+
+t.test(logGV ~ delmu.cat, data = d_relG_btwn_ex_delmu)
+
+t.test(logGV ~ rwide.cat, data = d_relG_btwn_ex_rwide)
+
+t.test(logGV ~ pleiorate.cat, data = d_relG_btwn_ex_pleiorate)
+
+t.test(logGV ~ pleiocov.cat, data = d_relG_btwn_ex_pleiocov)
+
+t.test(logGV ~ locisigma.cat, data = d_relG_btwn_ex_locisigma)
+
+##################################################################
+
+# Check that the distributions are normal (otherwise can't use t-test? I think it's pretty resilient to departures from normality)
+
+hist_logGV_btwn_ex_delmu <- ggplot(d_relG_btwn_ex_delmu, aes(x = logGV, fill = delmu.cat)) +
+  geom_histogram(color = "blue", alpha = 0.6, position = 'identity') +
+  theme_classic() +
+  scale_fill_manual(values = c("royalblue", "seagreen2")) +
+  labs(x = "Log generalised variance between groups", fill = "Deleterious mutation rate")
+
+# # # # # # # # # # # # # # # # #
+
+hist_logGV_btwn_ex_pleiocov <- ggplot(d_relG_btwn_ex_pleiocov, aes(x = logGV, fill = pleiocov.cat)) +
+  geom_histogram(color = "blue", alpha = 0.6, position = 'identity') +
+  theme_classic() +
+  scale_fill_manual(values = c("royalblue", "seagreen2")) +
+  labs(x = "Log generalised variance between groups", fill = "Pleiotropic covariance")
+
+# # # # # # # # # # # # # # # # #
+
+hist_logGV_btwn_ex_pleiorate <- ggplot(d_relG_btwn_ex_pleiorate, aes(x = logGV, fill = pleiorate.cat)) +
+  geom_histogram(color = "blue", alpha = 0.6, position = 'identity') +
+  theme_classic() +
+  scale_fill_manual(values = c("royalblue", "seagreen2")) +
+  labs(x = "Log generalised variance between groups", fill = "Rate of pleiotropy")
+
+# # # # # # # # # # # # # # # # #
+
+hist_logGV_btwn_ex_rwide <- ggplot(d_relG_btwn_ex_rwide, aes(x = logGV, fill = rwide.cat)) +
+  geom_histogram(color = "blue", alpha = 0.6, position = 'identity') +
+  theme_classic() +
+  scale_fill_manual(values = c("royalblue", "seagreen2")) +
+  labs(x = "Log generalised variance between groups", fill = "Recombination rate")
+
+# # # # # # # # # # # # # # # # #
+
+hist_logGV_btwn_ex_locisigma <- ggplot(d_relG_btwn_ex_locisigma, aes(x = logGV, fill = locisigma.cat)) +
+  geom_histogram(color = "blue", alpha = 0.6, position = 'identity') +
+  theme_classic() +
+  scale_fill_manual(values = c("royalblue", "seagreen2")) +
+  labs(x = "Log generalised variance between groups", fill = "Additive effect size")
+
+
+# The plots all follow the same shape: many more samples for the low differences than the high differences
+# low differences have an approximately normal dist (central limit theorem), high differences are approaching
+# it in all cases, with some discrepancies (in pleiorate especially)
+# Since t-tests are robust to departures from normality, this should be fine
 
 
 
+############################################################
+# Plots of the extreme bins next to each other 
 
+# delmu
 
-# To plot the mean ellipses of this, we need to wrangle the data some more
-# Ellipses of these relative eigenvectors/values indicate the level of divergence within groups 
+# Transform to means and SE
+dplot_relG_btwn_ex_delmu <- d_relG_btwn_ex_delmu[-c(1:2, 22, 24:41)] %>%
+  group_by(delmu.cat) %>%
+  summarise_all(list(groupmean = mean, se = std.error))
 
-# names_sep is \\. because . needs to be escaped
-dplot_relG_delmu <- pivot_longer(dplot_relG_delmu, cols = -c(delmu.cat, relGmax.val_groupmean, relG2.val_groupmean, relGmax.val_se, relG2.val_se, logGV_groupmean, logGV_se), 
-                                 names_to = c("PC", "Vec"), names_sep = "\\.", values_to = "Vecmean")
+# Plot
+plot_logGV_btwn_ex_delmu <- ggplot(dplot_relG_btwn_ex_delmu, aes(x = delmu.cat, y = logGV_groupmean, group = 1)) +
+  geom_col() +
+  geom_errorbar(aes(ymin = logGV_groupmean - (1.96*logGV_se), ymax = logGV_groupmean + (1.96*logGV_se)), width = 0.2) +
+  theme_classic() +
+  theme(legend.position = "none") +
+  labs(x = "Difference in background selection between comparison models", y = "Mean pairwise log generalised variance between models")
 
-dplot_relG_delmu <-  pivot_wider(dplot_relG_delmu, names_from = PC, values_from = "Vecmean")
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+# pleiocov
+
+# Transform to means and SE
+dplot_relG_btwn_ex_pleiocov <- d_relG_btwn_ex_pleiocov[-c(1:2, 22:37, 39:41)] %>%
+  group_by(pleiocov.cat) %>%
+  summarise_all(list(groupmean = mean, se = std.error))
+
+# Plot
+plot_logGV_btwn_ex_pleiocov <- ggplot(dplot_relG_btwn_ex_pleiocov, aes(x = pleiocov.cat, y = logGV_groupmean, group = 1)) +
+  geom_col() +
+  geom_errorbar(aes(ymin = logGV_groupmean - (1.96*logGV_se), ymax = logGV_groupmean + (1.96*logGV_se)), width = 0.2) +
+  theme_classic() +
+  theme(legend.position = "none") +
+  labs(x = "Difference in mutational pleiotropic covariance between comparison models", y = "Mean pairwise log generalised variance between models")
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+# pleiorate
+
+# Transform to means and SE
+dplot_relG_btwn_ex_pleiorate <- d_relG_btwn_ex_pleiorate[-c(1:2, 22:38, 40:41)] %>%
+  group_by(pleiorate.cat) %>%
+  summarise_all(list(groupmean = mean, se = std.error))
+
+# Plot
+plot_logGV_btwn_ex_pleiorate <- ggplot(dplot_relG_btwn_ex_pleiorate, aes(x = pleiorate.cat, y = logGV_groupmean, group = 1)) +
+  geom_col() +
+  geom_errorbar(aes(ymin = logGV_groupmean - (1.96*logGV_se), ymax = logGV_groupmean + (1.96*logGV_se)), width = 0.2) +
+  theme_classic() +
+  theme(legend.position = "none") +
+  labs(x = "Difference in rate of pleiotropy between comparison models", y = "Mean pairwise log generalised variance between models")
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+# box plots, violin plots, showing the data/range
+
+# rwide
+
+# Transform to means and SE
+dplot_relG_btwn_ex_rwide <- d_relG_btwn_ex_rwide[-c(1:2, 22:39, 41)] %>%
+  group_by(rwide.cat) %>%
+  summarise_all(list(groupmean = mean, se = std.error))
+
+# Plot
+plot_logGV_btwn_ex_rwide <- ggplot(dplot_relG_btwn_ex_rwide, aes(x = rwide.cat, y = logGV_groupmean, group = 1)) +
+  geom_col() +
+  geom_errorbar(aes(ymin = logGV_groupmean - (1.96*logGV_se), ymax = logGV_groupmean + (1.96*logGV_se)), width = 0.2) +
+  theme_classic() +
+  theme(legend.position = "none") +
+  labs(x = "Difference in genome-wide recombination rate between comparison models", y = "Mean pairwise log generalised variance between models")
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+# locisigma
+
+# Transform to means and SE
+dplot_relG_btwn_ex_locisigma <- d_relG_btwn_ex_locisigma[-c(1:2, 22:40)] %>%
+  group_by(locisigma.cat) %>%
+  summarise_all(list(groupmean = mean, se = std.error))
+
+# Plot
+plot_logGV_btwn_ex_locisigma <- ggplot(dplot_relG_btwn_ex_locisigma, aes(x = locisigma.cat, y = logGV_groupmean, group = 1)) +
+  geom_col() +
+  geom_errorbar(aes(ymin = logGV_groupmean - (1.96*logGV_se), ymax = logGV_groupmean + (1.96*logGV_se)), width = 0.2) +
+  theme_classic() +
+  theme(legend.position = "none") +
+  labs(x = "Difference in additive effect size variance between comparison models", y = "Mean pairwise log generalised variance between models")
+
+#################################################################
+
+# Everything goes in the same direction (larger differences between models in a predictor leads to larger 
+# log generalised variances) except for rwide where the opposite is true
+# Means that as you compare models that are more different in rwide treatment, they become more similar
+# Could be because increasing recombination reduces the size of haploblocks, increasing redundancy, so the difference 
+# between models is reduced because recombination is creating more avenues to reach the same resulting variance structure
+
 
 
 ###############################################################

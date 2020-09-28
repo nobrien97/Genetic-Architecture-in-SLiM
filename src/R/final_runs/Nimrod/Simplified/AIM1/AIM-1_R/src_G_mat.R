@@ -473,7 +473,7 @@ MC_relW_PW <- function(G, n=100, cores) {
   require(parallel)
   require(vcvComp)
   require(dplyr)
-  combos <- combn(sample(1:length(G[[1]][[1]]), n), 2) # pairwise combinations, in a matrix  
+  combos <- sample(1:length(G[[1]][[1]]), 2*n, replace = T) # pairwise combinations, in a matrix  
   lapply(G, function(x) {
     parallel::mclapply(x, function(y) {
       ycmpseq <- seq(1, length(combos), by = 2) # Comparisons between elements z and z+1 in combos
