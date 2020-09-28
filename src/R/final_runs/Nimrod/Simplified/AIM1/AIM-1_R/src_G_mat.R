@@ -15,8 +15,7 @@ std.error <- function(x){
 # latin hypercube homogeneity test
 
 LHC.homogen <- function(LHC, samples, cores) {
-  require(doParallel)
-  require(future)
+  require(parallel)
   require(scales)
   dat <- LHC[,-1] 
   # rescale combos to between 0 and 1
@@ -474,20 +473,21 @@ MC_relW_PW <- function(G, n=100, cores) {
   require(parallel)
   require(vcvComp)
   require(dplyr)
-  if (n %% 2 > 0) # if n is odd, then add one so we can properly compare
-    n <- n+1
   combos <- combn(sample(1:length(G[[1]][[1]]), n), 2) # pairwise combinations, in a matrix  
   lapply(G, function(x) {
     parallel::mclapply(x, function(y) {
       ycmpseq <- seq(1, length(combos), by = 2) # Comparisons between elements z and z+1 in combos
       lapply(ycmpseq, function(z) {
+        name <- paste(names(y[combos[z]]), names(y[combos[z+1]]), sep = "_")
         mat1 <- matrix(unlist(y[combos[z]]), nrow = 8)
         mat2 <- matrix(unlist(y[combos[z+1]]), nrow = 8)
-        vcvComp::relative.eigen(mat1, mat2)
+        eig <- vcvComp::relative.eigen(mat1, mat2)
+        eig[["name"]] <- name
+        eig
       })
     }, mc.cores = cores)
   })
-  
+
 }
 
 
@@ -499,7 +499,8 @@ MCOrg_relG <- function(G, cores) {
   parallel::mclapply(G, function(x) {
     lapply(x, function(y) {
       lapply(y, function(z) {
-        list(relGmax.val = z$relValues[1],
+         list(name = z$name,
+             relGmax.val = z$relValues[1],
              relG2.val = z$relValues[2],
              logGV = z$logGV,
              relGmax.vec1 = z$relVectors[1,1],
