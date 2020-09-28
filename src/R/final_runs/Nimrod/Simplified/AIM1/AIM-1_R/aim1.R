@@ -1109,6 +1109,8 @@ hist_logGV_btwn_ex_locisigma <- ggplot(d_relG_btwn_ex_locisigma, aes(x = logGV, 
 ############################################################
 # Plots of the extreme bins next to each other 
 
+# box plots, violin plots, showing the data/range
+
 # delmu
 
 # Transform to means and SE
@@ -1123,6 +1125,12 @@ plot_logGV_btwn_ex_delmu <- ggplot(dplot_relG_btwn_ex_delmu, aes(x = delmu.cat, 
   theme_classic() +
   theme(legend.position = "none") +
   labs(x = "Difference in background selection between comparison models", y = "Mean pairwise log generalised variance between models")
+
+box_logGV_btwn_ex_delmu <- ggplot(d_relG_btwn_ex_delmu, aes(x = delmu.cat, y = logGV)) +
+  geom_boxplot(color = c("maroon", "royalblue"), alpha = 0.6, position = 'identity') +
+  theme_classic() +
+  labs(x = "Difference between background selection treatments", y = "Log generalised variance between groups")
+
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 
@@ -1141,6 +1149,11 @@ plot_logGV_btwn_ex_pleiocov <- ggplot(dplot_relG_btwn_ex_pleiocov, aes(x = pleio
   theme(legend.position = "none") +
   labs(x = "Difference in mutational pleiotropic covariance between comparison models", y = "Mean pairwise log generalised variance between models")
 
+box_logGV_btwn_ex_pleiocov <- ggplot(d_relG_btwn_ex_pleiocov, aes(x = pleiocov.cat, y = logGV)) +
+  geom_boxplot(color = c("maroon", "royalblue"), alpha = 0.6, position = 'identity') +
+  theme_classic() +
+  labs(x = "Difference between mutational pleiotropic covariance treatments", y = "Log generalised variance between groups")
+
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 
 # pleiorate
@@ -1158,9 +1171,14 @@ plot_logGV_btwn_ex_pleiorate <- ggplot(dplot_relG_btwn_ex_pleiorate, aes(x = ple
   theme(legend.position = "none") +
   labs(x = "Difference in rate of pleiotropy between comparison models", y = "Mean pairwise log generalised variance between models")
 
+box_logGV_btwn_ex_pleiorate <- ggplot(d_relG_btwn_ex_pleiorate, aes(x = pleiorate.cat, y = logGV)) +
+  geom_boxplot(color = c("maroon", "royalblue"), alpha = 0.6, position = 'identity') +
+  theme_classic() +
+  labs(x = "Difference between pleiotropy rate treatments", y = "Log generalised variance between groups")
+
+
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 
-# box plots, violin plots, showing the data/range
 
 # rwide
 
@@ -1176,6 +1194,12 @@ plot_logGV_btwn_ex_rwide <- ggplot(dplot_relG_btwn_ex_rwide, aes(x = rwide.cat, 
   theme_classic() +
   theme(legend.position = "none") +
   labs(x = "Difference in genome-wide recombination rate between comparison models", y = "Mean pairwise log generalised variance between models")
+
+box_logGV_btwn_ex_rwide <- ggplot(d_relG_btwn_ex_rwide, aes(x = rwide.cat, y = logGV)) +
+  geom_boxplot(color = c("maroon", "royalblue"), alpha = 0.6, position = 'identity') +
+  theme_classic() +
+  labs(x = "Difference between recombination rate treatments", y = "Log generalised variance between groups")
+
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 
@@ -1193,6 +1217,14 @@ plot_logGV_btwn_ex_locisigma <- ggplot(dplot_relG_btwn_ex_locisigma, aes(x = loc
   theme_classic() +
   theme(legend.position = "none") +
   labs(x = "Difference in additive effect size variance between comparison models", y = "Mean pairwise log generalised variance between models")
+
+
+box_logGV_btwn_ex_locisigma <- ggplot(d_relG_btwn_ex_locisigma, aes(x = locisigma.cat, y = logGV)) +
+  geom_boxplot(color = c("maroon", "royalblue"), alpha = 0.6, position = 'identity') +
+  theme_classic() +
+  labs(x = "Difference between additive effect size treatments", y = "Log generalised variance between groups")
+
+
 
 #################################################################
 
