@@ -1056,15 +1056,70 @@ t.test(logGV ~ pleiocov.cat, data = d_relG_btwn_ex_pleiocov)
 
 t.test(logGV ~ locisigma.cat, data = d_relG_btwn_ex_locisigma)
 
+
+# ANOVA looking for interactions
+
+summary(aov(logGV~delmu.cat*rwide.cat, data = d_relG_btwn))
+summary(aov(logGV~delmu.cat*locisigma.cat, data = d_relG_btwn))
+summary(aov(logGV~delmu.cat*pleiorate.cat, data = d_relG_btwn))
+summary(aov(logGV~delmu.cat*pleiocov.cat, data = d_relG_btwn))
+
+summary(aov(logGV~rwide.cat*locisigma.cat, data = d_relG_btwn))
+summary(aov(logGV~rwide.cat*pleiorate.cat, data = d_relG_btwn))
+summary(aov(logGV~rwide.cat*pleiocov.cat, data = d_relG_btwn))
+
+summary(aov(logGV~locisigma.cat*pleiorate.cat, data = d_relG_btwn))
+summary(aov(logGV~locisigma.cat*pleiocov.cat, data = d_relG_btwn))
+
+summary(aov(logGV~pleiorate.cat*pleiocov.cat, data = d_relG_btwn))
+
+tukey_delmu_rwide <- TukeyHSD(aov(logGV~delmu.cat*rwide.cat, data = d_relG_btwn))
+tukey_delmu_locisigma <- TukeyHSD(aov(logGV~delmu.cat*locisigma.cat, data = d_relG_btwn))
+tukey_delmu_pleiorate <- TukeyHSD(aov(logGV~delmu.cat*pleiorate.cat, data = d_relG_btwn))
+tukey_delmu_pleiocov <- TukeyHSD(aov(logGV~delmu.cat*pleiocov.cat, data = d_relG_btwn))
+
+TukeyHSD(aov(logGV~rwide.cat*locisigma.cat, data = d_relG_btwn))
+TukeyHSD(aov(logGV~rwide.cat*pleiorate.cat, data = d_relG_btwn))
+TukeyHSD(aov(logGV~rwide.cat*pleiocov.cat, data = d_relG_btwn))
+
+TukeyHSD(aov(logGV~locisigma.cat*pleiorate.cat, data = d_relG_btwn))
+TukeyHSD(aov(logGV~locisigma.cat*pleiocov.cat, data = d_relG_btwn))
+
+TukeyHSD(aov(logGV~pleiorate.cat*pleiocov.cat, data = d_relG_btwn))
+
+# H0 = variance in logGV is identical across deleterious mutation, recombination rate, pleiotropic rate and covariance, and additive size effect treatments
+# H0 = distributions of logGV are identical across treatments - Kolmogorov-Smirnov test
+
+# Kolmogorov-Smirnov tests for differences between distributions
+
+ks.test(d_relG_btwn$logGV[d_relG_btwn$delmu.cat == sort(unique(d_relG_btwn$delmu.cat))[1]], d_relG_btwn$logGV[d_relG_btwn$delmu.cat == sort(unique(d_relG_btwn$delmu.cat))[8]])
+
+ks.test(d_relG_btwn$logGV[d_relG_btwn$rwide.cat == sort(unique(d_relG_btwn$rwide.cat))[1]], d_relG_btwn$logGV[d_relG_btwn$rwide.cat == sort(unique(d_relG_btwn$rwide.cat))[8]])
+
+ks.test(d_relG_btwn$logGV[d_relG_btwn$pleiocov.cat == sort(unique(d_relG_btwn$pleiocov.cat))[1]], d_relG_btwn$logGV[d_relG_btwn$pleiocov.cat == sort(unique(d_relG_btwn$pleiocov.cat))[8]])
+
+ks.test(d_relG_btwn$logGV[d_relG_btwn$pleiorate.cat == sort(unique(d_relG_btwn$pleiorate.cat))[1]], d_relG_btwn$logGV[d_relG_btwn$pleiorate.cat == sort(unique(d_relG_btwn$pleiorate.cat))[8]])
+
+ks.test(d_relG_btwn$logGV[d_relG_btwn$locisigma.cat == sort(unique(d_relG_btwn$locisigma.cat))[1]], d_relG_btwn$logGV[d_relG_btwn$locisigma.cat == sort(unique(d_relG_btwn$locisigma.cat))[8]])
+
+# Ordinal regression as a non-parametric test to find correlations between models and interactions
+
+library(polr)
+
+
 ##################################################################
 
 # Check that the distributions are normal (otherwise can't use t-test? I think it's pretty resilient to departures from normality)
 
+source("src_plot.R")
+
+
 hist_logGV_btwn_ex_delmu <- ggplot(d_relG_btwn_ex_delmu, aes(x = logGV, fill = delmu.cat)) +
   geom_histogram(color = "blue", alpha = 0.6, position = 'identity') +
+#  geom_line(stat = StatNormalDensity, size = 1) +
   theme_classic() +
   scale_fill_manual(values = c("royalblue", "seagreen2")) +
-  labs(x = "Log generalised variance between groups", fill = "Deleterious mutation rate")
+  labs(x = "Log generalised variance between groups", fill = "\u0394 Deleterious mutation rate")
 
 # # # # # # # # # # # # # # # # #
 
@@ -1072,7 +1127,7 @@ hist_logGV_btwn_ex_pleiocov <- ggplot(d_relG_btwn_ex_pleiocov, aes(x = logGV, fi
   geom_histogram(color = "blue", alpha = 0.6, position = 'identity') +
   theme_classic() +
   scale_fill_manual(values = c("royalblue", "seagreen2")) +
-  labs(x = "Log generalised variance between groups", fill = "Pleiotropic covariance")
+  labs(x = "Log generalised variance between groups", fill = "\u0394 Pleiotropic covariance")
 
 # # # # # # # # # # # # # # # # #
 
@@ -1080,7 +1135,7 @@ hist_logGV_btwn_ex_pleiorate <- ggplot(d_relG_btwn_ex_pleiorate, aes(x = logGV, 
   geom_histogram(color = "blue", alpha = 0.6, position = 'identity') +
   theme_classic() +
   scale_fill_manual(values = c("royalblue", "seagreen2")) +
-  labs(x = "Log generalised variance between groups", fill = "Rate of pleiotropy")
+  labs(x = "Log generalised variance between groups", fill = "\u0394 Rate of pleiotropy")
 
 # # # # # # # # # # # # # # # # #
 
@@ -1088,7 +1143,7 @@ hist_logGV_btwn_ex_rwide <- ggplot(d_relG_btwn_ex_rwide, aes(x = logGV, fill = r
   geom_histogram(color = "blue", alpha = 0.6, position = 'identity') +
   theme_classic() +
   scale_fill_manual(values = c("royalblue", "seagreen2")) +
-  labs(x = "Log generalised variance between groups", fill = "Recombination rate")
+  labs(x = "Log generalised variance between groups", fill = "\u0394 Recombination rate")
 
 # # # # # # # # # # # # # # # # #
 
@@ -1096,7 +1151,7 @@ hist_logGV_btwn_ex_locisigma <- ggplot(d_relG_btwn_ex_locisigma, aes(x = logGV, 
   geom_histogram(color = "blue", alpha = 0.6, position = 'identity') +
   theme_classic() +
   scale_fill_manual(values = c("royalblue", "seagreen2")) +
-  labs(x = "Log generalised variance between groups", fill = "Additive effect size")
+  labs(x = "Log generalised variance between groups", fill = "\u0394 Additive effect size")
 
 
 # The plots all follow the same shape: many more samples for the low differences than the high differences
@@ -1104,6 +1159,60 @@ hist_logGV_btwn_ex_locisigma <- ggplot(d_relG_btwn_ex_locisigma, aes(x = logGV, 
 # it in all cases, with some discrepancies (in pleiorate especially)
 # Since t-tests are robust to departures from normality, this should be fine
 
+# into one image:
+
+library(patchwork)
+
+(hist_logGV_btwn_ex_delmu | hist_logGV_btwn_ex_pleiocov | hist_logGV_btwn_ex_pleiorate) / (hist_logGV_btwn_ex_rwide | hist_logGV_btwn_ex_locisigma)
+
+#########################################################################################
+# Densities
+
+
+dens_logGV_btwn_ex_delmu <- ggplot(d_relG_btwn_ex_delmu, aes(x = logGV, fill = delmu.cat)) +
+  geom_density(color = "blue", alpha = 0.6, position = 'identity') +
+  #  geom_line(stat = StatNormalDensity, size = 1) +
+  theme_classic() +
+  scale_fill_manual(values = c("royalblue", "seagreen2")) +
+  labs(x = "Log generalised variance between groups", fill = "\u0394 Deleterious mutation rate")
+
+# # # # # # # # # # # # # # # # #
+
+dens_logGV_btwn_ex_pleiocov <- ggplot(d_relG_btwn_ex_pleiocov, aes(x = logGV, fill = pleiocov.cat)) +
+  geom_density(color = "blue", alpha = 0.6, position = 'identity') +
+  theme_classic() +
+  scale_fill_manual(values = c("royalblue", "seagreen2")) +
+  labs(x = "Log generalised variance between groups", fill = "\u0394 Pleiotropic covariance")
+
+# # # # # # # # # # # # # # # # #
+
+dens_logGV_btwn_ex_pleiorate <- ggplot(d_relG_btwn_ex_pleiorate, aes(x = logGV, fill = pleiorate.cat)) +
+  geom_density(color = "blue", alpha = 0.6, position = 'identity') +
+  theme_classic() +
+  scale_fill_manual(values = c("royalblue", "seagreen2")) +
+  labs(x = "Log generalised variance between groups", fill = "\u0394 Rate of pleiotropy")
+
+# # # # # # # # # # # # # # # # #
+
+dens_logGV_btwn_ex_rwide <- ggplot(d_relG_btwn_ex_rwide, aes(x = logGV, fill = rwide.cat)) +
+  geom_density(color = "blue", alpha = 0.6, position = 'identity') +
+  theme_classic() +
+  scale_fill_manual(values = c("royalblue", "seagreen2")) +
+  labs(x = "Log generalised variance between groups", fill = "\u0394 Recombination rate")
+
+# # # # # # # # # # # # # # # # #
+
+dens_logGV_btwn_ex_locisigma <- ggplot(d_relG_btwn_ex_locisigma, aes(x = logGV, fill = locisigma.cat)) +
+  geom_density(color = "blue", alpha = 0.6, position = 'identity') +
+  theme_classic() +
+  scale_fill_manual(values = c("royalblue", "seagreen2")) +
+  labs(x = "Log generalised variance between groups", fill = "\u0394 Additive effect size")
+
+
+
+library(patchwork)
+
+(dens_logGV_btwn_ex_delmu | dens_logGV_btwn_ex_pleiocov | dens_logGV_btwn_ex_pleiorate) / (dens_logGV_btwn_ex_rwide | dens_logGV_btwn_ex_locisigma)
 
 
 ############################################################
@@ -1124,12 +1233,27 @@ plot_logGV_btwn_ex_delmu <- ggplot(dplot_relG_btwn_ex_delmu, aes(x = delmu.cat, 
   geom_errorbar(aes(ymin = logGV_groupmean - (1.96*logGV_se), ymax = logGV_groupmean + (1.96*logGV_se)), width = 0.2) +
   theme_classic() +
   theme(legend.position = "none") +
-  labs(x = "Difference in background selection between comparison models", y = "Mean pairwise log generalised variance between models")
+  labs(x = "\u0394 background selection between comparison models", y = "Mean pairwise log generalised variance")
 
-box_logGV_btwn_ex_delmu <- ggplot(d_relG_btwn_ex_delmu, aes(x = delmu.cat, y = logGV)) +
-  geom_boxplot(color = c("maroon", "royalblue"), alpha = 0.6, position = 'identity') +
+box_logGV_btwn_ex_delmu <- ggplot(d_relG_btwn_ex_delmu, aes(x = delmu.cat, y = logGV, fill = delmu.cat)) +
+  geom_violin() +
+  scale_fill_manual(values = c("paleturquoise", "royalblue")) +
+#  geom_boxplot(color = c("lightgrey"), alpha = 0.6, position = 'identity') +
+  geom_errorbar(
+    mapping = 
+      aes(x = delmu.cat,
+          y = logGV_groupmean,
+          group = 1,
+          ymin = (logGV_groupmean - (1.96*logGV_se)), 
+          ymax = (logGV_groupmean + (1.96*logGV_se))
+      ), 
+    width = 0.05, 
+    data = dplot_relG_btwn_ex_delmu, 
+    inherit.aes = FALSE) +
   theme_classic() +
-  labs(x = "Difference between background selection treatments", y = "Log generalised variance between groups")
+  theme(legend.position = "none") +
+  scale_x_discrete(labels = c("Small", "Large")) +
+  labs(x = "\u0394 Background selection", y = "Log generalised variance between groups")
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
@@ -1147,12 +1271,27 @@ plot_logGV_btwn_ex_pleiocov <- ggplot(dplot_relG_btwn_ex_pleiocov, aes(x = pleio
   geom_errorbar(aes(ymin = logGV_groupmean - (1.96*logGV_se), ymax = logGV_groupmean + (1.96*logGV_se)), width = 0.2) +
   theme_classic() +
   theme(legend.position = "none") +
-  labs(x = "Difference in mutational pleiotropic covariance between comparison models", y = "Mean pairwise log generalised variance between models")
+  labs(x = "\u0394 mutational pleiotropic covariance", y = "Mean pairwise log generalised variance")
 
-box_logGV_btwn_ex_pleiocov <- ggplot(d_relG_btwn_ex_pleiocov, aes(x = pleiocov.cat, y = logGV)) +
-  geom_boxplot(color = c("maroon", "royalblue"), alpha = 0.6, position = 'identity') +
+box_logGV_btwn_ex_pleiocov <- ggplot(d_relG_btwn_ex_pleiocov, aes(x = pleiocov.cat, y = logGV, fill = pleiocov.cat)) +
+#  geom_boxplot(color = c("maroon", "royalblue"), alpha = 0.6, position = 'identity') +
+  geom_violin() +
+  scale_fill_manual(values = c("paleturquoise", "royalblue")) +
+  geom_errorbar(
+    mapping = 
+      aes(x = pleiocov.cat,
+          y = logGV_groupmean,
+          group = 1,
+          ymin = (logGV_groupmean - (1.96*logGV_se)), 
+          ymax = (logGV_groupmean + (1.96*logGV_se))
+      ), 
+    width = 0.05, 
+    data = dplot_relG_btwn_ex_pleiocov, 
+    inherit.aes = FALSE) +
   theme_classic() +
-  labs(x = "Difference between mutational pleiotropic covariance treatments", y = "Log generalised variance between groups")
+  theme(legend.position = "none") +
+  scale_x_discrete(labels = c("Small", "Large")) +
+  labs(x = "\u0394 mutational pleiotropic covariance", y = "Log generalised variance between groups")
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 
@@ -1169,12 +1308,27 @@ plot_logGV_btwn_ex_pleiorate <- ggplot(dplot_relG_btwn_ex_pleiorate, aes(x = ple
   geom_errorbar(aes(ymin = logGV_groupmean - (1.96*logGV_se), ymax = logGV_groupmean + (1.96*logGV_se)), width = 0.2) +
   theme_classic() +
   theme(legend.position = "none") +
-  labs(x = "Difference in rate of pleiotropy between comparison models", y = "Mean pairwise log generalised variance between models")
+  labs(x = "\u0394 rate of pleiotropy between comparison models", y = "Mean pairwise log generalised variance")
 
-box_logGV_btwn_ex_pleiorate <- ggplot(d_relG_btwn_ex_pleiorate, aes(x = pleiorate.cat, y = logGV)) +
-  geom_boxplot(color = c("maroon", "royalblue"), alpha = 0.6, position = 'identity') +
+box_logGV_btwn_ex_pleiorate <- ggplot(d_relG_btwn_ex_pleiorate, aes(x = pleiorate.cat, y = logGV, fill = pleiorate.cat)) +
+  geom_violin() +
+  scale_fill_manual(values = c("paleturquoise", "royalblue")) +
+#  geom_boxplot(color = c("maroon", "royalblue"), alpha = 0.6, position = 'identity') +
+  geom_errorbar(
+    mapping = 
+      aes(x = pleiorate.cat,
+          y = logGV_groupmean,
+          group = 1,
+          ymin = (logGV_groupmean - (1.96*logGV_se)), 
+          ymax = (logGV_groupmean + (1.96*logGV_se))
+      ), 
+    width = 0.05, 
+    data = dplot_relG_btwn_ex_pleiorate, 
+    inherit.aes = FALSE) +
   theme_classic() +
-  labs(x = "Difference between pleiotropy rate treatments", y = "Log generalised variance between groups")
+  theme(legend.position = "none") +
+  scale_x_discrete(labels = c("Small", "Large")) +
+  labs(x = "\u0394 pleiotropy rates", y = "Log generalised variance between groups")
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
@@ -1193,12 +1347,28 @@ plot_logGV_btwn_ex_rwide <- ggplot(dplot_relG_btwn_ex_rwide, aes(x = rwide.cat, 
   geom_errorbar(aes(ymin = logGV_groupmean - (1.96*logGV_se), ymax = logGV_groupmean + (1.96*logGV_se)), width = 0.2) +
   theme_classic() +
   theme(legend.position = "none") +
-  labs(x = "Difference in genome-wide recombination rate between comparison models", y = "Mean pairwise log generalised variance between models")
+  labs(x = "\u0394 genome-wide recombination rate between comparison models", y = "Mean pairwise log generalised variance")
 
-box_logGV_btwn_ex_rwide <- ggplot(d_relG_btwn_ex_rwide, aes(x = rwide.cat, y = logGV)) +
-  geom_boxplot(color = c("maroon", "royalblue"), alpha = 0.6, position = 'identity') +
+box_logGV_btwn_ex_rwide <- ggplot() +
+  geom_violin(data = d_relG_btwn_ex_rwide, aes(x = rwide.cat, y = logGV, fill = rwide.cat)) +
+  scale_fill_manual(values = c("paleturquoise", "royalblue")) +
+#  geom_boxplot(color = c("maroon", "royalblue"), alpha = 0.6, position = 'identity') +
+  geom_point(data = dplot_relG_btwn_ex_rwide, aes(x = rwide.cat, y = logGV_groupmean, group = 1)) +
+  geom_errorbar(
+    mapping = 
+      aes(x = rwide.cat,
+          y = logGV_groupmean,
+          group = 1,
+          ymin = (logGV_groupmean - (1.96*logGV_se)), 
+          ymax = (logGV_groupmean + (1.96*logGV_se))
+          ), 
+    width = 0.05, 
+    data = dplot_relG_btwn_ex_rwide, 
+    inherit.aes = FALSE) +
   theme_classic() +
-  labs(x = "Difference between recombination rate treatments", y = "Log generalised variance between groups")
+  theme(legend.position = "none") +
+  scale_x_discrete(labels = c("Small", "Large")) +
+  labs(x = "\u0394 recombination rates", y = "Log generalised variance between groups")
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
@@ -1216,13 +1386,28 @@ plot_logGV_btwn_ex_locisigma <- ggplot(dplot_relG_btwn_ex_locisigma, aes(x = loc
   geom_errorbar(aes(ymin = logGV_groupmean - (1.96*logGV_se), ymax = logGV_groupmean + (1.96*logGV_se)), width = 0.2) +
   theme_classic() +
   theme(legend.position = "none") +
-  labs(x = "Difference in additive effect size variance between comparison models", y = "Mean pairwise log generalised variance between models")
+  labs(x = "\u0394 additive effect size variance between comparison models", y = "Mean pairwise log generalised variance")
 
 
-box_logGV_btwn_ex_locisigma <- ggplot(d_relG_btwn_ex_locisigma, aes(x = locisigma.cat, y = logGV)) +
-  geom_boxplot(color = c("maroon", "royalblue"), alpha = 0.6, position = 'identity') +
+box_logGV_btwn_ex_locisigma <- ggplot(d_relG_btwn_ex_locisigma, aes(x = locisigma.cat, y = logGV, fill = locisigma.cat)) +
+  geom_violin() +
+  scale_fill_manual(values = c("paleturquoise", "royalblue")) +
+#  geom_boxplot(color = c("maroon", "royalblue"), alpha = 0.6, position = 'identity') +
+  geom_errorbar(
+    mapping = 
+      aes(x = locisigma.cat,
+          y = logGV_groupmean,
+          group = 1,
+          ymin = (logGV_groupmean - (1.96*logGV_se)), 
+          ymax = (logGV_groupmean + (1.96*logGV_se))
+      ), 
+    width = 0.05, 
+    data = dplot_relG_btwn_ex_locisigma, 
+    inherit.aes = FALSE) +
   theme_classic() +
-  labs(x = "Difference between additive effect size treatments", y = "Log generalised variance between groups")
+  theme(legend.position = "none") +
+  scale_x_discrete(labels = c("Small", "Large")) +
+  labs(x = "\u0394 additive effect sizes", y = "Log generalised variance between groups")
 
 
 
@@ -1233,6 +1418,23 @@ box_logGV_btwn_ex_locisigma <- ggplot(d_relG_btwn_ex_locisigma, aes(x = locisigm
 # Means that as you compare models that are more different in rwide treatment, they become more similar
 # Could be because increasing recombination reduces the size of haploblocks, increasing redundancy, so the difference 
 # between models is reduced because recombination is creating more avenues to reach the same resulting variance structure
+
+
+#################################################################
+
+# Combine all the violin plots into a single figure with patchwork
+
+library(patchwork)
+
+(box_logGV_btwn_ex_delmu | box_logGV_btwn_ex_pleiocov | box_logGV_btwn_ex_pleiorate) / (box_logGV_btwn_ex_rwide | box_logGV_btwn_ex_locisigma)
+
+# And the mean histograms
+
+(plot_logGV_btwn_ex_delmu | plot_logGV_btwn_ex_pleiocov | plot_logGV_btwn_ex_pleiorate) / (plot_logGV_btwn_ex_rwide | plot_logGV_btwn_ex_locisigma)
+
+
+#################################################################
+
 
 
 

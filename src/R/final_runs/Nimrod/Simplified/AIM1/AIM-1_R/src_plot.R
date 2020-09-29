@@ -32,3 +32,22 @@ plot_G_ellipse = function (dat, ids) {
     theme(legend.position = "none") +
     labs(x = xlabel, y = column)
 }
+
+# GGplot proto for plotting density curves
+# Thanks to: https://github.com/tidyverse/ggplot2/issues/3362
+
+library(ggplot2)
+StatNormalDensity <- ggproto(
+  "StatNormalDensity", Stat,
+  required_aes = "x",
+  default_aes = aes(y = stat(y)),
+  
+  compute_group = function(data, scales, xlim = NULL, n = 101) {
+    mean_value <- mean(data$x)
+    sd_value <- sd(data$x)
+    fun <- function(x) dnorm(x, mean = mean_value, sd = sd_value)
+    StatFunction$compute_group(data, scales, fun = fun, xlim = xlim, n = n)
+  }
+)
+
+
