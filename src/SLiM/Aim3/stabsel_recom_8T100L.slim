@@ -550,7 +550,7 @@ mutation(m2) {
 }
 
 // Output and phenotype calculation : We get the phenotypes at the end of burn-in as well for model 2
-50000:150000 late() {
+50001:150000 late() {
 	
 	// For each individual, grab the mutation effects and store them as a phenotype value for each phenotype, summing the effects of m3, m4, and/or, m5. This is additive!
 	
@@ -694,8 +694,11 @@ mutation(m2) {
 	
 	phenocor = paste(phenocor, ",");
 	
+	meanH = paste(subpopHeterozygosity(p1, Ne), ",");
+
+	
 	// Stick those values in the output, along with predictors - there are a lot of predictors now... do we replace them all with modelindex aside from seed?
-	meanline = paste(c(sim.generation, ",", asString(seed), ",", modelindex, ",", rsd, ",", rwide, ",", delmu, ",", tau, ",", paste(pleio_covs, ","), ",",  paste(phenomeans, ","), ",", paste(phenovars, ","), ",", phenocov, ",", phenocor, ""), "");
+	meanline = paste(c(sim.generation, ",", asString(seed), ",", modelindex, ",", rsd, ",", rwide, ",", delmu, ",", tau, ",", paste(pleio_covs, ","), ",",  paste(phenomeans, ","), ",", paste(phenovars, ","), ",", phenocov, ",", phenocor, ",", meanH ""), "");
 	file = paste(meanline, "");
 	
 	// Write the file

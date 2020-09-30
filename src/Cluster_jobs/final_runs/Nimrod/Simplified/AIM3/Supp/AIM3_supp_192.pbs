@@ -1,0 +1,24 @@
+#!/bin/bash -l
+#PBS -q workq
+#PBS -A qris-uq
+#PBS -N slim_supp_192
+#PBS -l walltime=24:00:00
+#PBS -l select=1:ncpus=24:mem=120G
+
+cd $TMPDIR
+
+
+module load R/3.5.0
+
+R --file=/home/$USER/SLiM/Scripts/Nimrod/Final/AIM3/R/AIM3_supp_unix_192.R
+
+
+cat /${TMPDIR}/out_8T_stabsel_means.csv >> /30days/${USER}/out_8T_stabsel_means_192.csv
+
+cat /${TMPDIR}/out_8T_stabsel_muts.csv >> /30days/${USER}/out_8T_stabsel_muts_192.csv
+
+cat /${TMPDIR}/out_8T_stabsel_chr.csv >> /30days/${USER}/out_8T_stabsel_chr_192.csv
+
+cat /${TMPDIR}/out_8T_stabsel_burnin.csv >> /30days/${USER}/out_8T_stabsel_burnin_192.csv
+
+cat /${TMPDIR}/out_8T_stabsel_opt.csv >> /30days/${USER}/out_8T_stabsel_opt_192.csv

@@ -593,16 +593,168 @@ vars_null_delmu$rwide <- d_null$rwide
 # are functionally identical
 # Pairwise comparisons between extreme groups (e.g. max and min bins of delmu)
 
+lm_area_El <- lm(area ~ (delmu + pleiocov + pleiorate + locisigma + rwide)^2, data = d_G_El)
+aov_area_El <- aov(area ~ (delmu.cat + pleiocov.cat + pleiorate.cat + locisigma.cat + rwide.cat)^2, data = d_G_El)
+
+summary(lm_area_El)
+summary.aov(aov_area_El)
 
 
+lm_ratio_El <- lm(ratio ~ (delmu + pleiocov + pleiorate + locisigma + rwide)^2, data = d_G_El)
+aov_ratio_El <- aov(ratio ~ (delmu.cat + pleiocov.cat + pleiorate.cat + locisigma.cat + rwide.cat)^2, data = d_G_El)
+
+summary(lm_ratio_El)
+summary.aov(aov_ratio_El)
 
 
+lm_angle_El <- lm(theta ~ (delmu + pleiocov + pleiorate + locisigma + rwide)^2, data = d_G_El)
+aov_angle_El <- aov(theta ~ (delmu.cat + pleiocov.cat + pleiorate.cat + locisigma.cat + rwide.cat)^2, data = d_G_El)
+
+summary(lm_angle_El)
+summary.aov(aov_angle_El)
 
 
+# Manova between the three
+
+man_El <- manova(cbind(area, ratio, theta) ~ (delmu.cat + pleiocov.cat + pleiorate.cat + locisigma.cat + rwide.cat)^2, data = d_G_El) 
+
+summary.aov(man_El)
+
+# Results are identical
+
+# # # # # # # # # # # # # # # # #
 
 
+# Tests for linear model reliability
+library(jtools)
+library(ggstance) # for plot_summs()
+library(broom.mixed) # also for plot_summs()
+library(sandwich)
 
 
+# Statistical tests for heterozygosity
+
+d_null_het <- d_null_big[,c(1:3, 5:10, 111)]
+
+d_null_het$pleiocov.cat <- cut(d_null_het$pleiocov, breaks = 8)
+d_null_het$pleiorate.cat <- cut(d_null_het$pleiorate, breaks = 8)
+d_null_het$rwide.cat <- cut(d_null_het$rwide, breaks = 8)
+d_null_het$locisigma.cat <- cut(d_null_het$locisigma, breaks = 8)
+d_null_het$delmu2 <- d_null_het$delmu^2 # For quadratic model
+
+
+lm_het <- lm(H ~ (delmu + pleiocov + pleiorate + locisigma + rwide)^2 , data = d_null_het)
+aov_het <- aov(H ~ (delmu.cat + pleiocov.cat + pleiorate.cat + locisigma.cat + rwide.cat)^2, data = d_null_het)
+
+summary(lm_het)
+summary.aov(aov_het)
+
+"
+Call:
+  lm(formula = H ~ (delmu + pleiocov + pleiorate + locisigma + 
+                      rwide)^2, data = d_null_het)
+
+Residuals:
+  Min        1Q    Median        3Q       Max 
+-0.128133 -0.011488 -0.000919  0.011124  0.150971 
+
+Coefficients:
+  Estimate Std. Error  t value Pr(>|t|)    
+(Intercept)          2.044e-01  5.902e-04  346.323  < 2e-16 ***
+  delmu               -1.371e-01  7.108e-04 -192.932  < 2e-16 ***
+  pleiocov             2.706e-03  1.433e-03    1.889 0.058933 .  
+pleiorate            1.198e-02  1.424e-03    8.413  < 2e-16 ***
+  locisigma            2.194e-04  7.195e-05    3.049 0.002298 ** 
+  rwide                1.555e+02  5.755e+00   27.016  < 2e-16 ***
+  delmu:pleiocov      -1.376e-03  1.348e-03   -1.021 0.307466    
+delmu:pleiorate     -1.011e-02  1.357e-03   -7.447 9.64e-14 ***
+  delmu:locisigma      5.695e-05  6.822e-05    0.835 0.403825    
+delmu:rwide          1.229e+02  5.522e+00   22.263  < 2e-16 ***
+  pleiocov:pleiorate  -1.159e-02  2.717e-03   -4.266 1.99e-05 ***
+  pleiocov:locisigma  -3.566e-04  1.369e-04   -2.604 0.009211 ** 
+  pleiocov:rwide       5.444e+01  1.108e+01    4.912 9.01e-07 ***
+  pleiorate:locisigma -5.075e-04  1.380e-04   -3.676 0.000237 ***
+  pleiorate:rwide     -1.070e+00  1.094e+01   -0.098 0.922086    
+locisigma:rwide     -4.978e-01  5.562e-01   -0.895 0.370842    
+---
+  Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.01843 on 102384 degrees of freedom
+Multiple R-squared:  0.8174,	Adjusted R-squared:  0.8174 
+F-statistic: 3.055e+04 on 15 and 102384 DF,  p-value: < 2.2e-16
+"
+# delmu:rwide the effect of deleterious mutation on heterozygosity increases by 122.9 for every unit increase of recombination.
+# E.g. at recombination = 0, delmu changes H by -0.1371, at a rwide of 1e-4, this becomes: -0.1371 + 122.9*0.0001 = -0.12481
+# So the effect of rwide is to relieve some of the impact of background selection on H.
+
+# pleiocov:rwide the effect of mutational covariance between trait effects from a pleiotropic mutation on heterozygosity 
+# increases by 54.44 for every unit increase of recombination.
+# E.g. By itself, pleiocov doesn't change H (not significant), however when some level of recombination occurs, 
+# pleicov alters the effect rwide has on H. At a pleiocov of 0.25, the slope becomes: 155.5 + 54.44*0.25 = 169.11
+# So the effect of pleiocov on rwide is to increase heterozygosity more than just rwide by itself would: by increasing pleiotropy,
+# mutations become different in 8 dimensions rather than just 1 (between 8 traits). Not sure this makes much sense? 
+# Heterozygosity is related to the mutation, pleiotropy related to the traits
+
+# I think for heterozygosity the only two that make sense to look at are delmu and rwide, the others are trait affecting parameters,
+# but nothing to do with the distribution of mutation objects themselves
+
+
+plot_summs(lm_het, scale = T, plot.distributions = T)
+plot_summs(lm_het, coefs = c("delmu"), robust = "HC3", plot.distributions = TRUE, scale = F, rescale.distributions = T)
+
+# Variance and covariance multiple regression
+
+d_null_var <- d_null_big[,c(1:3, 5:10, 47)]
+d_null_cov <- d_null_big[,c(1:3, 5:10, 55)]
+
+
+lm_var <- lm(var0 ~ (delmu + pleiocov + pleiorate + locisigma + rwide)^2 , data = d_null_var)
+summary(lm_var)
+"
+Call:
+lm(formula = var0 ~ (delmu + pleiocov + pleiorate + locisigma + 
+    rwide)^2, data = d_null_var)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-1024.7  -103.0    -4.7    65.1  5603.3 
+
+Coefficients:
+                      Estimate Std. Error  t value Pr(>|t|)    
+(Intercept)         -3.275e+02  6.664e+00  -49.143  < 2e-16 ***
+delmu                2.801e+02  8.026e+00   34.892  < 2e-16 ***
+pleiocov            -2.319e+01  1.618e+01   -1.434  0.15159    
+pleiorate            3.320e+02  1.607e+01   20.656  < 2e-16 ***
+locisigma            1.925e+02  8.124e-01  236.939  < 2e-16 ***
+rwide               -3.570e+05  6.498e+04   -5.494 3.94e-08 ***
+delmu:pleiocov      -2.814e+00  1.522e+01   -0.185  0.85336    
+delmu:pleiorate     -2.080e+02  1.532e+01  -13.574  < 2e-16 ***
+delmu:locisigma     -1.732e+02  7.703e-01 -224.789  < 2e-16 ***
+delmu:rwide          1.430e+05  6.235e+04    2.294  0.02177 *  
+pleiocov:pleiorate   7.088e+00  3.068e+01    0.231  0.81729    
+pleiocov:locisigma   3.219e-01  1.546e+00    0.208  0.83510    
+pleiocov:rwide       4.094e+05  1.251e+05    3.272  0.00107 ** 
+pleiorate:locisigma -2.689e+01  1.559e+00  -17.255  < 2e-16 ***
+pleiorate:rwide     -1.550e+05  1.235e+05   -1.254  0.20967    
+locisigma:rwide      1.549e+05  6.281e+03   24.662  < 2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 208.1 on 102384 degrees of freedom
+Multiple R-squared:  0.7769,	Adjusted R-squared:  0.7769 
+F-statistic: 2.377e+04 on 15 and 102384 DF,  p-value: < 2.2e-16"
+
+effect_plot(lm_var, pred = pleiocov, interval = TRUE, plot.points = FALSE)
+
+
+plot(delmu ~ var0, data = d_null_var)
+abline(lm_var, col = "red")
+
+lm_cov <- lm(phenocov_01 ~ (delmu + pleiocov + pleiorate + locisigma + rwide)^2 , data = d_null_cov)
+summary(lm_cov)
+
+library(car)
+qqPlot(lm_var)
 
 
 #######################################################################
@@ -971,10 +1123,15 @@ plot_logGV_btwn_locisigma <- ggplot(dplot_relG_btwn_locisigma, aes(x = locisigma
   labs(x = "Difference in additive effect size variance between comparison models", y = "Mean pairwise log generalised variance within groups")
 
 
-
+library(car)
 # Linear model of deleterious mutation, log generalised variance
 lm_logGV_btwn <- lm(logGV ~ (delmudiff + pleioratediff + pleiocovdiff + rwidediff + locisigmadiff)^2, d_relG_btwn)
+aov_logGV_btwn <- aov(logGV ~ (delmudiff + pleioratediff + pleiocovdiff + rwidediff + locisigmadiff)^2, d_relG_btwn)
+anova_logGV_btwn <- anova(lm_logGV_btwn)
 summary(lm_logGV_btwn)
+summary(aov_logGV_btwn)
+anova_logGV_btwn
+HSDdiffs_btwn <- TukeyHSD(aov_logGV_btwn)
 
 "
 Call:
@@ -1021,6 +1178,7 @@ qqline(d_relG_btwn$logGV, col = "steelblue", lwd=2)
 par(mfrow = c(2,2))
 plot(lm_logGV_btwn)
 # heteroscedasticity is good though
+
 
 
 # To make sense of any of this: ignore everything except for two bins - will have to bin into separate data frames I think

@@ -133,3 +133,71 @@ for (i in seq_along(modseeds$models)) {
 # Will have to run these model indexes and seeds again because why not, sounds like good fun
 
 write.csv(id, "AIM3_supp_combos.csv")
+
+
+
+################################################################################
+#          It also didn't do 15 of the runs on AIM3_final_192.nsh              #            
+#      Now I have to find what the runs were so I can rerun them manually      #
+################################################################################
+
+# Import data
+sel_chr192 <- read.csv("F:/Uni/AIM3/OUTPUT/out_8T_stabsel_chr_192.csv", header = F)
+sel_chr192 <- read.csv("/mnt/f/Uni/AIM3/OUTPUT/out_8T_stabsel_chr_192.csv", header = F)
+
+
+names(sel_chr192)[1:2] <- c("modelindex", "seed")
+
+length(unique(sel_chr192$modelindex)) # We've got all the models and seeds, just not all combinations
+length(unique(sel_chr192$seed))
+
+# Chop the dataframe to something more manageable, we only need seeds and models
+# Then identify which models and seeds have stuff missing
+sel_chr192 <- sel_chr192[c(1:2)]
+library(plyr)
+models <- count(sel_chr192$modelindex)
+models <- models$x[models$freq < 100] # Which models have been repeated less than 100 times (there are 100 seeds)?
+seeds <- count(sel_chr192$seed)
+seeds <- seeds[seeds$freq < 16,]$x # which seeds have been repeated less than 16 times (there are 16 models)?
+modseeds <- crossing(models, seeds)
+
+# Set up new frame to store our 24 rogue combinations in
+id <- data.frame(model = 1, seed = 1)
+
+# For each combination of model and seed, figure out which combinations don't have an entry in sel_chr112, then
+# put them in id
+for (i in seq_along(modseeds$models)) {
+  if (nrow(subset(sel_chr192, modelindex == modseeds$models[i] & seed == modseeds$seeds[i])) != 1) {
+    missing_new <- data.frame(model = modseeds$models[i], seed = modseeds$seeds[i])
+    id <- rbind(id, missing_new)
+  }
+}
+
+#> id
+#model       seed
+#1      1          1 Ignore this
+#2    177 2977044203
+#3    178  123933562
+#4    178  283359780
+#5    185  123933562
+#6    185  988320027
+#7    188  123933562
+#8    188  158549267
+#9    190  124345883
+#10   190  440086838
+#11   190  916659413
+#12   190 1062596789
+#13   190 2095433836
+#14   190 2456740393
+#15   190 2886618128
+#16   192  988320027
+
+id <- id[-1,] # remove the first one
+rownames(id) <- NULL # rename rows so we start with 1 not 2
+
+# Will have to run these model indexes and seeds again because why not, sounds like good fun
+
+write.csv(id, "AIM3_supp_combos_192.csv")
+
+
+

@@ -1,4 +1,4 @@
-source("src_G_mat.R")
+source("../../AIM1/AIM-1_R/src_G_mat.R")
 
 # Set the seed
 
@@ -8,51 +8,54 @@ set.seed(873662137) # sampled using sample(1:2147483647, 1)
 
 # Big files: data.table::use fread()
 
+# Forgot to put heterozygosity into the selection output - was only present in the burn-in. As a result, can't compare it
+# Also there was a duplicate line from gen 50,000 burn in (which did contain the heterozygosity), and gen 50,000 actual model
+# So had to remove the first line to get rid of that, hence means_minusone folder (sed -i '1~202d' out_8T_stabsel_means_*)
 
-d_sel <- data.table::fread("F:/Uni/AIM3/OUTPUT/out_8T_stabsel_means_c.csv", header = F, integer64="character")
+d_sel <- data.table::fread("F:/Uni/AIM3/OUTPUT/means_minusone/out_8T_stabsel_means_c.csv", header = F, integer64="character")
 
 # Linux version
 
-d_sel <- data.table::fread("/mnt/f/Uni/AIM1/OUTPUT/out_8T_stabsel_means_c.csv", header = F, integer64="character")
+d_sel <- data.table::fread("/mnt/f/Uni/AIM3/OUTPUT/means_minusone/out_8T_stabsel_means_c.csv", header = F, integer64="character")
 
+d_sel <- read.csv("/mnt/f/Uni/AIM3/OUTPUT/out_8T_stabsel_means_c.csv", header = F)
 
+# Remove rows that don't have NAs
 
+d_sel <- d_sel[!(!is.na(d_sel$V108)),] 
 
-names(d_sel)[1:6] <- c("gen", "seed", "modelindex", "rsd", "rwide", "delmu")
+names(d_sel)[1:7] <- c("gen", "seed", "modelindex", "rsd", "rwide", "delmu", "tau")
 # d_null$seed <- as.factor(d_null$seed)
 
-names(d_sel)[7:34] <-  c(paste0("pleiocov_0", 1:7), paste0("pleiocov_1", 2:7), paste0("pleiocov_2", 3:7), paste0("pleiocov_3", 4:7), paste0("pleiocov_4", 5:7), paste0("pleiocov_5", 6:7), paste0("pleiocov_6", 7))
+names(d_sel)[8:35] <-  c(paste0("pleiocov_0", 1:7), paste0("pleiocov_1", 2:7), paste0("pleiocov_2", 3:7), paste0("pleiocov_3", 4:7), paste0("pleiocov_4", 5:7), paste0("pleiocov_5", 6:7), paste0("pleiocov_6", 7))
 
-names(d_sel)[35:42] <- paste0("mean", 0:7)
+names(d_sel)[36:43] <- paste0("mean", 0:7)
 
-names(d_sel)[43:50] <- paste0("var", 0:7)
+names(d_sel)[44:51] <- paste0("var", 0:7)
 
-names(d_sel)[51:78] <- c(paste0("phenocov_0", 1:7), paste0("phenocov_1", 2:7), paste0("phenocov_2", 3:7), paste0("phenocov_3", 4:7), paste0("phenocov_4", 5:7), paste0("phenocov_5", 6:7), paste0("phenocov_6", 7))
+names(d_sel)[52:79] <- c(paste0("phenocov_0", 1:7), paste0("phenocov_1", 2:7), paste0("phenocov_2", 3:7), paste0("phenocov_3", 4:7), paste0("phenocov_4", 5:7), paste0("phenocov_5", 6:7), paste0("phenocov_6", 7))
 
-names(d_sel)[79:106] <- c(paste0("phenocor_0", 1:7), paste0("phenocor_1", 2:7), paste0("phenocor_2", 3:7), paste0("phenocor_3", 4:7), paste0("phenocor_4", 5:7), paste0("phenocor_5", 6:7), paste0("phenocor_6", 7))
-
-names(d_sel)[107] <- "H"
+names(d_sel)[80:107] <- c(paste0("phenocor_0", 1:7), paste0("phenocor_1", 2:7), paste0("phenocor_2", 3:7), paste0("phenocor_3", 4:7), paste0("phenocor_4", 5:7), paste0("phenocor_5", 6:7), paste0("phenocor_6", 7))
 
 
-d_sel <- d_sel[d_sel$gen == 150000] # Only deal with final timepoint
+
+d_sel <- d_sel[d_sel$gen == 150000,] # Only deal with final timepoint
 
 # Order by modelindex and add on missing predictors from the lscombos dataframe
-d_sel <- d_sel[order(modelindex),]
+d_sel <- d_sel[order(d_sel$modelindex),]
 
 # Add actual pleiocov line (value from the latin hypercube)
 ls_combos <- read.csv("Z:/Documents/GitHub/Genetic-Architecture-in-SLiM/src/R/pilot_runs/Pilot_Project/lscombos_sel.csv")
 
 # Linux version
-ls_combos <- read.csv("/mnt/z/Documents/GitHub/Genetic-Architecture-in-SLiM/src/R/pilot_runs/Pilot_Project/lscombos_sel.csv")
+ls_combos <- read.csv("/mnt/z/Documents/GitHub/Genetic-Architecture-in-SLiM/src/Cluster_jobs/final_runs/Nimrod/Simplified/AIM3/lscombos_sel.csv")
 
+for (i in 1:nrow(d_sel)) {
+  d_sel$pleiocov[i] <- ls_combos[1:192,]$pleiocov[d_sel$modelindex[i]]
+  d_sel$pleiorate[i] <- ls_combos[1:192,]$pleiorate[d_sel$modelindex[i]]
+}
 
-d_sel$pleiocov <- rep(ls_combos[1:256,]$pleiocov, each = 100) # Repeat each by 100 seeds
-d_sel$locisigma <- rep(ls_combos[1:256,]$locisigma, each = 100)
-d_sel$pleiorate <- rep(ls_combos[1:256,]$pleiorate, each = 100)
-
-# Order predictors to front of data frame for clarity
-
-d_sel <- d_sel[,c(1:6, 108:109, 111, 110, 7:107)]
+d_sel <- d_sel[c(1:7, 108:109, 8:107)]
 
 
 # Cut delmu into a categorical variable: have to do this to average out effects of other parameters, which are approximately uniformally distributed in any given bin of delmu
@@ -69,14 +72,14 @@ library(tidyverse)
 
 
 # Get means and standard errors of data for plotting variance
-dplot_sel_cat <- d_sel[,c(5:6, 8:9, 47:82, 111)] %>%
+dplot_sel_cat <- d_sel[,c(5:9, 46:81)] %>%
   group_by(delmu.cat) %>% # Need bins for the other predictors as well
   summarise_all(list(groupmean = mean, se = std.error))
 
 
 # Continuous data - for JMP preliminary visualisation
 
-dplot_sel <- d_sel[,c(3, 5:8, 10, 47:82, 111)] %>%
+dplot_sel <- d_sel[,c(3, 5:8, 10, 46:81)] %>%
   group_by(modelindex, delmu, rwide, pleiocov, pleiorate, locisigma) %>%
   summarise_all(list(groupmean = mean, se = std.error))
 
@@ -88,7 +91,7 @@ write.table(dplot_sel, "d_means_sel.csv", sep = ",", row.names = F)
 # Plot trait variances: how background selection affects populations within traits
 
 
-source("src_plot.R") # Import plot_data_line() to plot line graphs
+source("../../AIM1/AIM-1_R/src_plot.R") # Import plot_data_line() to plot line graphs
 
 var_sel_plots <- lapply(colnames(dplot_sel_cat[2:9]), plot_data_line, data = dplot_sel_cat, 
                     x_dat = colnames(dplot_sel_cat[1]),
@@ -114,9 +117,10 @@ het_sel_plot <-  ggplot(dplot_sel_cat, aes(x = delmu.cat, y = H_groupmean, group
   labs(x = "Background selection", y = "Genome-wide heterozygosity")
 
 # Get output in form that dat_to_mat expects: 39 variables, replacing modelindex with delmu for this case
-d_sel_mat <- d_sel[,c(1:2, 6, 47:82)]
+# gen, seed, some predictor, variances and covariances
+d_sel_mat <- d_sel[,c(1:2, 6, 46:81)]
 
-source("src_G_mat.R")
+source("../../AIM1/AIM-1_R/src_G_mat.R")
 
 # Get population means for each trait, trait 0 to trait 7 (or 1 to 8)
 means_sel_delmu <- d_null[,c(1:2, 6, 39:46)]
@@ -507,7 +511,7 @@ plot_GEllipse_sel_rwide <- ggplot() +
 # relGV.multi() - calculates log variance ratios between each group
 # Will do on bins: yet another list of lists: sorted by bin first then seed, then can do relGV.multi() on the array
 
-source("src_G_mat.R")
+source("../../AIM1/AIM-1_R/src_G_mat.R")
 d_sel_mat_delmu <- d_sel_mat
 
 G_relGV_sel_btwn_delmu <- MCmat_gen(d_sel_mat_delmu, d_sel_mat_delmu$delmu, 4) # In this one, we run the regular function for nesting in order gen -> seed -> model
@@ -999,7 +1003,7 @@ box_logGV_btwn_ex_locisigma <- ggplot(d_relG_sel_btwn_ex_locisigma, aes(x = loci
 
 # Distance from optimum - Euclidean distance in 8D space
 
-source("src_G_mat.R")
+source("../../AIM1/AIM-1_R/src_G_mat.R")
 
 # Import optima
 
