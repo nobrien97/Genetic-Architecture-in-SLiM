@@ -642,8 +642,15 @@ d_null_het$rwide.cat <- cut(d_null_het$rwide, breaks = 8)
 d_null_het$locisigma.cat <- cut(d_null_het$locisigma, breaks = 8)
 d_null_het$delmu2 <- d_null_het$delmu^2 # For quadratic model
 
+library(BBmisc) # normalise data function
 
-lm_het <- lm(H ~ (delmu + pleiocov + pleiorate + locisigma + rwide)^2 , data = d_null_het)
+d_null_het_norm <- cbind(d_null_het[c(1:3)], normalize(d_null_het[-c(1:3, 10)], method = "range"), d_null_het[10])
+d_null_het_norm$seed <- factor(d_null_het_norm$seed)
+
+library(nlme)
+
+
+lm_het <- lme(H ~ (delmu + pleiocov + pleiorate + locisigma + rwide)^2, random = ~1|seed , data = d_null_het_norm)
 aov_het <- aov(H ~ (delmu.cat + pleiocov.cat + pleiorate.cat + locisigma.cat + rwide.cat)^2, data = d_null_het)
 
 summary(lm_het)
@@ -705,10 +712,28 @@ plot_summs(lm_het, coefs = c("delmu"), robust = "HC3", plot.distributions = TRUE
 # Variance and covariance multiple regression
 
 d_null_var <- d_null_big[,c(1:3, 5:10, 47)]
+d_null_var$seed <- factor(d_null_var$seed)
 d_null_cov <- d_null_big[,c(1:3, 5:10, 55)]
 
 
-lm_var <- lm(var0 ~ (delmu + pleiocov + pleiorate + locisigma + rwide)^2 , data = d_null_var)
+d_null_var$pleiocov.cat <- cut(d_null_var$pleiocov, breaks = 8)
+d_null_var$pleiorate.cat <- cut(d_null_var$pleiorate, breaks = 8)
+d_null_var$rwide.cat <- cut(d_null_var$rwide, breaks = 8)
+d_null_var$locisigma.cat <- cut(d_null_var$locisigma, breaks = 8)
+
+library(BBmisc)
+d_null_var_norm <- cbind(d_null_var[c(1:3)], normalize(d_null_var[-c(1:3, 10)], method = "range"), d_null_var[10])
+d_null_var_norm$seed <- factor(d_null_var_norm$seed)
+
+
+lm_var <- lme(var0 ~ delmu.cat + pleiorate.cat + locisigma.cat + rwide.cat + 
+              (delmu.cat * rwide.cat) + (delmu * pleiorate) + (delmu * locisigma) +
+              (rwide * pleiorate) + (rwide * locisigma) +
+                (locisigma * pleiorate), 
+              random = ~1|seed , data = d_null_var_norm)
+
+lm_var <- lm(var0 ~ (delmu.cat + pleiorate.cat + locisigma.cat + rwide.cat)^2, data = d_null_var_norm)
+
 summary(lm_var)
 "
 Call:
@@ -1216,6 +1241,20 @@ t.test(logGV ~ locisigma.cat, data = d_relG_btwn_ex_locisigma)
 
 
 # ANOVA looking for interactions
+
+# Split the data into three groups: we only care about the furthest two, middle can just be massive
+# will reduce comparisons
+
+d_relG_btwn_aov <- d_relG_btwn
+d_relG_btwn_aov$delmu.cat <- cut(d_relG_btwn_aov$delmudiff, breaks = c(0.0, 0.125, 0.875, 1.0))
+d_relG_btwn_aov$rwide.cat <- cut(d_relG_btwn_aov$rwidediff, breaks = c(0.0, 2.14e-05, 0.000104, 0.000117))
+d_relG_btwn_aov$pleiocov.cat <- cut(d_relG_btwn_aov$pleiocovdiff, breaks = c(0.0, 0.0859, 0.415, 0.5))
+d_relG_btwn_aov$pleiorate.cat <- cut(d_relG_btwn_aov$pleioratediff, breaks = c(0.0, 0.078, 0.409, 0.5))
+d_relG_btwn_aov$locisigma.cat <- cut(d_relG_btwn_aov$locisigmadiff, breaks = c(0.1, 1.58, 8.25, 10))
+
+lm_logGV_cat_btwn <- lm(logGV ~ (delmu.cat + pleiocov.cat + pleiorate.cat + rwide.cat + locisigma.cat), data = d_relG_btwn_aov)
+summary(lm_logGV_cat_btwn)
+
 
 summary(aov(logGV~delmu.cat*rwide.cat, data = d_relG_btwn))
 summary(aov(logGV~delmu.cat*locisigma.cat, data = d_relG_btwn))

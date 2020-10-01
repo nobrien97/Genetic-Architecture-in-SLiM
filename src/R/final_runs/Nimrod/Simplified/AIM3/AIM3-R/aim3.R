@@ -16,7 +16,7 @@ d_sel <- data.table::fread("F:/Uni/AIM3/OUTPUT/means_minusone/out_8T_stabsel_mea
 
 # Linux version
 
-d_sel <- data.table::fread("/mnt/f/Uni/AIM3/OUTPUT/means_minusone/out_8T_stabsel_means_c.csv", header = F, integer64="character")
+d_sel <- data.table::fread("/mnt/f/Uni/AIM3/OUTPUT/means_minusone/out_8T_stabsel_means_c.csv", header = F, integer64="character", select = c(1:107))
 
 d_sel <- read.csv("/mnt/f/Uni/AIM3/OUTPUT/out_8T_stabsel_means_c.csv", header = F)
 
@@ -53,7 +53,13 @@ ls_combos <- read.csv("/mnt/z/Documents/GitHub/Genetic-Architecture-in-SLiM/src/
 for (i in 1:nrow(d_sel)) {
   d_sel$pleiocov[i] <- ls_combos[1:192,]$pleiocov[d_sel$modelindex[i]]
   d_sel$pleiorate[i] <- ls_combos[1:192,]$pleiorate[d_sel$modelindex[i]]
+  d_sel$locisigma[i] <- ls_combos[1:192,]$locisigma[d_sel$modelindex[i]]
+  
 }
+
+d_sel$pleiocov <- rep(ls_combos[1:192,]$pleiocov, each = 100) # Repeat each by 100 seeds
+d_sel$locisigma <- rep(ls_combos[1:192,]$locisigma, each = 100)
+d_sel$pleiorate <- rep(ls_combos[1:192,]$pleiorate, each = 100)
 
 d_sel <- d_sel[c(1:7, 108:109, 8:107)]
 
