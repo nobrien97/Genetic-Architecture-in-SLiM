@@ -572,6 +572,16 @@ plot_GEllipse_rwide <- ggplot() +
   ggtitle("Effect of genome-wide recombination rate on Gmax and G2 for two traits")
 
 
+# Combine graphs
+library(patchwork)
+
+(plot_GEllipse_delmu | plot_GEllipse_pleiocov) / (plot_GEllipse_pleiorate) / (plot_GEllipse_rwide | plot_GEllipse_locisigma)
+
+
+
+
+
+
 # Do the same with means and variance data frames, drawing plots of variance
 vars_null_delmu <- arrange(vars_null_delmu, seed, delmu)
 means_null_delmu <- arrange(means_null_delmu, seed, delmu)
@@ -586,43 +596,113 @@ vars_null_delmu$pleiorate <- d_null$pleiorate
 vars_null_delmu$locisigma <- d_null$locisigma
 vars_null_delmu$rwide <- d_null$rwide
 
-###########################################################################
+##############################################################################################################################################################
+##############################################################################################################################################################
+##############################################################################################################################################################
 
-# Statisical tests for ellipses: can look at ratio and area for a general indicator of the directions of variation in
-# two dimensional space: this may give a good approximation of the total space of the trait space, since our traits
-# are functionally identical
-# Pairwise comparisons between extreme groups (e.g. max and min bins of delmu)
+############################################################# Analysis #######################################################################################
 
-lm_area_El <- lm(area ~ (delmu + pleiocov + pleiorate + locisigma + rwide)^2, data = d_G_El)
-aov_area_El <- aov(area ~ (delmu.cat + pleiocov.cat + pleiorate.cat + locisigma.cat + rwide.cat)^2, data = d_G_El)
+# Pairwise comparisons between extreme groups for tau low, medium, high
+# ANOVA, followed by Tukey HSD - ignore all comparisons except for those between extremes
 
-summary(lm_area_El)
-summary.aov(aov_area_El)
-
-
-lm_ratio_El <- lm(ratio ~ (delmu + pleiocov + pleiorate + locisigma + rwide)^2, data = d_G_El)
-aov_ratio_El <- aov(ratio ~ (delmu.cat + pleiocov.cat + pleiorate.cat + locisigma.cat + rwide.cat)^2, data = d_G_El)
-
-summary(lm_ratio_El)
-summary.aov(aov_ratio_El)
-
-
-lm_angle_El <- lm(theta ~ (delmu + pleiocov + pleiorate + locisigma + rwide)^2, data = d_G_El)
-aov_angle_El <- aov(theta ~ (delmu.cat + pleiocov.cat + pleiorate.cat + locisigma.cat + rwide.cat)^2, data = d_G_El)
-
-summary(lm_angle_El)
-summary.aov(aov_angle_El)
-
-
-# Manova between the three
-
-man_El <- manova(cbind(area, ratio, theta) ~ (delmu.cat + pleiocov.cat + pleiorate.cat + locisigma.cat + rwide.cat)^2, data = d_G_El) 
-
+# MANOVA route: could go with a linear discriminant analysis as well, I think it's more informative to just stick with separate ANOVAs
+man_El <- manova(cbind(area, ratio, theta) ~ (delmu.cat + pleiocov.cat + pleiorate.cat + locisigma.cat + rwide.cat + tau.cat)^2, data = d_G_sel_El) 
 summary.aov(man_El)
 
-# Results are identical
+# ANOVA: all pairwise comparisons plus three way comparisons between all of those and tau
 
-# # # # # # # # # # # # # # # # #
+# To simplify, we will refactor data into groups of three for each variable: low, medium, high 
+
+d_G_El_aov <- d_G_El
+
+d_G_El_aov$delmu.cat <- cut(d_G_El_aov$delmu, breaks = 3)
+d_G_El_aov$pleiocov.cat <- cut(d_G_El_aov$pleiocov, breaks = 3)
+d_G_El_aov$pleiorate.cat <- cut(d_G_El_aov$pleiorate, breaks = 3)
+d_G_El_aov$rwide.cat <- cut(d_G_El_aov$rwide, breaks = 3)
+d_G_El_aov$locisigma.cat <- cut(d_G_El_aov$locisigma, breaks = 3)
+
+
+
+library(car)
+library(emmeans)
+
+lm_El_area <- lm(area ~ (delmu.cat + pleiocov.cat + pleiorate.cat + locisigma.cat + rwide.cat)^2 , 
+                     contrasts=list(delmu.cat='contr.sum', pleiocov.cat ='contr.sum', pleiorate.cat ='contr.sum', locisigma.cat ='contr.sum', rwide.cat ='contr.sum'),
+                     data = d_G_El_aov)
+
+aov_El_area <- Anova(lm_El_area, type = 3)
+aov_El_area
+
+
+lm_El_ratio <- lm(ratio ~ (delmu.cat + pleiocov.cat + pleiorate.cat + locisigma.cat + rwide.cat)^2 , 
+                      contrasts=list(delmu.cat='contr.sum', pleiocov.cat ='contr.sum', pleiorate.cat ='contr.sum', locisigma.cat ='contr.sum', rwide.cat ='contr.sum'),
+                      data = d_G_El_aov)
+aov_El_ratio <- Anova(lm_El_ratio, type = 3)
+aov_El_ratio
+
+lm_El_theta <- lm(theta ~ (delmu.cat + pleiocov.cat + pleiorate.cat + locisigma.cat + rwide.cat)^2 , 
+                      contrasts=list(delmu.cat='contr.sum', pleiocov.cat ='contr.sum', pleiorate.cat ='contr.sum', locisigma.cat ='contr.sum', rwide.cat ='contr.sum'),
+                      data = d_G_El_aov)
+aov_El_theta <- Anova(lm_El_theta, type = 3)
+aov_El_theta
+
+
+
+# Area post-hoc
+
+emm_area_d.pc <- emmeans(lm_El_area, pairwise ~ delmu.cat | pleiocov.cat)
+emm_area_d.pr <- emmeans(lm_El_area, pairwise ~ delmu.cat | pleiorate.cat)
+emm_area_d.r <- emmeans(lm_El_area, pairwise ~ delmu.cat | rwide.cat)
+emm_area_d.ls <- emmeans(lm_El_area, pairwise ~ delmu.cat | locisigma.cat)
+
+emm_area_r.pc <- emmeans(lm_El_area, pairwise ~ rwide.cat | pleiocov.cat)
+emm_area_r.pr <- emmeans(lm_El_area, pairwise ~ rwide.cat | pleiorate.cat)
+emm_area_r.ls <- emmeans(lm_El_area, pairwise ~ rwide.cat | locisigma.cat)
+
+emm_area_pr.pc <- emmeans(lm_El_area, pairwise ~ pleiorate.cat | rwide.cat)
+emm_area_pr.ls <- emmeans(lm_El_area, pairwise ~ pleiorate.cat | locisigma.cat)
+
+
+
+# Ratio post-hoc
+
+emm_ratio_d.pc <- emmeans(lm_El_ratio, pairwise ~ delmu.cat | pleiocov.cat)
+emm_ratio_d.pr <- emmeans(lm_El_ratio, pairwise ~ delmu.cat | pleiorate.cat)
+emm_ratio_d.r <- emmeans(lm_El_ratio, pairwise ~ delmu.cat | rwide.cat)
+emm_ratio_d.ls <- emmeans(lm_El_ratio, pairwise ~ delmu.cat | locisigma.cat)
+
+emm_ratio_r.pc <- emmeans(lm_El_ratio, pairwise ~ rwide.cat | pleiocov.cat)
+emm_ratio_r.pr <- emmeans(lm_El_ratio, pairwise ~ rwide.cat | pleiorate.cat)
+emm_ratio_r.ls <- emmeans(lm_El_ratio, pairwise ~ rwide.cat | locisigma.cat)
+
+emm_ratio_pr.pc <- emmeans(lm_El_ratio, pairwise ~ pleiorate.cat | rwide.cat)
+emm_ratio_pr.ls <- emmeans(lm_El_ratio, pairwise ~ pleiorate.cat | locisigma.cat)
+
+
+# Theta post-hoc
+
+emm_theta_d.pc <- emmeans(lm_El_theta, pairwise ~ delmu.cat | pleiocov.cat)
+emm_theta_d.pr <- emmeans(lm_El_theta, pairwise ~ delmu.cat | pleiorate.cat)
+emm_theta_d.r <- emmeans(lm_El_theta, pairwise ~ delmu.cat | rwide.cat)
+emm_theta_d.ls <- emmeans(lm_El_theta, pairwise ~ delmu.cat | locisigma.cat)
+
+emm_theta_r.pc <- emmeans(lm_El_theta, pairwise ~ rwide.cat | pleiocov.cat)
+emm_theta_r.pr <- emmeans(lm_El_theta, pairwise ~ rwide.cat | pleiorate.cat)
+emm_theta_r.ls <- emmeans(lm_El_theta, pairwise ~ rwide.cat | locisigma.cat)
+
+emm_theta_pr.pc <- emmeans(lm_El_theta, pairwise ~ pleiorate.cat | rwide.cat)
+emm_theta_pr.ls <- emmeans(lm_El_theta, pairwise ~ pleiorate.cat | locisigma.cat)
+
+
+
+
+
+
+
+
+
+
+
 
 
 # Tests for linear model reliability
@@ -1802,4 +1882,43 @@ homogen_d_list <- unlist(homogen_d_list)
 homogen_d_list <- homogen_d_list[which(homogen_d_list > 0.0)]
 range(homogen_d_list)
 
+########################################################################
+# ANOVA Ellipse stuff
+
+
+# Statisical tests for ellipses: can look at ratio and area for a general indicator of the directions of variation in
+# two dimensional space: this may give a good approximation of the total space of the trait space, since our traits
+# are functionally identical
+# Pairwise comparisons between extreme groups (e.g. max and min bins of delmu)
+
+lm_area_El <- lm(area ~ (delmu + pleiocov + pleiorate + locisigma + rwide)^2, data = d_G_El)
+aov_area_El <- aov(area ~ (delmu.cat + pleiocov.cat + pleiorate.cat + locisigma.cat + rwide.cat)^2, data = d_G_El)
+
+summary(lm_area_El)
+summary.aov(aov_area_El)
+
+
+lm_ratio_El <- lm(ratio ~ (delmu + pleiocov + pleiorate + locisigma + rwide)^2, data = d_G_El)
+aov_ratio_El <- aov(ratio ~ (delmu.cat + pleiocov.cat + pleiorate.cat + locisigma.cat + rwide.cat)^2, data = d_G_El)
+
+summary(lm_ratio_El)
+summary.aov(aov_ratio_El)
+
+
+lm_angle_El <- lm(theta ~ (delmu + pleiocov + pleiorate + locisigma + rwide)^2, data = d_G_El)
+aov_angle_El <- aov(theta ~ (delmu.cat + pleiocov.cat + pleiorate.cat + locisigma.cat + rwide.cat)^2, data = d_G_El)
+
+summary(lm_angle_El)
+summary.aov(aov_angle_El)
+
+
+# Manova between the three
+
+man_El <- manova(cbind(area, ratio, theta) ~ (delmu.cat + pleiocov.cat + pleiorate.cat + locisigma.cat + rwide.cat)^2, data = d_G_El) 
+
+summary.aov(man_El)
+
+# Results are identical
+
+# # # # # # # # # # # # # # # # #
 

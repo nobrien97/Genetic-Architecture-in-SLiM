@@ -1,4 +1,6 @@
 source("../../AIM1/AIM-1_R/src_G_mat.R")
+source("../../AIM1/AIM-1_R/src_plot.R")
+
 
 # Set the seed
 
@@ -12,17 +14,18 @@ set.seed(873662137) # sampled using sample(1:2147483647, 1)
 # Also there was a duplicate line from gen 50,000 burn in (which did contain the heterozygosity), and gen 50,000 actual model
 # So had to remove the first line to get rid of that, hence means_minusone folder (sed -i '1~202d' out_8T_stabsel_means_*)
 
-d_sel <- data.table::fread("F:/Uni/AIM3/OUTPUT/means_minusone/out_8T_stabsel_means_c.csv", header = F, integer64="character")
+d_sel <- data.table::fread("F:/Uni/AIM3/OUTPUT/out_8T_stabsel_means_c2.csv", header = F, integer64="character")
 
 # Linux version
 
-d_sel <- data.table::fread("/mnt/f/Uni/AIM3/OUTPUT/means_minusone/out_8T_stabsel_means_c.csv", header = F, integer64="character", select = c(1:107))
+d_sel <- data.table::fread("/mnt/f/Uni/AIM3/OUTPUT/out_8T_stabsel_means_c2.csv", header = F, integer64="character", fill = T, select = c(1:107))
 
-d_sel <- read.csv("/mnt/f/Uni/AIM3/OUTPUT/out_8T_stabsel_means_c.csv", header = F)
+d_sel <- read.csv("/mnt/f/Uni/AIM3/OUTPUT/out_8T_stabsel_means_c2.csv", header = F)
 
-# Remove rows that don't have NAs
+# Remove duplicate rows
+library(tidyverse)
+d_sel <- d_sel %>% distinct()
 
-d_sel <- d_sel[!(!is.na(d_sel$V108)),] 
 
 names(d_sel)[1:7] <- c("gen", "seed", "modelindex", "rsd", "rwide", "delmu", "tau")
 # d_null$seed <- as.factor(d_null$seed)
@@ -50,18 +53,13 @@ ls_combos <- read.csv("Z:/Documents/GitHub/Genetic-Architecture-in-SLiM/src/R/pi
 # Linux version
 ls_combos <- read.csv("/mnt/z/Documents/GitHub/Genetic-Architecture-in-SLiM/src/Cluster_jobs/final_runs/Nimrod/Simplified/AIM3/lscombos_sel.csv")
 
-for (i in 1:nrow(d_sel)) {
-  d_sel$pleiocov[i] <- ls_combos[1:192,]$pleiocov[d_sel$modelindex[i]]
-  d_sel$pleiorate[i] <- ls_combos[1:192,]$pleiorate[d_sel$modelindex[i]]
-  d_sel$locisigma[i] <- ls_combos[1:192,]$locisigma[d_sel$modelindex[i]]
-  
-}
 
-d_sel$pleiocov <- rep(ls_combos[1:192,]$pleiocov, each = 100) # Repeat each by 100 seeds
-d_sel$locisigma <- rep(ls_combos[1:192,]$locisigma, each = 100)
-d_sel$pleiorate <- rep(ls_combos[1:192,]$pleiorate, each = 100)
 
-d_sel <- d_sel[c(1:7, 108:109, 8:107)]
+d_sel$pleiocov <- rep(ls_combos[1:176,]$pleiocov, each = 100) # Repeat each by 100 seeds
+d_sel$locisigma <- rep(ls_combos[1:176,]$locisigma, each = 100)
+d_sel$pleiorate <- rep(ls_combos[1:176,]$pleiorate, each = 100)
+
+d_sel <- d_sel[,c(1:7, 108:110, 8:107)]
 
 
 # Cut delmu into a categorical variable: have to do this to average out effects of other parameters, which are approximately uniformally distributed in any given bin of delmu
@@ -113,23 +111,14 @@ cov_sel_plots <- lapply(colnames(dplot_sel_cat[10:37]), plot_data_line, data = d
                     xlabel = "Background selection")
 
 
-# Heterozygosity plot
-
-het_sel_plot <-  ggplot(dplot_sel_cat, aes(x = delmu.cat, y = H_groupmean, group = 1)) +
-  geom_line() +
-  geom_errorbar(aes(ymin = H_groupmean - H_se, ymax = H_groupmean + H_se), width = 0.2) +
-  theme_classic() +
-  theme(legend.position = "none") +
-  labs(x = "Background selection", y = "Genome-wide heterozygosity")
-
 # Get output in form that dat_to_mat expects: 39 variables, replacing modelindex with delmu for this case
 # gen, seed, some predictor, variances and covariances
-d_sel_mat <- d_sel[,c(1:2, 6, 46:81)]
+d_sel_mat <- d_sel[,c(1:2, 6, 47:82)]
 
 source("../../AIM1/AIM-1_R/src_G_mat.R")
 
 # Get population means for each trait, trait 0 to trait 7 (or 1 to 8)
-means_sel_delmu <- d_null[,c(1:2, 6, 39:46)]
+means_sel_delmu <- d_sel[,c(1:2, 6, 39:46)]
 # Group delmu values...
 means_sel_delmu$delmu.cat <- cut(means_sel_delmu$delmu, breaks = 8) 
 
@@ -149,8 +138,8 @@ dplot_means_sel_delmu <- pivot_longer(dplot_means_sel_delmu, cols = -c(delmu.cat
 
 
 # Same for variance/covariance - only grab two traits though, since that's all we can plot
-vars_null_sel_delmu <- d_sel[,c(1:3, 5:8, 10, 47:48, 55)]
-vars_null_sel_delmu$delmu.cat <- cut(vars_null_sel_delmu$delmu, breaks = 8) 
+vars_sel_delmu <- d_sel[,c(1:3, 5:10, 47:48, 55)]
+vars_sel_delmu$delmu.cat <- cut(vars_sel_delmu$delmu, breaks = 8) 
 
 
 # Mean variances, goes with mean eigenvalues/eigenvectors
@@ -247,9 +236,11 @@ dplot_sel_GmaxG2_delmu<-test_pivot[!(test_pivot$Vec=="vec1_se" | test_pivot$Vec=
 # geom_segment to draw the major axes
 # Need to get data for each model: grouped by delmu.cat, but not averaged for seed: average the data frame prior to plotting
 
+
+
 #First sort data frames so they are in the same order
 means_sel_delmu <- arrange(means_sel_delmu, seed, delmu)
-d_G_sel_PC_delmu <- arrange(d_G_sel_PC_delmu, seed, delmu)
+d_G_sel_PC_delmu <- arrange(d_G_PC_sel_delmu, seed, delmu)
 vars_sel_delmu <- arrange(vars_sel_delmu, seed, delmu)
 
 
@@ -278,51 +269,15 @@ d_G_sel_El_delmu$area <- pi*d_G_sel_El_delmu$major_len*d_G_sel_El_delmu$minor_le
 # Calculate the vertices again for the mean ellipses so they are completely accurate, same with area
 # Statistical tests between groups: could be differences in theta and means, major/minor ratio
 
-dplot_G_sel_El_delmu <- d_G_sel_El_delmu[-c(1, 2, 9:12)] %>%
-  group_by(delmu.cat) %>%
-  summarise_all(list(groupmean = mean, se = std.error))
 
+# All treatments together
+# Also group by tau in three levels: so we have the effect of delmu with low, medium, or high selection strength
 
-dplot_G_sel_El_delmu$vert_x_groupmean <- (cos(dplot_G_sel_El_delmu$theta_groupmean*(pi/180)))*(dplot_G_sel_El_delmu$major_len_groupmean)
-dplot_G_sel_El_delmu$vert_y_groupmean <- (sin(dplot_G_sel_El_delmu$theta_groupmean*(pi/180)))*(dplot_G_sel_El_delmu$major_len_groupmean)
-dplot_G_sel_El_delmu$covert_x_groupmean <- (cos((dplot_G_sel_El_delmu$theta_groupmean-90)*(pi/180)))*(dplot_G_sel_El_delmu$minor_len_groupmean)
-dplot_G_sel_El_delmu$covert_y_groupmean <- (sin((dplot_G_sel_El_delmu$theta_groupmean-90)*(pi/180)))*(dplot_G_sel_El_delmu$minor_len_groupmean)
-dplot_G_sel_El_delmu$area_groupmean <- pi*dplot_G_sel_El_delmu$major_len_groupmean*dplot_G_sel_El_delmu$minor_len_groupmean
-
-# Plot the ellipses
-
-library(ggforce)
-# geom_ellipse() expects angle in radians
-plot_GEllipse_sel_delmu <- ggplot() +
-  geom_ellipse(data = dplot_G_sel_El_delmu, aes(x0 = meanT0_groupmean, y0 = meanT1_groupmean, 
-                                            a = major_len_groupmean, b = minor_len_groupmean, angle = (theta_groupmean * pi/180))) +
-  # the second and third ellipses are 95% CI around the mean ellipse
-  geom_ellipse(data = dplot_G_sel_El_delmu, aes(x0 = (meanT0_groupmean+1.96*meanT0_se), y0 = (meanT1_groupmean+1.96*meanT1_se), 
-                                            a = (major_len_groupmean + 1.96*major_len_se), 
-                                            b = (minor_len_groupmean + 1.96*minor_len_se), angle = ((theta_groupmean+1.96*theta_se) * pi/180)), 
-               colour = "grey", linetype = "dashed") +
-  geom_ellipse(data = dplot_G_sel_El_delmu, aes(x0 = (meanT0_groupmean-1.96*meanT0_se), y0 = (meanT1_groupmean-1.96*meanT1_se), 
-                                            a = (major_len_groupmean - 1.96*major_len_se), 
-                                            b = (minor_len_groupmean - 1.96*minor_len_se), angle = ((theta_groupmean-1.96*theta_se) * pi/180)), 
-               colour = "grey", linetype = "dashed") +
-  geom_segment(data = dplot_G_sel_El_delmu, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean + vert_x_groupmean), yend = (meanT1_groupmean + vert_y_groupmean))) +
-  geom_segment(data = dplot_G_sel_El_delmu, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean - vert_x_groupmean), yend = (meanT1_groupmean - vert_y_groupmean))) +
-  geom_segment(data = dplot_G_sel_El_delmu, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean + covert_x_groupmean), yend = (meanT1_groupmean + covert_y_groupmean))) +
-  geom_segment(data = dplot_G_sel_El_delmu, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean - covert_x_groupmean), yend = (meanT1_groupmean - covert_y_groupmean))) +
-  coord_fixed() +
-  theme_classic() +
-  facet_grid(~ delmu.cat) +
-  xlab("Trait 0") +
-  ylab("Trait 1") +
-  ggtitle("Effect of background selection rate on Gmax and G2 for two traits")
-
-
-# Other treatments
 
 d_G_sel_El_delmu <- arrange(d_G_sel_El_delmu, seed, delmu)
 d_sel <- arrange(d_sel, seed, delmu)
 
-d_G_sel_El <- d_G_El_delmu 
+d_G_sel_El <- d_G_sel_El_delmu 
 
 d_G_sel_El$pleiocov <- d_sel$pleiocov
 d_G_sel_El$pleiorate <- d_sel$pleiorate
@@ -330,26 +285,26 @@ d_G_sel_El$locisigma <- d_sel$locisigma
 d_G_sel_El$rwide <- d_sel$rwide
 d_G_sel_El$tau <- d_sel$tau
 
-d_G_sel_El <- d_G_sel_El[c(1:3, 15:18, 4:14)]
+d_G_sel_El <- d_G_sel_El[,c(1:3, 15:19, 4:14)]
 
 # Write table for JMP
 write.table(d_G_sel_El, "d_sel_Ellipse.csv", sep = ",", row.names = F)
 
 
 # Categorise values for plotting
-d_G_sel_El$pleiocov.cat <- cut(d_G_El$pleiocov, breaks = 8) 
-d_G_sel_El$pleiorate.cat <- cut(d_G_El$pleiorate, breaks = 8) 
-d_G_sel_El$locisigma.cat <- cut(d_G_El$locisigma, breaks = 8) 
-d_G_sel_El$rwide.cat <- cut(d_G_El$rwide, breaks = 8) 
-d_G_sel_El$tau.cat <- cut(d_G_sel_El$tau, breaks = 8)
+d_G_sel_El$pleiocov.cat <- cut(d_G_sel_El$pleiocov, breaks = 8) 
+d_G_sel_El$pleiorate.cat <- cut(d_G_sel_El$pleiorate, breaks = 8) 
+d_G_sel_El$locisigma.cat <- cut(d_G_sel_El$locisigma, breaks = 8) 
+d_G_sel_El$rwide.cat <- cut(d_G_sel_El$rwide, breaks = 8) 
+d_G_sel_El$tau.cat <- cut(d_G_sel_El$tau, breaks = 3) # three levels - low, medium, high selection
 # Rearrange columns
-d_G_sel_El <- d_G_sel_El[c(1:4, 19, 5, 20, 6, 21, 7, 22, 8:18)]
+d_G_sel_El <- d_G_sel_El[c(1:4, 20, 5, 21, 6, 22, 7, 23, 8, 24, 9:19)]
 
 # Calculate means
 
 #Pleiotropic mutational covariance
-dplot_G_El_sel_pleiocov <- d_G_El[-c(1:4, 6:11, 17:20)] %>%
-  group_by(pleiocov.cat) %>%
+dplot_G_El_sel_pleiocov <- d_G_sel_El[c(5, 13, 14:24)] %>%
+  group_by(pleiocov.cat, tau.cat) %>%
   summarise_all(list(groupmean = mean, se = std.error))
 
 # Mean vertices and covertices
@@ -364,8 +319,8 @@ dplot_G_El_sel_pleiocov$area_groupmean <- pi*dplot_G_El_sel_pleiocov$major_len_g
 
 # Pleiotropy rate
 
-dplot_G_El_sel_pleiorate <- d_G_El[-c(1:6, 8:11, 17:20)] %>%
-  group_by(pleiorate.cat) %>%
+dplot_G_El_sel_pleiorate <- d_G_sel_El[c(7, 13, 14:24)] %>%
+  group_by(pleiorate.cat, tau.cat) %>%
   summarise_all(list(groupmean = mean, se = std.error))
 
 # Mean vertices and covertices
@@ -380,8 +335,8 @@ dplot_G_El_sel_pleiorate$area_groupmean <- pi*dplot_G_El_sel_pleiorate$major_len
 
 # Additive effect size distribution
 
-dplot_G_El_sel_locisigma <- d_G_El[-c(1:8, 10:11, 17:20)] %>%
-  group_by(locisigma.cat) %>%
+dplot_G_El_sel_locisigma <- d_G_sel_El[c(9, 13, 14:24)] %>%
+  group_by(locisigma.cat, tau.cat) %>%
   summarise_all(list(groupmean = mean, se = std.error))
 
 # Mean vertices and covertices
@@ -395,8 +350,8 @@ dplot_G_El_sel_locisigma$area_groupmean <- pi*dplot_G_El_sel_locisigma$major_len
 
 # Recombination rate
 
-dplot_G_El_sel_rwide <- d_G_El[-c(1:10, 17:20)] %>%
-  group_by(rwide.cat) %>%
+dplot_G_El_sel_rwide <- d_G_sel_El[c(11, 13, 14:24)] %>%
+  group_by(rwide.cat, tau.cat) %>%
   summarise_all(list(groupmean = mean, se = std.error))
 
 # Mean vertices and covertices
@@ -406,6 +361,34 @@ dplot_G_El_sel_rwide$covert_x_groupmean <- (cos((dplot_G_El_sel_rwide$theta_grou
 dplot_G_El_sel_rwide$covert_y_groupmean <- (sin((dplot_G_El_sel_rwide$theta_groupmean-90)*(pi/180)))*(dplot_G_El_sel_rwide$minor_len_groupmean)
 dplot_G_El_sel_rwide$area_groupmean <- pi*dplot_G_El_sel_rwide$major_len_groupmean*dplot_G_El_sel_rwide$minor_len_groupmean
 
+#######################################################
+
+dplot_G_sel_El_delmu <- d_G_sel_El[c(3, 13, 14:24)] %>%
+  group_by(delmu.cat, tau.cat) %>%
+  summarise_all(list(groupmean = mean, se = std.error))
+
+
+dplot_G_sel_El_delmu$vert_x_groupmean <- (cos(dplot_G_sel_El_delmu$theta_groupmean*(pi/180)))*(dplot_G_sel_El_delmu$major_len_groupmean)
+dplot_G_sel_El_delmu$vert_y_groupmean <- (sin(dplot_G_sel_El_delmu$theta_groupmean*(pi/180)))*(dplot_G_sel_El_delmu$major_len_groupmean)
+dplot_G_sel_El_delmu$covert_x_groupmean <- (cos((dplot_G_sel_El_delmu$theta_groupmean-90)*(pi/180)))*(dplot_G_sel_El_delmu$minor_len_groupmean)
+dplot_G_sel_El_delmu$covert_y_groupmean <- (sin((dplot_G_sel_El_delmu$theta_groupmean-90)*(pi/180)))*(dplot_G_sel_El_delmu$minor_len_groupmean)
+dplot_G_sel_El_delmu$area_groupmean <- pi*dplot_G_sel_El_delmu$major_len_groupmean*dplot_G_sel_El_delmu$minor_len_groupmean
+
+
+"
+# tau
+dplot_G_El_sel_tau <- d_G_sel_El[c(13:24)] %>%
+  group_by(tau.cat) %>%
+  summarise_all(list(groupmean = mean, se = std.error))
+
+# Mean vertices and covertices
+dplot_G_El_sel_tau$vert_x_groupmean <- (cos(dplot_G_El_sel_tau$theta_groupmean*(pi/180)))*(dplot_G_El_sel_tau$major_len_groupmean)
+dplot_G_El_sel_tau$vert_y_groupmean <- (sin(dplot_G_El_sel_tau$theta_groupmean*(pi/180)))*(dplot_G_El_sel_tau$major_len_groupmean)
+dplot_G_El_sel_tau$covert_x_groupmean <- (cos((dplot_G_El_sel_tau$theta_groupmean-90)*(pi/180)))*(dplot_G_El_sel_tau$minor_len_groupmean)
+dplot_G_El_sel_tau$covert_y_groupmean <- (sin((dplot_G_El_sel_tau$theta_groupmean-90)*(pi/180)))*(dplot_G_El_sel_tau$minor_len_groupmean)
+dplot_G_El_sel_tau$area_groupmean <- pi*dplot_G_El_sel_tau$major_len_groupmean*dplot_G_El_sel_tau$minor_len_groupmean
+"
+# Don't need this if we're using tau as a grouping variable
 
 #####################################################################
 
@@ -430,7 +413,7 @@ plot_GEllipse_sel_pleiocov <- ggplot() +
   geom_segment(data = dplot_G_El_sel_pleiocov, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean - covert_x_groupmean), yend = (meanT1_groupmean - covert_y_groupmean))) +
   coord_fixed() +
   theme_classic() +
-  facet_grid(~ pleiocov.cat) +
+  facet_grid(tau.cat ~ pleiocov.cat) +
   xlab("Trait 0") +
   ylab("Trait 1") +
   ggtitle("Effect of pleiotropic mutational covariance on Gmax and G2 for two traits")
@@ -455,7 +438,7 @@ plot_GEllipse_sel_pleiorate <- ggplot() +
   geom_segment(data = dplot_G_El_sel_pleiorate, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean - covert_x_groupmean), yend = (meanT1_groupmean - covert_y_groupmean))) +
   coord_fixed() +
   theme_classic() +
-  facet_grid(~ pleiorate.cat) +
+  facet_grid(tau.cat ~ pleiorate.cat) +
   xlab("Trait 0") +
   ylab("Trait 1") +
   ggtitle("Effect of pleiotropy rate on Gmax and G2 for two traits")
@@ -480,24 +463,48 @@ plot_GEllipse_sel_locisigma <- ggplot() +
   geom_segment(data = dplot_G_El_sel_locisigma, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean - covert_x_groupmean), yend = (meanT1_groupmean - covert_y_groupmean))) +
   coord_fixed() +
   theme_classic() +
-  facet_grid(~ locisigma.cat) +
+  facet_grid(tau.cat ~ locisigma.cat) +
   xlab("Trait 0") +
   ylab("Trait 1") +
   ggtitle("Effect of additive effect size on Gmax and G2 for two traits")
 
 
 # # # # # # # # # # # # # # # # # # 
-
-plot_GEllipse_sel_rwide <- ggplot() +
-  geom_ellipse(data = dplot_G_El_sel_rwide, aes(x0 = meanT0_groupmean, y0 = meanT1_groupmean, 
+'
+plot_GEllipse_sel_tau <- ggplot() +
+  geom_ellipse(data = dplot_G_El_sel_tau, aes(x0 = meanT0_groupmean, y0 = meanT1_groupmean, 
                                             a = major_len_groupmean, b = minor_len_groupmean, angle = (theta_groupmean * pi/180))) +
-  geom_ellipse(data = dplot_G_El_sel_rwide, aes(x0 = (meanT0_groupmean + 1.96*meanT0_se), y0 = (meanT1_groupmean + 1.96*meanT1_se), 
+  geom_ellipse(data = dplot_G_El_sel_tau, aes(x0 = (meanT0_groupmean + 1.96*meanT0_se), y0 = (meanT1_groupmean + 1.96*meanT1_se), 
                                             a = (major_len_groupmean + 1.96*major_len_se), 
                                             b = (minor_len_groupmean + 1.96*minor_len_se), angle = ((theta_groupmean+1.96*theta_se) * pi/180)), 
                colour = "grey", linetype = "dashed") +
-  geom_ellipse(data = dplot_G_El_sel_rwide, aes(x0 = (meanT0_groupmean - 1.96*meanT0_se), y0 = (meanT1_groupmean - 1.96*meanT1_se), 
+  geom_ellipse(data = dplot_G_El_sel_tau, aes(x0 = (meanT0_groupmean - 1.96*meanT0_se), y0 = (meanT1_groupmean - 1.96*meanT1_se), 
                                             a = (major_len_groupmean - 1.96*major_len_se), 
                                             b = (minor_len_groupmean - 1.96*minor_len_se), angle = ((theta_groupmean-1.96*theta_se) * pi/180)), 
+               colour = "grey", linetype = "dashed") +
+  geom_segment(data = dplot_G_El_sel_tau, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean + vert_x_groupmean), yend = (meanT1_groupmean + vert_y_groupmean))) +
+  geom_segment(data = dplot_G_El_sel_tau, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean - vert_x_groupmean), yend = (meanT1_groupmean - vert_y_groupmean))) +
+  geom_segment(data = dplot_G_El_sel_tau, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean + covert_x_groupmean), yend = (meanT1_groupmean + covert_y_groupmean))) +
+  geom_segment(data = dplot_G_El_sel_tau, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean - covert_x_groupmean), yend = (meanT1_groupmean - covert_y_groupmean))) +
+  coord_fixed() +
+  theme_classic() +
+  facet_grid(~ tau.cat) +
+  xlab("Trait 0") +
+  ylab("Trait 1") +
+  ggtitle("Effect of selection strength on Gmax and G2 for two traits")
+' # don't need
+# # # # # # # # # # # # # # # # # # 
+
+plot_GEllipse_sel_rwide <- ggplot() +
+  geom_ellipse(data = dplot_G_El_sel_rwide, aes(x0 = meanT0_groupmean, y0 = meanT1_groupmean, 
+                                                a = major_len_groupmean, b = minor_len_groupmean, angle = (theta_groupmean * pi/180))) +
+  geom_ellipse(data = dplot_G_El_sel_rwide, aes(x0 = (meanT0_groupmean + 1.96*meanT0_se), y0 = (meanT1_groupmean + 1.96*meanT1_se), 
+                                                a = (major_len_groupmean + 1.96*major_len_se), 
+                                                b = (minor_len_groupmean + 1.96*minor_len_se), angle = ((theta_groupmean+1.96*theta_se) * pi/180)), 
+               colour = "grey", linetype = "dashed") +
+  geom_ellipse(data = dplot_G_El_sel_rwide, aes(x0 = (meanT0_groupmean - 1.96*meanT0_se), y0 = (meanT1_groupmean - 1.96*meanT1_se), 
+                                                a = (major_len_groupmean - 1.96*major_len_se), 
+                                                b = (minor_len_groupmean - 1.96*minor_len_se), angle = ((theta_groupmean-1.96*theta_se) * pi/180)), 
                colour = "grey", linetype = "dashed") +
   geom_segment(data = dplot_G_El_sel_rwide, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean + vert_x_groupmean), yend = (meanT1_groupmean + vert_y_groupmean))) +
   geom_segment(data = dplot_G_El_sel_rwide, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean - vert_x_groupmean), yend = (meanT1_groupmean - vert_y_groupmean))) +
@@ -505,10 +512,161 @@ plot_GEllipse_sel_rwide <- ggplot() +
   geom_segment(data = dplot_G_El_sel_rwide, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean - covert_x_groupmean), yend = (meanT1_groupmean - covert_y_groupmean))) +
   coord_fixed() +
   theme_classic() +
-  facet_grid(~ rwide.cat) +
+  facet_grid(tau.cat ~ rwide.cat) +
   xlab("Trait 0") +
   ylab("Trait 1") +
   ggtitle("Effect of genome-wide recombination rate on Gmax and G2 for two traits")
+
+
+# # # # # # # # # # # # # # # # # # 
+
+# Background selection
+
+library(ggforce)
+# geom_ellipse() expects angle in radians
+plot_GEllipse_sel_delmu <- ggplot() +
+  geom_ellipse(data = dplot_G_sel_El_delmu, aes(x0 = meanT0_groupmean, y0 = meanT1_groupmean, 
+                                                a = major_len_groupmean, b = minor_len_groupmean, angle = (theta_groupmean * pi/180))) +
+  # the second and third ellipses are 95% CI around the mean ellipse
+  geom_ellipse(data = dplot_G_sel_El_delmu, aes(x0 = (meanT0_groupmean+1.96*meanT0_se), y0 = (meanT1_groupmean+1.96*meanT1_se), 
+                                                a = (major_len_groupmean + 1.96*major_len_se), 
+                                                b = (minor_len_groupmean + 1.96*minor_len_se), angle = ((theta_groupmean+1.96*theta_se) * pi/180)), 
+               colour = "grey", linetype = "dashed") +
+  geom_ellipse(data = dplot_G_sel_El_delmu, aes(x0 = (meanT0_groupmean-1.96*meanT0_se), y0 = (meanT1_groupmean-1.96*meanT1_se), 
+                                                a = (major_len_groupmean - 1.96*major_len_se), 
+                                                b = (minor_len_groupmean - 1.96*minor_len_se), angle = ((theta_groupmean-1.96*theta_se) * pi/180)), 
+               colour = "grey", linetype = "dashed") +
+  geom_segment(data = dplot_G_sel_El_delmu, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean + vert_x_groupmean), yend = (meanT1_groupmean + vert_y_groupmean))) +
+  geom_segment(data = dplot_G_sel_El_delmu, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean - vert_x_groupmean), yend = (meanT1_groupmean - vert_y_groupmean))) +
+  geom_segment(data = dplot_G_sel_El_delmu, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean + covert_x_groupmean), yend = (meanT1_groupmean + covert_y_groupmean))) +
+  geom_segment(data = dplot_G_sel_El_delmu, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean - covert_x_groupmean), yend = (meanT1_groupmean - covert_y_groupmean))) +
+  coord_fixed() +
+  theme_classic() +
+  facet_grid(tau.cat ~ delmu.cat) +
+  xlab("Trait 0") +
+  ylab("Trait 1") +
+  ggtitle("Effect of background selection rate on Gmax and G2 for two traits")
+
+library(patchwork)
+
+(plot_GEllipse_sel_delmu | plot_GEllipse_sel_pleiocov) / (plot_GEllipse_sel_pleiorate) / (plot_GEllipse_sel_rwide | plot_GEllipse_sel_locisigma)
+
+##############################################################################################################################################################
+##############################################################################################################################################################
+##############################################################################################################################################################
+
+############################################################# Analysis #######################################################################################
+
+# Pairwise comparisons between extreme groups for tau low, medium, high
+# ANOVA, followed by Tukey HSD - ignore all comparisons except for those between extremes
+
+# MANOVA route: could go with a linear discriminant analysis as well, I think it's more informative to just stick with separate ANOVAs
+man_El <- manova(cbind(area, ratio, theta) ~ (delmu.cat + pleiocov.cat + pleiorate.cat + locisigma.cat + rwide.cat + tau.cat)^2, data = d_G_sel_El) 
+summary.aov(man_El)
+
+# ANOVA: all pairwise comparisons plus three way comparisons between all of those and tau
+
+# To simplify, we will refactor data into groups of three for each variable: low, medium, high 
+
+d_G_sel_El_aov <- d_G_sel_El
+
+d_G_sel_El_aov$delmu.cat <- cut(d_G_sel_El_aov$delmu, breaks = 3)
+d_G_sel_El_aov$pleiocov.cat <- cut(d_G_sel_El_aov$pleiocov, breaks = 3)
+d_G_sel_El_aov$pleiorate.cat <- cut(d_G_sel_El_aov$pleiorate, breaks = 3)
+d_G_sel_El_aov$rwide.cat <- cut(d_G_sel_El_aov$rwide, breaks = 3)
+d_G_sel_El_aov$locisigma.cat <- cut(d_G_sel_El_aov$locisigma, breaks = 3)
+d_G_sel_El_aov$tau.cat <- cut(d_G_sel_El_aov$tau, breaks = 3)
+
+
+
+library(car)
+library(emmeans)
+
+lm_sel_El_area <- lm(area ~ (delmu.cat + pleiocov.cat + pleiorate.cat + locisigma.cat + rwide.cat + tau.cat)^2 , 
+                     contrasts=list(delmu.cat='contr.sum', pleiocov.cat ='contr.sum', pleiorate.cat ='contr.sum', locisigma.cat ='contr.sum', rwide.cat ='contr.sum', tau.cat ='contr.sum'),
+                     data = d_G_sel_El_aov)
+
+aov_sel_El_area <- Anova(lm_sel_El_area, type = 3)
+aov_sel_El_area
+
+
+lm_sel_El_ratio <- lm(ratio ~ (delmu.cat + pleiocov.cat + pleiorate.cat + locisigma.cat + rwide.cat + tau.cat)^2 , 
+                     contrasts=list(delmu.cat='contr.sum', pleiocov.cat ='contr.sum', pleiorate.cat ='contr.sum', locisigma.cat ='contr.sum', rwide.cat ='contr.sum', tau.cat ='contr.sum'),
+                     data = d_G_sel_El_aov)
+aov_sel_El_ratio <- Anova(lm_sel_El_ratio, type = 3)
+aov_sel_El_ratio
+
+lm_sel_El_theta <- lm(theta ~ (delmu.cat + pleiocov.cat + pleiorate.cat + locisigma.cat + rwide.cat + tau.cat)^2 , 
+                     contrasts=list(delmu.cat='contr.sum', pleiocov.cat ='contr.sum', pleiorate.cat ='contr.sum', locisigma.cat ='contr.sum', rwide.cat ='contr.sum', tau.cat ='contr.sum'),
+                     data = d_G_sel_El_aov)
+aov_sel_El_theta <- Anova(lm_sel_El_theta, type = 3)
+aov_sel_El_theta
+
+
+
+# Area post-hoc
+
+emm_s_area_d.pc <- emmeans(lm_sel_El_area, pairwise ~ delmu.cat | pleiocov.cat)
+emm_s_area_d.pr <- emmeans(lm_sel_El_area, pairwise ~ delmu.cat | pleiorate.cat)
+emm_s_area_d.r <- emmeans(lm_sel_El_area, pairwise ~ delmu.cat | rwide.cat)
+emm_s_area_d.ls <- emmeans(lm_sel_El_area, pairwise ~ delmu.cat | locisigma.cat)
+emm_s_area_d.t <- emmeans(lm_sel_El_area, pairwise ~ delmu.cat| tau.cat)
+
+emm_s_area_r.pc <- emmeans(lm_sel_El_area, pairwise ~ rwide.cat | pleiocov.cat)
+emm_s_area_r.pr <- emmeans(lm_sel_El_area, pairwise ~ rwide.cat | pleiorate.cat)
+emm_s_area_r.ls <- emmeans(lm_sel_El_area, pairwise ~ rwide.cat | locisigma.cat)
+emm_s_area_r.t <- emmeans(lm_sel_El_area, pairwise ~ rwide.cat| tau.cat)
+
+emm_s_area_pr.pc <- emmeans(lm_sel_El_area, pairwise ~ pleiorate.cat | rwide.cat)
+emm_s_area_pr.ls <- emmeans(lm_sel_El_area, pairwise ~ pleiorate.cat | locisigma.cat)
+emm_s_area_pr.t <- emmeans(lm_sel_El_area, pairwise ~ pleiorate.cat| tau.cat)
+
+
+
+# Ratio post-hoc
+
+emm_s_ratio_d.pc <- emmeans(lm_sel_El_ratio, pairwise ~ delmu.cat | pleiocov.cat)
+emm_s_ratio_d.pr <- emmeans(lm_sel_El_ratio, pairwise ~ delmu.cat | pleiorate.cat)
+emm_s_ratio_d.r <- emmeans(lm_sel_El_ratio, pairwise ~ delmu.cat | rwide.cat)
+emm_s_ratio_d.ls <- emmeans(lm_sel_El_ratio, pairwise ~ delmu.cat | locisigma.cat)
+emm_s_ratio_d.t <- emmeans(lm_sel_El_ratio, pairwise ~ delmu.cat| tau.cat)
+
+emm_s_ratio_r.pc <- emmeans(lm_sel_El_ratio, pairwise ~ rwide.cat | pleiocov.cat)
+emm_s_ratio_r.pr <- emmeans(lm_sel_El_ratio, pairwise ~ rwide.cat | pleiorate.cat)
+emm_s_ratio_r.ls <- emmeans(lm_sel_El_ratio, pairwise ~ rwide.cat | locisigma.cat)
+emm_s_ratio_r.t <- emmeans(lm_sel_El_ratio, pairwise ~ rwide.cat| tau.cat)
+
+emm_s_ratio_pr.pc <- emmeans(lm_sel_El_ratio, pairwise ~ pleiorate.cat | rwide.cat)
+emm_s_ratio_pr.ls <- emmeans(lm_sel_El_ratio, pairwise ~ pleiorate.cat | locisigma.cat)
+emm_s_ratio_pr.t <- emmeans(lm_sel_El_ratio, pairwise ~ pleiorate.cat| tau.cat)
+
+
+# Theta post-hoc
+
+emm_s_theta_d.pc <- emmeans(lm_sel_El_theta, pairwise ~ delmu.cat | pleiocov.cat)
+emm_s_theta_d.pr <- emmeans(lm_sel_El_theta, pairwise ~ delmu.cat | pleiorate.cat)
+emm_s_theta_d.r <- emmeans(lm_sel_El_theta, pairwise ~ delmu.cat | rwide.cat)
+emm_s_theta_d.ls <- emmeans(lm_sel_El_theta, pairwise ~ delmu.cat | locisigma.cat)
+emm_s_theta_d.t <- emmeans(lm_sel_El_theta, pairwise ~ delmu.cat| tau.cat)
+
+emm_s_theta_r.pc <- emmeans(lm_sel_El_theta, pairwise ~ rwide.cat | pleiocov.cat)
+emm_s_theta_r.pr <- emmeans(lm_sel_El_theta, pairwise ~ rwide.cat | pleiorate.cat)
+emm_s_theta_r.ls <- emmeans(lm_sel_El_theta, pairwise ~ rwide.cat | locisigma.cat)
+emm_s_theta_r.t <- emmeans(lm_sel_El_theta, pairwise ~ rwide.cat| tau.cat)
+
+emm_s_theta_pr.pc <- emmeans(lm_sel_El_theta, pairwise ~ pleiorate.cat | rwide.cat)
+emm_s_theta_pr.ls <- emmeans(lm_sel_El_theta, pairwise ~ pleiorate.cat | locisigma.cat)
+emm_s_theta_pr.t <- emmeans(lm_sel_El_theta, pairwise ~ pleiorate.cat| tau.cat)
+
+
+
+
+
+
+
+
+
+
 
 #####################################################
 
@@ -527,7 +685,7 @@ G_relGV_sel_btwn_delmu <- MCmat_gen(d_sel_mat_delmu, d_sel_mat_delmu$delmu, 4) #
 
 # Run this on Tinaroo with n > 10, at 32 so we can get a better look at the whole picture
 
-relGV_sel_btwn_delmu <- MC_relW_PW(G_relGV_sel_btwn_delmu, 25, cores=4) # n * (n-1)/2 comparisons
+relGV_sel_btwn_delmu <- MC_relW_PW_combn(G_relGV_sel_btwn_delmu, 5, cores=4) # n * (n-1)/2 comparisons
 
 
 # Organise into a more reasonable output for transforming to data frame
@@ -566,7 +724,7 @@ d_relG_sel_btwn_delmu <- d_relG_sel_btwn_delmu_wider
 
 
 # The above can be done on Tinaroo and then exported via RDS to load in here
-d_relG_sel_btwn_delmu <- readRDS("d_relG_sel_btwn_delmu_tin.RDS")
+d_relG_sel_btwn_delmu <- readRDS("d_relG_sel_btwn_delmu_tin2.RDS")
 
 # These values are stored as list objects, make them a regular numeric vector
 d_relG_sel_btwn_delmu$relGmax.val <- as.numeric(d_relG_sel_btwn_delmu$relGmax.val)
@@ -646,7 +804,7 @@ d_relG_sel_btwn_delmu_wider <- d_relG_sel_btwn_delmu_longer %>%
 
 # Rename columns to something more sensical
 
-names(d_relG_sel_btwn_delmu_wider)[24:33] <- c("delmu1", "delmu2", "pleiocov1", "pleiocov2", "pleiorate1", "pleiorate2", "rwide1", "rwide2", "locisigma1", "locisigma2")
+names(d_relG_sel_btwn_delmu_wider)[24:35] <- c("delmu1", "delmu2", "pleiocov1", "pleiocov2", "pleiorate1", "pleiorate2", "rwide1", "rwide2", "locisigma1", "locisigma2", "tau1", "tau2")
 
 # Calculate differences like for delmu
 d_relG_sel_btwn_delmu_wider$pleiocovdiff <- abs(d_relG_sel_btwn_delmu_wider$pleiocov1 - d_relG_sel_btwn_delmu_wider$pleiocov2)
@@ -674,27 +832,27 @@ write.table(d_relG_sel_btwn, "d_relEig_sel_btwn.csv", sep = ",", row.names = F)
 
 # Calculate means and SE for plotting
 
-dplot_relG_sel_btwn_pleiocov <- d_relG_sel_btwn[-c(1:2, 22:37, 39:41)] %>%
+dplot_relG_sel_btwn_pleiocov <- d_relG_sel_btwn[c(3:21, 41)] %>%
   group_by(pleiocov.cat) %>%
   summarise_all(list(groupmean = mean, se = std.error))
 
 
-dplot_relG_sel_btwn_pleiorate <- d_relG_sel_btwn[-c(1:2, 22:38, 40:41)] %>%
+dplot_relG_sel_btwn_pleiorate <- d_relG_sel_btwn[c(3:21, 42)] %>%
   group_by(pleiorate.cat) %>%
   summarise_all(list(groupmean = mean, se = std.error))
 
 
-dplot_relG_sel_btwn_rwide <- d_relG_sel_btwn[-c(1:2, 22:39, 41)] %>%
+dplot_relG_sel_btwn_rwide <- d_relG_sel_btwn[c(3:21, 43)] %>%
   group_by(rwide.cat) %>%
   summarise_all(list(groupmean = mean, se = std.error))
 
 
-dplot_relG_sel_btwn_locisigma <- d_relG_sel_btwn[-c(1:2, 22:40)] %>%
+dplot_relG_sel_btwn_locisigma <- d_relG_sel_btwn[c(3:21, 44)] %>%
   group_by(locisigma.cat) %>%
   summarise_all(list(groupmean = mean, se = std.error))
 
 
-dplot_relG_sel_btwn_tau <- d_relG_sel_btwn[-c(1:2, 22:40 X X)] %>% # Need to update these values with the actual numbers
+dplot_relG_sel_btwn_tau <- d_relG_sel_btwn[c(3:21, 45)] %>% 
   group_by(tau.cat) %>%
   summarise_all(list(groupmean = mean, se = std.error))
 
@@ -748,9 +906,45 @@ summary(lm_logGV_sel_btwn)
 
 "
 Call:
+lm(formula = logGV ~ (delmudiff + pleioratediff + pleiocovdiff + 
+    rwidediff + locisigmadiff + taudiff)^2, data = d_relG_sel_btwn)
 
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-98.652 -13.847   0.096  14.460  96.496 
+
+Coefficients:
+                              Estimate Std. Error t value Pr(>|t|)    
+(Intercept)                  4.541e+00  2.806e-01  16.186  < 2e-16 ***
+delmudiff                    2.221e+00  4.100e-01   5.418 6.03e-08 ***
+pleioratediff               -1.098e+01  8.067e-01 -13.607  < 2e-16 ***
+pleiocovdiff                -1.222e+01  8.461e-01 -14.444  < 2e-16 ***
+rwidediff                   -2.777e+04  3.491e+03  -7.955 1.79e-15 ***
+locisigmadiff               -2.863e-01  4.173e-02  -6.860 6.89e-12 ***
+taudiff                     -1.598e-03  4.254e-04  -3.757 0.000172 ***
+delmudiff:pleioratediff      1.184e+01  9.027e-01  13.115  < 2e-16 ***
+delmudiff:pleiocovdiff      -3.459e+00  9.620e-01  -3.595 0.000324 ***
+delmudiff:rwidediff          4.416e+03  3.802e+03   1.161 0.245501    
+delmudiff:locisigmadiff     -1.015e+00  4.743e-02 -21.402  < 2e-16 ***
+delmudiff:taudiff            1.471e-03  4.839e-04   3.040 0.002364 ** 
+pleioratediff:pleiocovdiff   2.590e+01  1.885e+00  13.742  < 2e-16 ***
+pleioratediff:rwidediff     -4.373e+04  7.697e+03  -5.682 1.33e-08 ***
+pleioratediff:locisigmadiff  9.245e-01  9.255e-02   9.989  < 2e-16 ***
+pleioratediff:taudiff       -5.244e-03  9.382e-04  -5.589 2.28e-08 ***
+pleiocovdiff:rwidediff       5.320e+04  8.329e+03   6.387 1.69e-10 ***
+pleiocovdiff:locisigmadiff   7.361e-02  9.770e-02   0.753 0.451161    
+pleiocovdiff:taudiff         1.571e-02  1.003e-03  15.661  < 2e-16 ***
+rwidediff:locisigmadiff      5.248e+03  3.990e+02  13.152  < 2e-16 ***
+rwidediff:taudiff           -2.460e+01  4.037e+00  -6.093 1.11e-09 ***
+locisigmadiff:taudiff        4.589e-05  4.896e-05   0.937 0.348583    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 30.96 on 812778 degrees of freedom
+Multiple R-squared:  0.002563,	Adjusted R-squared:  0.002537 
+F-statistic: 99.45 on 21 and 812778 DF,  p-value: < 2.2e-16
 "
-
+# Explains almost nothing
 
 # is it normal?
 qqnorm(d_relG_sel_btwn$logGV)
@@ -800,15 +994,32 @@ t.test(logGV ~ locisigma.cat, data = d_relG_sel_btwn_ex_locisigma)
 
 t.test(logGV ~ tau.cat, data = d_relG_sel_btwn_ex_tau)
 
-##################################################################
 
-# Check that the distributions are normal (otherwise can't use t-test? I think it's pretty resilient to departures from normality)
+# Kolmogorov-Smirnov tests for differences between distributions
+
+ks.test(d_relG_sel_btwn$logGV[d_relG_sel_btwn$delmu.cat == sort(unique(d_relG_sel_btwn$delmu.cat))[1]], d_relG_sel_btwn$logGV[d_relG_sel_btwn$delmu.cat == sort(unique(d_relG_sel_btwn$delmu.cat))[8]])
+
+ks.test(d_relG_sel_btwn$logGV[d_relG_sel_btwn$rwide.cat == sort(unique(d_relG_sel_btwn$rwide.cat))[1]], d_relG_sel_btwn$logGV[d_relG_sel_btwn$rwide.cat == sort(unique(d_relG_sel_btwn$rwide.cat))[8]])
+
+ks.test(d_relG_sel_btwn$logGV[d_relG_sel_btwn$pleiocov.cat == sort(unique(d_relG_sel_btwn$pleiocov.cat))[1]], d_relG_sel_btwn$logGV[d_relG_sel_btwn$pleiocov.cat == sort(unique(d_relG_sel_btwn$pleiocov.cat))[8]])
+
+ks.test(d_relG_sel_btwn$logGV[d_relG_sel_btwn$pleiorate.cat == sort(unique(d_relG_sel_btwn$pleiorate.cat))[1]], d_relG_sel_btwn$logGV[d_relG_sel_btwn$pleiorate.cat == sort(unique(d_relG_sel_btwn$pleiorate.cat))[8]])
+
+ks.test(d_relG_sel_btwn$logGV[d_relG_sel_btwn$locisigma.cat == sort(unique(d_relG_sel_btwn$locisigma.cat))[1]], d_relG_sel_btwn$logGV[d_relG_sel_btwn$locisigma.cat == sort(unique(d_relG_sel_btwn$locisigma.cat))[8]])
+
+ks.test(d_relG_sel_btwn$logGV[d_relG_sel_btwn$tau.cat == sort(unique(d_relG_sel_btwn$tau.cat))[1]], d_relG_sel_btwn$logGV[d_relG_sel_btwn$tau.cat == sort(unique(d_relG_sel_btwn$tau.cat))[8]])
+
+
+
+
+##################################################################
 
 hist_logGV_sel_btwn_ex_delmu <- ggplot(d_relG_sel_btwn_ex_delmu, aes(x = logGV, fill = delmu.cat)) +
   geom_histogram(color = "blue", alpha = 0.6, position = 'identity') +
+  #  geom_line(stat = StatNormalDensity, size = 1) +
   theme_classic() +
   scale_fill_manual(values = c("royalblue", "seagreen2")) +
-  labs(x = "Log generalised variance between groups", fill = "Deleterious mutation rate")
+  labs(x = "Log generalised variance between groups", fill = "\u0394 Deleterious mutation rate")
 
 # # # # # # # # # # # # # # # # #
 
@@ -816,7 +1027,7 @@ hist_logGV_sel_btwn_ex_pleiocov <- ggplot(d_relG_sel_btwn_ex_pleiocov, aes(x = l
   geom_histogram(color = "blue", alpha = 0.6, position = 'identity') +
   theme_classic() +
   scale_fill_manual(values = c("royalblue", "seagreen2")) +
-  labs(x = "Log generalised variance between groups", fill = "Pleiotropic covariance")
+  labs(x = "Log generalised variance between groups", fill = "\u0394 Pleiotropic covariance")
 
 # # # # # # # # # # # # # # # # #
 
@@ -824,7 +1035,7 @@ hist_logGV_sel_btwn_ex_pleiorate <- ggplot(d_relG_sel_btwn_ex_pleiorate, aes(x =
   geom_histogram(color = "blue", alpha = 0.6, position = 'identity') +
   theme_classic() +
   scale_fill_manual(values = c("royalblue", "seagreen2")) +
-  labs(x = "Log generalised variance between groups", fill = "Rate of pleiotropy")
+  labs(x = "Log generalised variance between groups", fill = "\u0394 Rate of pleiotropy")
 
 # # # # # # # # # # # # # # # # #
 
@@ -832,7 +1043,7 @@ hist_logGV_sel_btwn_ex_rwide <- ggplot(d_relG_sel_btwn_ex_rwide, aes(x = logGV, 
   geom_histogram(color = "blue", alpha = 0.6, position = 'identity') +
   theme_classic() +
   scale_fill_manual(values = c("royalblue", "seagreen2")) +
-  labs(x = "Log generalised variance between groups", fill = "Recombination rate")
+  labs(x = "Log generalised variance between groups", fill = "\u0394 Recombination rate")
 
 # # # # # # # # # # # # # # # # #
 
@@ -840,23 +1051,92 @@ hist_logGV_sel_btwn_ex_locisigma <- ggplot(d_relG_sel_btwn_ex_locisigma, aes(x =
   geom_histogram(color = "blue", alpha = 0.6, position = 'identity') +
   theme_classic() +
   scale_fill_manual(values = c("royalblue", "seagreen2")) +
-  labs(x = "Log generalised variance between groups", fill = "Additive effect size")
+  labs(x = "Log generalised variance between groups", fill = "\u0394 Additive effect size")
 
 # # # # # # # # # # # # # # # # #
 
-hist_logGV_sel_btwn_ex_tau <- ggplot(d_relG_sel_btwn_ex_locisigma, aes(x = logGV, fill = tau.cat)) +
+hist_logGV_sel_btwn_ex_tau <- ggplot(d_relG_sel_btwn_ex_tau, aes(x = logGV, fill = tau.cat)) +
   geom_histogram(color = "blue", alpha = 0.6, position = 'identity') +
   theme_classic() +
   scale_fill_manual(values = c("royalblue", "seagreen2")) +
-  labs(x = "Log generalised variance between groups", fill = "Selection strength (tau)")
-
-
+  labs(x = "Log generalised variance between groups", fill = "\u0394 selection strength")
 
 
 # The plots all follow the same shape: many more samples for the low differences than the high differences
 # low differences have an approximately normal dist (central limit theorem), high differences are approaching
 # it in all cases, with some discrepancies (in pleiorate especially)
 # Since t-tests are robust to departures from normality, this should be fine
+
+# into one image:
+
+library(patchwork)
+
+(hist_logGV_sel_btwn_ex_delmu | hist_logGV_sel_btwn_ex_pleiocov | hist_logGV_sel_btwn_ex_pleiorate) / (hist_logGV_sel_btwn_ex_rwide | hist_logGV_sel_btwn_ex_locisigma | hist_logGV_sel_btwn_ex_tau)
+
+
+
+
+#########################################################################################
+# Densities
+
+
+dens_logGV_sel_btwn_ex_delmu <- ggplot(d_relG_sel_btwn_ex_delmu, aes(x = logGV, fill = delmu.cat)) +
+  geom_density(color = "blue", alpha = 0.6, position = 'identity') +
+  #  geom_line(stat = StatNormalDensity, size = 1) +
+  theme_classic() +
+  scale_fill_manual(values = c("royalblue", "seagreen2")) +
+  labs(x = "Log generalised variance between groups", fill = "\u0394 Deleterious mutation rate")
+
+# # # # # # # # # # # # # # # # #
+
+dens_logGV_sel_btwn_ex_pleiocov <- ggplot(d_relG_sel_btwn_ex_pleiocov, aes(x = logGV, fill = pleiocov.cat)) +
+  geom_density(color = "blue", alpha = 0.6, position = 'identity') +
+  theme_classic() +
+  scale_fill_manual(values = c("royalblue", "seagreen2")) +
+  labs(x = "Log generalised variance between groups", fill = "\u0394 Pleiotropic covariance")
+
+# # # # # # # # # # # # # # # # #
+
+dens_logGV_sel_btwn_ex_pleiorate <- ggplot(d_relG_sel_btwn_ex_pleiorate, aes(x = logGV, fill = pleiorate.cat)) +
+  geom_density(color = "blue", alpha = 0.6, position = 'identity') +
+  theme_classic() +
+  scale_fill_manual(values = c("royalblue", "seagreen2")) +
+  labs(x = "Log generalised variance between groups", fill = "\u0394 Rate of pleiotropy")
+
+# # # # # # # # # # # # # # # # #
+
+dens_logGV_sel_btwn_ex_rwide <- ggplot(d_relG_sel_btwn_ex_rwide, aes(x = logGV, fill = rwide.cat)) +
+  geom_density(color = "blue", alpha = 0.6, position = 'identity') +
+  theme_classic() +
+  scale_fill_manual(values = c("royalblue", "seagreen2")) +
+  labs(x = "Log generalised variance between groups", fill = "\u0394 Recombination rate")
+
+# # # # # # # # # # # # # # # # #
+
+dens_logGV_sel_btwn_ex_locisigma <- ggplot(d_relG_sel_btwn_ex_locisigma, aes(x = logGV, fill = locisigma.cat)) +
+  geom_density(color = "blue", alpha = 0.6, position = 'identity') +
+  theme_classic() +
+  scale_fill_manual(values = c("royalblue", "seagreen2")) +
+  labs(x = "Log generalised variance between groups", fill = "\u0394 Additive effect size")
+
+# # # # # # # # # # # # # # # # #
+
+dens_logGV_sel_btwn_ex_tau <- ggplot(d_relG_sel_btwn_ex_tau, aes(x = logGV, fill = tau.cat)) +
+  geom_density(color = "blue", alpha = 0.6, position = 'identity') +
+  theme_classic() +
+  scale_fill_manual(values = c("royalblue", "seagreen2")) +
+  labs(x = "Log generalised variance between groups", fill = "\u0394 Selection strength")
+
+
+library(patchwork)
+
+(dens_logGV_sel_btwn_ex_delmu | dens_logGV_sel_btwn_ex_pleiocov | dens_logGV_sel_btwn_ex_pleiorate) / (dens_logGV_sel_btwn_ex_rwide | dens_logGV_sel_btwn_ex_locisigma | dens_logGV_sel_btwn_ex_tau)
+
+
+
+
+
+
 
 
 
@@ -868,7 +1148,7 @@ hist_logGV_sel_btwn_ex_tau <- ggplot(d_relG_sel_btwn_ex_locisigma, aes(x = logGV
 # delmu
 
 # Transform to means and SE
-dplot_relG_sel_btwn_ex_delmu <- d_relG_sel_btwn_ex_delmu[-c(1:2, 22, 24:41)] %>%
+dplot_relG_sel_btwn_ex_delmu <- d_relG_sel_btwn_ex_delmu[c(3:21, 23)] %>%
   group_by(delmu.cat) %>%
   summarise_all(list(groupmean = mean, se = std.error))
 
@@ -878,15 +1158,27 @@ plot_logGV_sel_btwn_ex_delmu <- ggplot(dplot_relG_sel_btwn_ex_delmu, aes(x = del
   geom_errorbar(aes(ymin = logGV_groupmean - (1.96*logGV_se), ymax = logGV_groupmean + (1.96*logGV_se)), width = 0.2) +
   theme_classic() +
   theme(legend.position = "none") +
-  labs(x = "Difference in background selection between comparison models", y = "Mean pairwise log generalised variance between models")
+  labs(x = "\u0394 background selection between comparison models", y = "Mean pairwise log generalised variance")
 
-box_logGV_sel_btwn_ex_delmu <- ggplot(d_relG_sel_btwn_ex_delmu, aes(x = delmu.cat, y = logGV, fill = delmu.cat)) +
+viol_logGV_sel_btwn_ex_delmu <- ggplot(d_relG_sel_btwn_ex_delmu, aes(x = delmu.cat, y = logGV, fill = delmu.cat)) +
   geom_violin() +
-  scale_fill_manual(values = c("maroon", "royalblue")) +
+  scale_fill_manual(values = c("paleturquoise", "royalblue")) +
   #  geom_boxplot(color = c("lightgrey"), alpha = 0.6, position = 'identity') +
+  geom_errorbar(
+    mapping = 
+      aes(x = delmu.cat,
+          y = logGV_groupmean,
+          group = 1,
+          ymin = (logGV_groupmean - (1.96*logGV_se)), 
+          ymax = (logGV_groupmean + (1.96*logGV_se))
+      ), 
+    width = 0.05, 
+    data = dplot_relG_sel_btwn_ex_delmu, 
+    inherit.aes = FALSE) +
   theme_classic() +
   theme(legend.position = "none") +
-  labs(x = "Difference between background selection treatments", y = "Log generalised variance between groups")
+  scale_x_discrete(labels = c("Small", "Large")) +
+  labs(x = "\u0394 Background selection", y = "Log generalised variance between groups")
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
@@ -894,50 +1186,74 @@ box_logGV_sel_btwn_ex_delmu <- ggplot(d_relG_sel_btwn_ex_delmu, aes(x = delmu.ca
 # pleiocov
 
 # Transform to means and SE
-dplot_relG_sel_btwn_ex_pleiocov <- d_relG_sel_btwn_ex_pleiocov[-c(1:2, 22:37, 39:41)] %>%
+dplot_relG_sel_btwn_ex_pleiocov <- d_relG_sel_btwn_ex_pleiocov[c(3:21, 41)] %>%
   group_by(pleiocov.cat) %>%
   summarise_all(list(groupmean = mean, se = std.error))
 
 # Plot
-plot_logGV_btwn_ex_pleiocov <- ggplot(dplot_relG_sel_btwn_ex_pleiocov, aes(x = pleiocov.cat, y = logGV_groupmean, group = 1)) +
+plot_logGV_sel_btwn_ex_pleiocov <- ggplot(dplot_relG_sel_btwn_ex_pleiocov, aes(x = pleiocov.cat, y = logGV_groupmean, group = 1)) +
   geom_col() +
   geom_errorbar(aes(ymin = logGV_groupmean - (1.96*logGV_se), ymax = logGV_groupmean + (1.96*logGV_se)), width = 0.2) +
   theme_classic() +
   theme(legend.position = "none") +
-  labs(x = "Difference in mutational pleiotropic covariance between comparison models", y = "Mean pairwise log generalised variance between models")
+  labs(x = "\u0394 mutational pleiotropic covariance", y = "Mean pairwise log generalised variance")
 
-box_logGV_btwn_ex_pleiocov <- ggplot(d_relG_sel_btwn_ex_pleiocov, aes(x = pleiocov.cat, y = logGV, fill = pleiocov.cat)) +
+viol_logGV_sel_btwn_ex_pleiocov <- ggplot(d_relG_sel_btwn_ex_pleiocov, aes(x = pleiocov.cat, y = logGV, fill = pleiocov.cat)) +
   #  geom_boxplot(color = c("maroon", "royalblue"), alpha = 0.6, position = 'identity') +
   geom_violin() +
-  scale_fill_manual(values = c("maroon", "royalblue")) +
+  scale_fill_manual(values = c("paleturquoise", "royalblue")) +
+  geom_errorbar(
+    mapping = 
+      aes(x = pleiocov.cat,
+          y = logGV_groupmean,
+          group = 1,
+          ymin = (logGV_groupmean - (1.96*logGV_se)), 
+          ymax = (logGV_groupmean + (1.96*logGV_se))
+      ), 
+    width = 0.05, 
+    data = dplot_relG_sel_btwn_ex_pleiocov, 
+    inherit.aes = FALSE) +
   theme_classic() +
   theme(legend.position = "none") +
-  labs(x = "Difference between mutational pleiotropic covariance treatments", y = "Log generalised variance between groups")
+  scale_x_discrete(labels = c("Small", "Large")) +
+  labs(x = "\u0394 mutational pleiotropic covariance", y = "Log generalised variance between groups")
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 
 # pleiorate
 
 # Transform to means and SE
-dplot_relG_sel_btwn_ex_pleiorate <- d_relG_sel_btwn_ex_pleiorate[-c(1:2, 22:38, 40:41)] %>%
+dplot_relG_sel_btwn_ex_pleiorate <- d_relG_sel_btwn_ex_pleiorate[c(3:21, 42)] %>%
   group_by(pleiorate.cat) %>%
   summarise_all(list(groupmean = mean, se = std.error))
 
 # Plot
-plot_logGV_btwn_ex_pleiorate <- ggplot(dplot_relG_sel_btwn_ex_pleiorate, aes(x = pleiorate.cat, y = logGV_groupmean, group = 1)) +
+plot_logGV_sel_btwn_ex_pleiorate <- ggplot(dplot_relG_sel_btwn_ex_pleiorate, aes(x = pleiorate.cat, y = logGV_groupmean, group = 1)) +
   geom_col() +
   geom_errorbar(aes(ymin = logGV_groupmean - (1.96*logGV_se), ymax = logGV_groupmean + (1.96*logGV_se)), width = 0.2) +
   theme_classic() +
   theme(legend.position = "none") +
-  labs(x = "Difference in rate of pleiotropy between comparison models", y = "Mean pairwise log generalised variance between models")
+  labs(x = "\u0394 rate of pleiotropy between comparison models", y = "Mean pairwise log generalised variance")
 
-box_logGV_btwn_ex_pleiorate <- ggplot(d_relG_sel_btwn_ex_pleiorate, aes(x = pleiorate.cat, y = logGV, fill = pleiorate.cat)) +
+viol_logGV_sel_btwn_ex_pleiorate <- ggplot(d_relG_sel_btwn_ex_pleiorate, aes(x = pleiorate.cat, y = logGV, fill = pleiorate.cat)) +
   geom_violin() +
-  scale_fill_manual(values = c("maroon", "royalblue")) +
+  scale_fill_manual(values = c("paleturquoise", "royalblue")) +
   #  geom_boxplot(color = c("maroon", "royalblue"), alpha = 0.6, position = 'identity') +
+  geom_errorbar(
+    mapping = 
+      aes(x = pleiorate.cat,
+          y = logGV_groupmean,
+          group = 1,
+          ymin = (logGV_groupmean - (1.96*logGV_se)), 
+          ymax = (logGV_groupmean + (1.96*logGV_se))
+      ), 
+    width = 0.05, 
+    data = dplot_relG_sel_btwn_ex_pleiorate, 
+    inherit.aes = FALSE) +
   theme_classic() +
   theme(legend.position = "none") +
-  labs(x = "Difference between pleiotropy rate treatments", y = "Log generalised variance between groups")
+  scale_x_discrete(labels = c("Small", "Large")) +
+  labs(x = "\u0394 pleiotropy rates", y = "Log generalised variance between groups")
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
@@ -946,34 +1262,38 @@ box_logGV_btwn_ex_pleiorate <- ggplot(d_relG_sel_btwn_ex_pleiorate, aes(x = plei
 # rwide
 
 # Transform to means and SE
-dplot_relG_sel_btwn_ex_rwide <- d_relG_sel_btwn_ex_rwide[-c(1:2, 22:39, 41)] %>%
+dplot_relG_sel_btwn_ex_rwide <- d_relG_sel_btwn_ex_rwide[c(3:21, 43)] %>%
   group_by(rwide.cat) %>%
   summarise_all(list(groupmean = mean, se = std.error))
 
 # Plot
-plot_logGV_btwn_ex_rwide <- ggplot(dplot_relG_sel_btwn_ex_rwide, aes(x = rwide.cat, y = logGV_groupmean, group = 1)) +
+plot_logGV_sel_btwn_ex_rwide <- ggplot(dplot_relG_sel_btwn_ex_rwide, aes(x = rwide.cat, y = logGV_groupmean, group = 1)) +
   geom_col() +
   geom_errorbar(aes(ymin = logGV_groupmean - (1.96*logGV_se), ymax = logGV_groupmean + (1.96*logGV_se)), width = 0.2) +
   theme_classic() +
   theme(legend.position = "none") +
-  labs(x = "Difference in genome-wide recombination rate between comparison models", y = "Mean pairwise log generalised variance between models")
+  labs(x = "\u0394 genome-wide recombination rate between comparison models", y = "Mean pairwise log generalised variance")
 
-box_logGV_btwn_ex_rwide <- ggplot() +
+viol_logGV_sel_btwn_ex_rwide <- ggplot() +
   geom_violin(data = d_relG_sel_btwn_ex_rwide, aes(x = rwide.cat, y = logGV, fill = rwide.cat)) +
-  scale_fill_manual(values = c("maroon", "royalblue")) +
+  scale_fill_manual(values = c("paleturquoise", "royalblue")) +
   #  geom_boxplot(color = c("maroon", "royalblue"), alpha = 0.6, position = 'identity') +
   geom_point(data = dplot_relG_sel_btwn_ex_rwide, aes(x = rwide.cat, y = logGV_groupmean, group = 1)) +
   geom_errorbar(
     mapping = 
-      aes(ymin = logGV_groupmean - (1.96*logGV_se), 
-          ymax = logGV_groupmean + (1.96*logGV_se)
+      aes(x = rwide.cat,
+          y = logGV_groupmean,
+          group = 1,
+          ymin = (logGV_groupmean - (1.96*logGV_se)), 
+          ymax = (logGV_groupmean + (1.96*logGV_se))
       ), 
-    width = 0.2, 
+    width = 0.05, 
     data = dplot_relG_sel_btwn_ex_rwide, 
     inherit.aes = FALSE) +
   theme_classic() +
   theme(legend.position = "none") +
-  labs(x = "Difference between recombination rate treatments", y = "Log generalised variance between groups")
+  scale_x_discrete(labels = c("Small", "Large")) +
+  labs(x = "\u0394 recombination rates", y = "Log generalised variance between groups")
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
@@ -981,27 +1301,101 @@ box_logGV_btwn_ex_rwide <- ggplot() +
 # locisigma
 
 # Transform to means and SE
-dplot_relG_sel_btwn_ex_locisigma <- d_relG_sel_btwn_ex_locisigma[-c(1:2, 22:40)] %>%
+dplot_relG_sel_btwn_ex_locisigma <- d_relG_sel_btwn_ex_locisigma[c(3:21, 44)] %>%
   group_by(locisigma.cat) %>%
   summarise_all(list(groupmean = mean, se = std.error))
 
 # Plot
-plot_logGV_btwn_ex_locisigma <- ggplot(dplot_relG_sel_btwn_ex_locisigma, aes(x = locisigma.cat, y = logGV_groupmean, group = 1)) +
+plot_logGV_sel_btwn_ex_locisigma <- ggplot(dplot_relG_sel_btwn_ex_locisigma, aes(x = locisigma.cat, y = logGV_groupmean, group = 1)) +
   geom_col() +
   geom_errorbar(aes(ymin = logGV_groupmean - (1.96*logGV_se), ymax = logGV_groupmean + (1.96*logGV_se)), width = 0.2) +
   theme_classic() +
   theme(legend.position = "none") +
-  labs(x = "Difference in additive effect size variance between comparison models", y = "Mean pairwise log generalised variance between models")
+  labs(x = "\u0394 additive effect size variance between comparison models", y = "Mean pairwise log generalised variance")
 
 
-box_logGV_btwn_ex_locisigma <- ggplot(d_relG_sel_btwn_ex_locisigma, aes(x = locisigma.cat, y = logGV, fill = locisigma.cat)) +
+viol_logGV_sel_btwn_ex_locisigma <- ggplot(d_relG_sel_btwn_ex_locisigma, aes(x = locisigma.cat, y = logGV, fill = locisigma.cat)) +
   geom_violin() +
-  scale_fill_manual(values = c("maroon", "royalblue")) +
+  scale_fill_manual(values = c("paleturquoise", "royalblue")) +
   #  geom_boxplot(color = c("maroon", "royalblue"), alpha = 0.6, position = 'identity') +
+  geom_errorbar(
+    mapping = 
+      aes(x = locisigma.cat,
+          y = logGV_groupmean,
+          group = 1,
+          ymin = (logGV_groupmean - (1.96*logGV_se)), 
+          ymax = (logGV_groupmean + (1.96*logGV_se))
+      ), 
+    width = 0.05, 
+    data = dplot_relG_sel_btwn_ex_locisigma, 
+    inherit.aes = FALSE) +
   theme_classic() +
   theme(legend.position = "none") +
-  labs(x = "Difference between additive effect size treatments", y = "Log generalised variance between groups")
+  scale_x_discrete(labels = c("Small", "Large")) +
+  labs(x = "\u0394 additive effect sizes", y = "Log generalised variance between groups")
 
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+# tau
+
+# Transform to means and SE
+dplot_relG_sel_btwn_ex_tau <- d_relG_sel_btwn_ex_tau[c(3:21, 45)] %>%
+  group_by(tau.cat) %>%
+  summarise_all(list(groupmean = mean, se = std.error))
+
+# Plot
+plot_logGV_sel_btwn_ex_tau <- ggplot(dplot_relG_sel_btwn_ex_tau, aes(x = tau.cat, y = logGV_groupmean, group = 1)) +
+  geom_col() +
+  geom_errorbar(aes(ymin = logGV_groupmean - (1.96*logGV_se), ymax = logGV_groupmean + (1.96*logGV_se)), width = 0.2) +
+  theme_classic() +
+  theme(legend.position = "none") +
+  labs(x = "\u0394 selection strength between comparison models", y = "Mean pairwise log generalised variance")
+
+
+viol_logGV_sel_btwn_ex_tau <- ggplot(d_relG_sel_btwn_ex_tau, aes(x = tau.cat, y = logGV, fill = tau.cat)) +
+  geom_violin() +
+  scale_fill_manual(values = c("paleturquoise", "royalblue")) +
+  #  geom_boxplot(color = c("maroon", "royalblue"), alpha = 0.6, position = 'identity') +
+  geom_errorbar(
+    mapping = 
+      aes(x = tau.cat,
+          y = logGV_groupmean,
+          group = 1,
+          ymin = (logGV_groupmean - (1.96*logGV_se)), 
+          ymax = (logGV_groupmean + (1.96*logGV_se))
+      ), 
+    width = 0.05, 
+    data = dplot_relG_sel_btwn_ex_tau, 
+    inherit.aes = FALSE) +
+  theme_classic() +
+  theme(legend.position = "none") +
+  scale_x_discrete(labels = c("Small", "Large")) +
+  labs(x = "\u0394 Selection strength", y = "Log generalised variance between groups")
+
+
+#################################################################
+
+# Everything goes in the same direction (larger differences between models in a predictor leads to larger 
+# log generalised variances) except for rwide where the opposite is true
+# Means that as you compare models that are more different in rwide treatment, they become more similar
+# Could be because increasing recombination reduces the size of haploblocks, increasing redundancy, so the difference 
+# between models is reduced because recombination is creating more avenues to reach the same resulting variance structure
+
+
+#################################################################
+
+# Combine all the violin plots into a single figure with patchwork
+
+library(patchwork)
+
+(viol_logGV_sel_btwn_ex_delmu | viol_logGV_sel_btwn_ex_pleiocov | viol_logGV_sel_btwn_ex_pleiorate) / (viol_logGV_sel_btwn_ex_rwide | viol_logGV_sel_btwn_ex_locisigma | viol_logGV_sel_btwn_ex_tau)
+
+# And the mean histograms
+
+(plot_logGV_sel_btwn_ex_delmu | plot_logGV_sel_btwn_ex_pleiocov | plot_logGV_sel_btwn_ex_pleiorate) / (plot_logGV_sel_btwn_ex_rwide | plot_logGV_sel_btwn_ex_locisigma | plot_logGV_sel_btwn_ex_tau)
+
+
+#################################################################
 
 
 #################################################################
@@ -1040,4 +1434,16 @@ test_df <- data.frame(
 )
 
 
+#################################
+#           Deprecated          #
+#################################
 
+# For figuring out how many places to put the pleiocovs in - when we had random missing models, not everything
+# as we should have had
+
+for (i in 1:nrow(d_sel)) {
+  d_sel$pleiocov[i] <- ls_combos[1:192,]$pleiocov[d_sel$modelindex[i]]
+  d_sel$pleiorate[i] <- ls_combos[1:192,]$pleiorate[d_sel$modelindex[i]]
+  d_sel$locisigma[i] <- ls_combos[1:192,]$locisigma[d_sel$modelindex[i]]
+  
+}

@@ -491,6 +491,30 @@ MC_relW_PW <- function(G, n=100, cores) {
 }
 
 
+MC_relW_PW_combn <- function(G, n=100, cores) {
+  require(parallel)
+  require(vcvComp)
+  require(dplyr)
+  combos <- combn(sample(1:length(G[[1]][[1]]), n), 2) # pairwise combinations, in a matrix  
+  lapply(G, function(x) {
+    parallel::mclapply(x, function(y) {
+      ycmpseq <- seq(1, length(combos), by = 2) # Comparisons between elements z and z+1 in combos
+      lapply(ycmpseq, function(z) {
+        name <- paste(names(y[combos[z]]), names(y[combos[z+1]]), sep = "_")
+        mat1 <- matrix(unlist(y[combos[z]]), nrow = 8)
+        mat2 <- matrix(unlist(y[combos[z+1]]), nrow = 8)
+        eig <- vcvComp::relative.eigen(mat1, mat2)
+        eig[["name"]] <- name
+        eig
+      })
+    }, mc.cores = cores)
+  })
+  
+}
+
+
+
+
 
 # Organise into list with 1 value each list element, so unlist works properly: separate relative eigenvalues/vectors 
 # into columns cuts down to only Gmax and G2

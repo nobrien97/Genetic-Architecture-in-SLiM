@@ -1,0 +1,708 @@
+
+R version 3.5.0 (2018-04-23) -- "Joy in Playing"
+Copyright (C) 2018 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> ##############################################################################################################
+> #  Final Null model script with arguments coming from latin square, for use on cluster
+> ##############################################################################################################
+> 
+> 
+> #  Parallel script modified from SLiM-Extras example R script, info at
+> #  the SLiM-Extras repository at https://github.com/MesserLab/SLiM-Extras.
+> 
+> # Get environment variables
+> 
+> TMPDIR <- Sys.getenv('TMPDIR')
+> USER <- Sys.getenv('USER')
+> 
+> 
+> # Parallelisation libraries 
+> 
+> library(foreach)
+> library(doParallel)
+> library(future)
+> 
+> 
+> # Load LHS samples - We are making up for what wasn't run the first time, re-running with same seed/model combo
+> 
+> lscombos_sel <- read.csv(paste0("/home/",USER,"/SLiM/Scripts/Nimrod/Final/AIM3/Inputs/lscombos_sel.csv"), header = T)
+> 
+> combo <- read.csv(paste0("/home/",USER,"/SLiM/Scripts/Nimrod/Final/AIM3/Inputs/AIM3_supp_combos_192.csv"), header = T)
+> 
+> cl <- makeCluster(future::availableCores())
+> registerDoParallel(cl)
+> 
+> #Run SLiM, defining parameter sets according to combo - only need to run 24 models
+> 
+> 
+> # 5 Parameters for Aim 1, 6 for Aim 3 (tau):
+> # rwide, pleio_cov, pleiorate, delmu, locisigma, tau
+> 
+> 
+> foreach(i=combo$X) %dopar% {
++     # Use string manipulation functions to configure the command line args, feeding from a data frame of latin square combinations
++     # then run SLiM with system(),
++ 	j <- combo[i,]$model
++     slim_out <- system(sprintf("/home/$USER/SLiM/slim -s %s -d rwide=%s -d pleio_cov=%f -d pleiorate=%f -d delmu=%f -d locisigma=%f -d tau=%f -d modelindex=%i /home/$USER/SLiM/Scripts/Nimrod/Final/AIM3/Inputs/stabsel_recom_8T100L.slim", 
++                                as.character(combo[i,]$seed), as.character(lscombos_sel[j,]$rwide), lscombos_sel[j,]$pleiocov, lscombos_sel[j,]$pleiorate, lscombos_sel[j,]$delmu, lscombos_sel[j,]$locisigma, lscombos_sel[j,]$tau, j, intern=T))
++   }
+// Initial random seed:
+988320027
+
+// Initial random seed:
+1062596789
+
+// Initial random seed:
+2886618128
+
+// Initial random seed:
+123933562
+
+// Initial random seed:
+124345883
+
+// Initial random seed:
+2977044203
+
+// RunInitializeCallbacks():
+// RunInitializeCallbacks():
+// RunInitializeCallbacks():
+// RunInitializeCallbacks():
+// RunInitializeCallbacks():
+// Initial random seed:
+440086838
+
+// Initial random seed:
+123933562
+
+// Initial random seed:
+2456740393
+
+// RunInitializeCallbacks():
+// RunInitializeCallbacks():
+// Initial random seed:
+158549267
+
+// RunInitializeCallbacks():
+// RunInitializeCallbacks():
+// RunInitializeCallbacks():
+// Initial random seed:
+988320027
+
+// Initial random seed:
+916659413
+
+// RunInitializeCallbacks():
+// RunInitializeCallbacks():
+// Initial random seed:
+2095433836
+
+// Initial random seed:
+123933562
+
+// RunInitializeCallbacks():
+// RunInitializeCallbacks():
+// Initial random seed:
+283359780
+
+// RunInitializeCallbacks():
+initializeMutationRate(8.045e-06);
+initializeMutationRate(8.045e-06);
+initializeMutationRate(8.045e-06);
+initializeMutationRate(8.045e-06);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(2, 0.5, "g", -0.03, 0.2);
+initializeMutationType(2, 0.5, "g", -0.03, 0.2);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(2, 0.5, "g", -0.03, 0.2);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(2, 0.5, "g", -0.03, 0.2);
+initializeMutationType(3, 0.5, "f", 0);
+initializeMutationType(3, 0.5, "f", 0);
+initializeMutationType(4, 0.5, "n", 0, 8.06659);
+initializeMutationType(4, 0.5, "n", 0, 8.06659);
+initializeMutationType(5, 0.5, "n", 0, 8.06659);
+initializeMutationType(5, 0.5, "n", 0, 8.06659);
+initializeMutationType(6, 0.5, "n", 0, 8.06659);
+initializeMutationType(6, 0.5, "n", 0, 8.06659);
+initializeMutationType(7, 0.5, "n", 0, 8.06659);
+initializeMutationType(7, 0.5, "n", 0, 8.06659);
+initializeMutationType(8, 0.5, "n", 0, 8.06659);
+initializeMutationType(8, 0.5, "n", 0, 8.06659);
+initializeMutationType(9, 0.5, "n", 0, 8.06659);
+initializeMutationType(9, 0.5, "n", 0, 8.06659);
+initializeMutationType(10, 0.5, "n", 0, 8.06659);
+initializeMutationType(10, 0.5, "n", 0, 8.06659);
+initializeMutationType(11, 0.5, "n", 0, 8.06659);
+initializeMutationType(11, 0.5, "n", 0, 8.06659);
+initializeMutationType(3, 0.5, "f", 0);
+initializeMutationType(4, 0.5, "n", 0, 8.06659);
+initializeMutationType(5, 0.5, "n", 0, 8.06659);
+initializeMutationType(6, 0.5, "n", 0, 8.06659);
+initializeMutationType(7, 0.5, "n", 0, 8.06659);
+initializeMutationType(8, 0.5, "n", 0, 8.06659);
+initializeMutationType(9, 0.5, "n", 0, 8.06659);
+initializeMutationType(10, 0.5, "n", 0, 8.06659);
+initializeMutationType(11, 0.5, "n", 0, 8.06659);
+initializeMutationRate(8.045e-06);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(2, 0.5, "g", -0.03, 0.2);
+initializeMutationType(3, 0.5, "f", 0);
+initializeMutationType(4, 0.5, "n", 0, 2.18838);
+initializeMutationType(5, 0.5, "n", 0, 2.18838);
+initializeMutationType(6, 0.5, "n", 0, 2.18838);
+initializeMutationType(7, 0.5, "n", 0, 2.18838);
+initializeMutationType(8, 0.5, "n", 0, 2.18838);
+initializeMutationType(9, 0.5, "n", 0, 2.18838);
+initializeMutationType(10, 0.5, "n", 0, 2.18838);
+initializeMutationType(11, 0.5, "n", 0, 2.18838);
+initializeMutationRate(8.045e-06);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(2, 0.5, "g", -0.03, 0.2);
+initializeMutationType(3, 0.5, "f", 0);
+initializeMutationType(4, 0.5, "n", 0, 7.79907);
+initializeMutationType(5, 0.5, "n", 0, 7.79907);
+initializeMutationType(6, 0.5, "n", 0, 7.79907);
+initializeMutationType(7, 0.5, "n", 0, 7.79907);
+initializeMutationType(8, 0.5, "n", 0, 7.79907);
+initializeMutationType(9, 0.5, "n", 0, 7.79907);
+initializeMutationType(10, 0.5, "n", 0, 7.79907);
+initializeMutationType(11, 0.5, "n", 0, 7.79907);
+initializeGenomicElementType(1, c(m1, m2), c(1, 0.243985));
+initializeGenomicElementType(1, c(m1, m2), c(1, 0.571953));
+initializeGenomicElementType(1, c(m1, m2), c(1, 0.460664));
+initializeGenomicElementType(1, c(m1, m2), c(1, 0.243985));
+initializeGenomicElement(g1, 0, 799);
+initializeGenomicElement(g1, 0, 799);
+initializeGenomicElement(g1, 0, 799);
+initializeRecombinationRate(0.000113507);
+initializeRecombinationRate(5.21644e-05);
+initializeRecombinationRate(0.000113507);
+initializeMutationRate(8.045e-06);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(2, 0.5, "g", -0.03, 0.2);
+initializeMutationType(3, 0.5, "f", 0);
+initializeMutationType(4, 0.5, "n", 0, 8.2861);
+initializeMutationType(5, 0.5, "n", 0, 8.2861);
+initializeMutationType(6, 0.5, "n", 0, 8.2861);
+initializeMutationType(7, 0.5, "n", 0, 8.2861);
+initializeMutationType(8, 0.5, "n", 0, 8.2861);
+initializeMutationType(9, 0.5, "n", 0, 8.2861);
+initializeMutationType(10, 0.5, "n", 0, 8.2861);
+initializeMutationType(11, 0.5, "n", 0, 8.2861);
+initializeGenomicElementType(1, c(m1, m2), c(1, 0.800362));
+initializeGenomicElement(g1, 0, 799);
+initializeRecombinationRate(1.55092e-05);
+initializeMutationRate(8.045e-06);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(2, 0.5, "g", -0.03, 0.2);
+initializeMutationType(3, 0.5, "f", 0);
+initializeMutationType(4, 0.5, "n", 0, 8.95928);
+initializeMutationType(5, 0.5, "n", 0, 8.95928);
+initializeMutationType(6, 0.5, "n", 0, 8.95928);
+initializeMutationType(7, 0.5, "n", 0, 8.95928);
+initializeMutationType(8, 0.5, "n", 0, 8.95928);
+initializeMutationType(9, 0.5, "n", 0, 8.95928);
+initializeMutationType(10, 0.5, "n", 0, 8.95928);
+initializeMutationType(11, 0.5, "n", 0, 8.95928);
+initializeGenomicElementType(1, c(m1, m2), c(1, 0.61158));
+initializeGenomicElement(g1, 0, 799);
+initializeRecombinationRate(9.97516e-06);
+
+Pleiotropic QTL DFE means: 
+
+Pleiotropic QTL DFE means: 
+
+Pleiotropic QTL DFE means: 
+
+Pleiotropic QTL DFE means: 
+initializeGenomicElementType(1, c(m1, m2), c(1, 0.243985));
+initializeGenomicElement(g1, 0, 799);
+initializeRecombinationRate(0.000113507);
+
+Pleiotropic QTL DFE means: 
+0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0
+
+Pleiotropic QTL DFE variance-covariance matrix (M matrix): 
+
+Pleiotropic QTL DFE variance-covariance matrix (M matrix): 
+0 0 0 0 0 0 0 0
+
+Pleiotropic QTL DFE variance-covariance matrix (M matrix): 
+0 0 0 0 0 0 0 0
+
+Pleiotropic QTL DFE variance-covariance matrix (M matrix): 
+        [,0]    [,1]    [,2]    [,3]    [,4]    [,5]    [,6]    [,7]
+[0,] 8.95928 2.22907 2.41515 2.26634 2.63379  1.6762 1.43872 2.34742
+[1,] 2.22907 8.95928 1.66086 3.52528 2.02949  1.9072 2.02999 2.18469
+[2,] 2.41515 1.66086 8.95928 1.09426 1.13213  1.6112 1.92932 2.82869
+[3,] 2.26634 3.52528 1.09426 8.95928 1.77236 1.13417 1.47381 2.32147
+[4,] 2.63379 2.02949 1.13213 1.77236 8.95928 2.09576  1.3328 1.40976
+[5,]  1.6762  1.9072  1.6112 1.13417 2.09576 8.95928 2.45619  3.1132
+[6,] 1.43872 2.02999 1.92932 1.47381  1.3328 2.45619 8.95928 1.64772
+[7,] 2.34742 2.18469 2.82869 2.32147 1.40976  3.1132 1.64772 8.95928
+          [,0]      [,1]      [,2]      [,3]      [,4]      [,5]      [,6]      [,7]
+         [,0]     [,1]     [,2]     [,3]     [,4]     [,5]     [,6]     [,7]
+         [,0]     [,1]     [,2]     [,3]     [,4]     [,5]     [,6]     [,7]
+[0,]   8.06659  0.471831  0.453145  0.553007  0.867848   1.20542   0.57872  0.836537
+[0,]  8.06659 0.498834 0.510948 0.292286 0.364179 0.726312 0.767651 0.577934
+[0,]   8.2861 0.765997 0.883729  0.78408 0.585408 0.968304   2.3023 0.716769
+[1,] 0.498834  8.06659  1.06411 0.543046 0.431027 0.848888 0.579378 0.895721
+[1,]  0.471831   8.06659  0.432343  0.869203  0.436625  0.456895 0.0421983  0.654595
+[1,] 0.765997   8.2861 0.445642  1.90945  1.70739  1.01688  1.21886  1.13432
+[2,] 0.510948  1.06411  8.06659 0.434944 0.504351 0.691633 0.869593 0.478278
+[2,]  0.453145  0.432343   8.06659  0.749349  0.952788  0.702679   0.64882  0.362956
+[2,] 0.883729 0.445642   8.2861 0.969909 0.956107   1.7987  1.59085  1.46977
+[3,] 0.292286 0.543046 0.434944  8.06659 0.385968  1.14873  0.46216 0.372162
+[3,]  0.553007  0.869203  0.749349   8.06659  0.558074  0.482076  0.638593  0.825548
+[4,] 0.364179 0.431027 0.504351 0.385968  8.06659 0.583412 0.885335 0.486232
+[3,]  0.78408  1.90945 0.969909   8.2861 0.992505  1.04958   1.0109  1.17245
+[5,] 0.726312 0.848888 0.691633  1.14873 0.583412  8.06659 0.544213 0.881964
+[4,]  0.867848  0.436625  0.952788  0.558074   8.06659   0.89428  0.570631  0.804278
+[4,] 0.585408  1.70739 0.956107 0.992505   8.2861   1.6896 0.852706  1.65055
+[6,] 0.767651 0.579378 0.869593  0.46216 0.885335 0.544213  8.06659 0.625875
+[5,]   1.20542  0.456895  0.702679  0.482076   0.89428   8.06659  0.538381  0.504329
+[5,] 0.968304  1.01688   1.7987  1.04958   1.6896   8.2861  1.75782 0.895982
+[7,] 0.577934 0.895721 0.478278 0.372162 0.486232 0.881964 0.625875  8.06659
+[6,]   0.57872 0.0421983   0.64882  0.638593  0.570631  0.538381   8.06659  0.410226
+[6,]   2.3023  1.21886  1.59085   1.0109 0.852706  1.75782   8.2861  1.36533
+[7,]  0.836537  0.654595  0.362956  0.825548  0.804278  0.504329  0.410226   8.06659
+[7,] 0.716769  1.13432  1.46977  1.17245  1.65055 0.895982  1.36533   8.2861
+initializeMutationType(3, 0.5, "f", 0);
+initializeMutationType(4, 0.5, "n", 0, 8.06659);
+initializeMutationType(5, 0.5, "n", 0, 8.06659);
+initializeMutationType(6, 0.5, "n", 0, 8.06659);
+initializeMutationType(7, 0.5, "n", 0, 8.06659);
+initializeMutationType(8, 0.5, "n", 0, 8.06659);
+initializeMutationType(9, 0.5, "n", 0, 8.06659);
+initializeMutationType(10, 0.5, "n", 0, 8.06659);
+initializeMutationType(11, 0.5, "n", 0, 8.06659);
+initializeGenomicElementType(1, c(m1, m2), c(1, 0.243985));
+initializeGenomicElement(g1, 0, 799);
+initializeRecombinationRate(0.000113507);
+
+Pleiotropic QTL DFE means: 
+0 0 0 0 0 0 0 0
+
+Pleiotropic QTL DFE variance-covariance matrix (M matrix): 
+         [,0]     [,1]     [,2]     [,3]     [,4]     [,5]     [,6]     [,7]
+[0,]  8.06659 0.542398 0.604151 0.503034  0.38782  0.57285 0.576243 0.853673
+[1,] 0.542398  8.06659 0.668692 0.389928 0.829617 0.938568 0.469859  0.51046
+[2,] 0.604151 0.668692  8.06659  0.68681 0.695536  1.08095 0.711439 0.577972
+[3,] 0.503034 0.389928  0.68681  8.06659 0.414187 0.814028 0.687562 0.439032
+[4,]  0.38782 0.829617 0.695536 0.414187  8.06659 0.626604 0.862385  1.15607
+[5,]  0.57285 0.938568  1.08095 0.814028 0.626604  8.06659 0.587534 0.902254
+[6,] 0.576243 0.469859 0.711439 0.687562 0.862385 0.587534  8.06659 0.344984
+[7,] 0.853673  0.51046 0.577972 0.439032  1.15607 0.902254 0.344984  8.06659
+initializeMutationRate(8.045e-06);
+
+// Starting run at generation <start>:
+1 
+
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(2, 0.5, "g", -0.03, 0.2);
+initializeMutationType(3, 0.5, "f", 0);
+initializeMutationType(4, 0.5, "n", 0, 3.55614);
+initializeMutationType(5, 0.5, "n", 0, 3.55614);
+initializeMutationType(6, 0.5, "n", 0, 3.55614);
+
+// Starting run at generation <start>:
+1 
+
+initializeMutationType(7, 0.5, "n", 0, 3.55614);
+initializeMutationType(8, 0.5, "n", 0, 3.55614);
+initializeMutationType(9, 0.5, "n", 0, 3.55614);
+initializeMutationType(10, 0.5, "n", 0, 3.55614);
+initializeMutationType(11, 0.5, "n", 0, 3.55614);
+initializeGenomicElementType(1, c(m1, m2), c(1, 0.155901));
+initializeGenomicElement(g1, 0, 799);
+initializeRecombinationRate(9.80472e-05);
+
+Pleiotropic QTL DFE means: 
+0 0 0 0 0 0 0 0
+
+Pleiotropic QTL DFE variance-covariance matrix (M matrix): 
+0 0 0 0 0 0 0 0
+
+Pleiotropic QTL DFE variance-covariance matrix (M matrix): 
+
+// Starting run at generation <start>:
+1 
+
+         [,0]     [,1]     [,2]     [,3]     [,4]     [,5]     [,6]     [,7]
+[0,]  8.06659 0.986984 0.583196 0.679153 0.209206  0.47958 0.442305 0.519228
+[1,] 0.986984  8.06659 0.913663 0.808919 0.438856 0.243372 0.866985 0.527926
+[2,] 0.583196 0.913663  8.06659 0.635253 0.235645  0.66629 0.655747  0.39496
+[3,] 0.679153 0.808919 0.635253  8.06659 0.417363 0.758209 0.838225 0.485437
+[4,] 0.209206 0.438856 0.235645 0.417363  8.06659  0.85641 0.773711 0.478852
+           [,0]       [,1]       [,2]       [,3]       [,4]       [,5]       [,6]       [,7]
+[5,]  0.47958 0.243372  0.66629 0.758209  0.85641  8.06659  0.28009 0.648254
+[0,]    3.55614  0.0156608  0.0259848  0.0182576  0.0166862  0.0269194  0.0052916  0.0220635
+[6,] 0.442305 0.866985 0.655747 0.838225 0.773711  0.28009  8.06659  0.48103
+[1,]  0.0156608    3.55614  0.0270292  0.0182964  0.0150572  0.0175251  0.0290004  0.0143495
+[7,] 0.519228 0.527926  0.39496 0.485437 0.478852 0.648254  0.48103  8.06659
+[2,]  0.0259848  0.0270292    3.55614 0.00350233  0.0163512  0.0133771  0.0272022 0.00891536
+[3,]  0.0182576  0.0182964 0.00350233    3.55614  0.0179665  0.0248604  0.0210105  0.0246522
+[4,]  0.0166862  0.0150572  0.0163512  0.0179665    3.55614  0.0333374  0.0108249  0.0315789
+[5,]  0.0269194  0.0175251  0.0133771  0.0248604  0.0333374    3.55614  0.0347986  0.0219622
+[6,]  0.0052916  0.0290004  0.0272022  0.0210105  0.0108249  0.0347986    3.55614 0.00895734
+[7,]  0.0220635  0.0143495 0.00891536  0.0246522  0.0315789  0.0219622 0.00895734    3.55614
+
+// Starting run at generation <start>:
+1 
+
+
+// Starting run at generation <start>:
+1 
+
+initializeMutationRate(8.045e-06);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(2, 0.5, "g", -0.03, 0.2);
+initializeMutationType(3, 0.5, "f", 0);
+initializeMutationType(4, 0.5, "n", 0, 8.06659);
+initializeMutationType(5, 0.5, "n", 0, 8.06659);
+initializeMutationType(6, 0.5, "n", 0, 8.06659);
+initializeMutationType(7, 0.5, "n", 0, 8.06659);
+initializeMutationType(8, 0.5, "n", 0, 8.06659);
+initializeMutationType(9, 0.5, "n", 0, 8.06659);
+initializeMutationType(10, 0.5, "n", 0, 8.06659);
+initializeMutationType(11, 0.5, "n", 0, 8.06659);
+initializeGenomicElementType(1, c(m1, m2), c(1, 0.243985));
+initializeGenomicElement(g1, 0, 799);
+initializeRecombinationRate(0.000113507);
+
+Pleiotropic QTL DFE means: 
+0 0 0 0 0 0 0 0
+
+Pleiotropic QTL DFE variance-covariance matrix (M matrix): 
+initializeMutationRate(8.045e-06);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(2, 0.5, "g", -0.03, 0.2);
+initializeMutationType(3, 0.5, "f", 0);
+initializeMutationType(4, 0.5, "n", 0, 8.06659);
+initializeMutationType(5, 0.5, "n", 0, 8.06659);
+         [,0]     [,1]     [,2]     [,3]     [,4]     [,5]     [,6]     [,7]
+initializeMutationType(6, 0.5, "n", 0, 8.06659);
+[0,]  8.06659 0.623749 0.282149 0.722853 0.399867 0.816557 0.694736 0.730042
+[1,] 0.623749  8.06659 0.559906 0.621556 0.837892 0.608041 0.898058 0.566529
+[2,] 0.282149 0.559906  8.06659 0.535906 0.431003  0.57868  0.59386 0.441284
+[3,] 0.722853 0.621556 0.535906  8.06659 0.267987 0.692967 0.463849 0.536257
+[4,] 0.399867 0.837892 0.431003 0.267987  8.06659 0.386779 0.671343 0.135883
+[5,] 0.816557 0.608041  0.57868 0.692967 0.386779  8.06659 0.902208 0.467527
+[6,] 0.694736 0.898058  0.59386 0.463849 0.671343 0.902208  8.06659 0.791936
+[7,] 0.730042 0.566529 0.441284 0.536257 0.135883 0.467527 0.791936  8.06659
+initializeMutationType(7, 0.5, "n", 0, 8.06659);
+initializeMutationType(8, 0.5, "n", 0, 8.06659);
+initializeMutationType(9, 0.5, "n", 0, 8.06659);
+initializeMutationType(10, 0.5, "n", 0, 8.06659);
+
+// Starting run at generation <start>:
+1 
+
+initializeMutationType(11, 0.5, "n", 0, 8.06659);
+initializeGenomicElementType(1, c(m1, m2), c(1, 0.243985));
+initializeGenomicElement(g1, 0, 799);
+initializeGenomicElement(g1, 0, 799);
+initializeRecombinationRate(0.000113507);
+initializeRecombinationRate(0.000101313);
+
+Pleiotropic QTL DFE means: 
+
+Pleiotropic QTL DFE means: 
+0 0 0 0 0 0 0 0
+
+Pleiotropic QTL DFE variance-covariance matrix (M matrix): 
+0 0 0 0 0 0 0 0
+
+Pleiotropic QTL DFE variance-covariance matrix (M matrix): 
+         [,0]     [,1]     [,2]     [,3]     [,4]     [,5]     [,6]     [,7]
+[0,]  8.06659 0.495332 0.670515 0.372352 0.974565 0.525495 0.393744 0.472174
+[1,] 0.495332  8.06659 0.324937 0.437441 0.561537  0.60143  1.03005 0.251394
+[2,] 0.670515 0.324937  8.06659 0.475194 0.822071 0.622313 0.699067  0.61216
+          [,0]      [,1]      [,2]      [,3]      [,4]      [,5]      [,6]      [,7]
+[3,] 0.372352 0.437441 0.475194  8.06659 0.423443  0.74496 0.632616 0.529553
+[0,]   2.18838   0.27691  0.459455  0.322825   0.29504  0.475981 0.0935645   0.39012
+[4,] 0.974565 0.561537 0.822071 0.423443  8.06659 0.503131 0.808413 0.369388
+[1,]   0.27691   2.18838  0.477923  0.323512  0.266237  0.309874  0.512776  0.253723
+[5,] 0.525495  0.60143 0.622313  0.74496 0.503131  8.06659 0.914111 0.472625
+[2,]  0.459455  0.477923   2.18838 0.0619272  0.289118  0.236529  0.480982  0.157639
+[6,] 0.393744  1.03005 0.699067 0.632616 0.808413 0.914111  8.06659 0.373998
+[3,]  0.322825  0.323512 0.0619272   2.18838  0.317678  0.439574  0.371502  0.435892
+[7,] 0.472174 0.251394  0.61216 0.529553 0.369388 0.472625 0.373998  8.06659
+[4,]   0.29504  0.266237  0.289118  0.317678   2.18838  0.589462  0.191402  0.558369
+[5,]  0.475981  0.309874  0.236529  0.439574  0.589462   2.18838  0.615299  0.388329
+[6,] 0.0935645  0.512776  0.480982  0.371502  0.191402  0.615299   2.18838  0.158381
+[7,]   0.39012  0.253723  0.157639  0.435892  0.558369  0.388329  0.158381   2.18838
+
+// Starting run at generation <start>:
+1 
+
+
+// Starting run at generation <start>:
+1 
+
+initializeMutationRate(8.045e-06);
+initializeMutationRate(8.045e-06);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(2, 0.5, "g", -0.03, 0.2);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(2, 0.5, "g", -0.03, 0.2);
+initializeMutationType(3, 0.5, "f", 0);
+initializeMutationType(4, 0.5, "n", 0, 3.55614);
+initializeMutationType(3, 0.5, "f", 0);
+initializeMutationType(5, 0.5, "n", 0, 3.55614);
+initializeMutationType(4, 0.5, "n", 0, 7.79907);
+initializeMutationType(6, 0.5, "n", 0, 3.55614);
+initializeMutationType(5, 0.5, "n", 0, 7.79907);
+
+// Starting run at generation <start>:
+1 
+
+initializeMutationType(7, 0.5, "n", 0, 3.55614);
+initializeMutationType(8, 0.5, "n", 0, 3.55614);
+initializeMutationType(6, 0.5, "n", 0, 7.79907);
+initializeMutationRate(8.045e-06);
+
+// Starting run at generation <start>:
+1 
+
+initializeMutationType(9, 0.5, "n", 0, 3.55614);
+initializeMutationType(7, 0.5, "n", 0, 7.79907);
+initializeMutationType(10, 0.5, "n", 0, 3.55614);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(8, 0.5, "n", 0, 7.79907);
+initializeMutationType(11, 0.5, "n", 0, 3.55614);
+initializeMutationType(2, 0.5, "g", -0.03, 0.2);
+initializeMutationType(9, 0.5, "n", 0, 7.79907);
+initializeMutationType(10, 0.5, "n", 0, 7.79907);
+
+Pleiotropic QTL DFE means: 
+initializeMutationType(3, 0.5, "f", 0);
+initializeMutationType(11, 0.5, "n", 0, 7.79907);
+initializeGenomicElementType(1, c(m1, m2), c(1, 0.155901));
+initializeGenomicElement(g1, 0, 799);
+initializeMutationType(4, 0.5, "n", 0, 8.06659);
+initializeRecombinationRate(9.80472e-05);
+initializeMutationType(5, 0.5, "n", 0, 8.06659);
+0 0 0 0 0 0 0 0
+
+Pleiotropic QTL DFE variance-covariance matrix (M matrix): 
+initializeMutationType(6, 0.5, "n", 0, 8.06659);
+initializeGenomicElementType(1, c(m1, m2), c(1, 0.571953));
+initializeGenomicElement(g1, 0, 799);
+initializeMutationType(7, 0.5, "n", 0, 8.06659);
+initializeRecombinationRate(5.21644e-05);
+initializeMutationType(8, 0.5, "n", 0, 8.06659);
+initializeMutationType(9, 0.5, "n", 0, 8.06659);
+
+Pleiotropic QTL DFE means: 
+initializeMutationType(10, 0.5, "n", 0, 8.06659);
+initializeMutationType(11, 0.5, "n", 0, 8.06659);
+0 0 0 0 0 0 0 0
+
+Pleiotropic QTL DFE variance-covariance matrix (M matrix): 
+initializeGenomicElementType(1, c(m1, m2), c(1, 0.243985));
+
+Pleiotropic QTL DFE means: 
+initializeGenomicElement(g1, 0, 799);
+initializeRecombinationRate(0.000113507);
+0 0 0 0 0 0 0 0
+
+Pleiotropic QTL DFE variance-covariance matrix (M matrix): 
+         [,0]     [,1]     [,2]     [,3]     [,4]     [,5]     [,6]     [,7]
+[0,]  7.79907  1.15002  1.42616  1.27713  1.10856  2.12056  1.56247  1.98733
+[1,]  1.15002  7.79907  2.64025  2.04279   1.3862 0.836618 0.942818  1.58317
+[2,]  1.42616  2.64025  7.79907  3.40604  2.11054 0.773308  1.71674  1.52955
+[3,]  1.27713  2.04279  3.40604  7.79907 0.855824  2.14994  1.98576  1.47672
+[4,]  1.10856   1.3862  2.11054 0.855824  7.79907  2.20393  1.56805  1.68349
+[5,]  2.12056 0.836618 0.773308  2.14994  2.20393  7.79907  1.94126 0.802848
+[6,]  1.56247 0.942818  1.71674  1.98576  1.56805  1.94126  7.79907  2.47884
+[7,]  1.98733  1.58317  1.52955  1.47672  1.68349 0.802848  2.47884  7.79907
+
+Pleiotropic QTL DFE means: 
+
+// Starting run at generation <start>:
+1 
+
+0 0 0 0 0 0 0 0
+
+Pleiotropic QTL DFE variance-covariance matrix (M matrix): 
+          [,0]      [,1]      [,2]      [,3]      [,4]      [,5]      [,6]      [,7]
+[0,]   3.55614 0.0153229 0.0190022 0.0170165 0.0147705 0.0282544 0.0208184 0.0264793
+[1,] 0.0153229   3.55614 0.0351788 0.0272183 0.0184698 0.0111471 0.0125622 0.0210942
+[2,] 0.0190022 0.0351788   3.55614 0.0453823 0.0281209 0.0103036  0.022874 0.0203798
+[3,] 0.0170165 0.0272183 0.0453823   3.55614  0.011403  0.028646 0.0264584 0.0196759
+[4,] 0.0147705 0.0184698 0.0281209  0.011403   3.55614 0.0293653 0.0208927 0.0224309
+[5,] 0.0282544 0.0111471 0.0103036  0.028646 0.0293653   3.55614 0.0258655 0.0106972
+[6,] 0.0208184 0.0125622  0.022874 0.0264584 0.0208927 0.0258655   3.55614 0.0330282
+[7,] 0.0264793 0.0210942 0.0203798 0.0196759 0.0224309 0.0106972 0.0330282   3.55614
+         [,0]     [,1]     [,2]     [,3]     [,4]     [,5]     [,6]     [,7]
+[0,]  7.79907  2.20258   1.2389  2.72824   1.3505 0.851931  1.56569  2.02575
+[1,]  2.20258  7.79907   3.1034  1.21551 0.797716  1.55558  1.92538 0.451504
+[2,]   1.2389   3.1034  7.79907 0.739866  1.02543  1.01481  1.59625  1.95313
+[3,]  2.72824  1.21551 0.739866  7.79907  1.40561  1.38556  2.08454  1.19548
+[4,]   1.3505 0.797716  1.02543  1.40561  7.79907  2.25389  1.64052  1.19045
+[5,] 0.851931  1.55558  1.01481  1.38556  2.25389  7.79907  2.04604   2.6478
+[6,]  1.56569  1.92538  1.59625  2.08454  1.64052  2.04604  7.79907  1.24938
+
+// Starting run at generation <start>:
+1 
+
+[7,]  2.02575 0.451504  1.95313  1.19548  1.19045   2.6478  1.24938  7.79907
+
+// Starting run at generation <start>:
+1 
+
+         [,0]     [,1]     [,2]     [,3]     [,4]     [,5]     [,6]     [,7]
+[0,]  8.06659 0.395468 0.981777 0.766058    1.018 0.628554 0.250883 0.791118
+[1,] 0.395468  8.06659 0.418867 0.635645 0.850809 0.830153 0.461276 0.442197
+[2,] 0.981777 0.418867  8.06659 0.832998 0.256641  0.79027 0.881021 0.790038
+[3,] 0.766058 0.635645 0.832998  8.06659 0.315337 0.553763 0.858935  1.04252
+[4,]    1.018 0.850809 0.256641 0.315337  8.06659  0.36733 0.798035 0.667757
+[5,] 0.628554 0.830153  0.79027 0.553763  0.36733  8.06659 0.322259 0.361323
+[6,] 0.250883 0.461276 0.881021 0.858935 0.798035 0.322259  8.06659 0.744838
+[7,] 0.791118 0.442197 0.790038  1.04252 0.667757 0.361323 0.744838  8.06659
+
+// Starting run at generation <start>:
+1 
+
+initializeMutationRate(8.045e-06);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(2, 0.5, "g", -0.03, 0.2);
+initializeMutationType(3, 0.5, "f", 0);
+initializeMutationType(4, 0.5, "n", 0, 8.2861);
+initializeMutationType(5, 0.5, "n", 0, 8.2861);
+initializeMutationType(6, 0.5, "n", 0, 8.2861);
+initializeMutationType(7, 0.5, "n", 0, 8.2861);
+initializeMutationType(8, 0.5, "n", 0, 8.2861);
+initializeMutationType(9, 0.5, "n", 0, 8.2861);
+initializeMutationType(10, 0.5, "n", 0, 8.2861);
+initializeMutationType(11, 0.5, "n", 0, 8.2861);
+initializeGenomicElementType(1, c(m1, m2), c(1, 0.800362));
+initializeGenomicElement(g1, 0, 799);
+initializeRecombinationRate(1.55092e-05);
+
+Pleiotropic QTL DFE means: 
+0 0 0 0 0 0 0 0
+
+Pleiotropic QTL DFE variance-covariance matrix (M matrix): 
+         [,0]     [,1]     [,2]     [,3]     [,4]     [,5]     [,6]     [,7]
+[0,]   8.2861 0.798593 0.990348 0.886858 0.769803  1.47255    1.085  1.38003
+[1,] 0.798593   8.2861  1.83343  1.41855 0.962597 0.580961 0.654707  1.09938
+[2,] 0.990348  1.83343   8.2861  2.36521  1.46559 0.536997  1.19213  1.06215
+[3,] 0.886858  1.41855  2.36521   8.2861 0.594298  1.49295  1.37894  1.02546
+[4,] 0.769803 0.962597  1.46559 0.594298   8.2861  1.53044  1.08888  1.16904
+[5,]  1.47255 0.580961 0.536997  1.49295  1.53044   8.2861  1.34804  0.55751
+[6,]    1.085 0.654707  1.19213  1.37894  1.08888  1.34804   8.2861  1.72135
+[7,]  1.38003  1.09938  1.06215  1.02546  1.16904  0.55751  1.72135   8.2861
+
+// Starting run at generation <start>:
+1 
+
+
+Trait means
+-22.6694 -9.22048 -64.374 14.0881 11.2649 7.06563 22.4165 21.3908
+
+Trait optima: 
+-94.6358 -38.4918 -268.736 58.8121 47.0263 29.4962 93.58 89.298
+
+Trait means
+17.3777 -8.00037 78.6111 -44.2217 19.4273 2.12542 -9.36499 13.2061
+
+Trait optima: 
+72.5447 -33.3983 328.17 -184.608 81.1012 8.87279 -39.0951 55.1301
+
+Trait means
+-25.7251 -20.7407 -37.0348 14.3993 14.9777 11.5875 10.5474 -52.1178
+
+Trait optima: 
+-107.392 -86.5843 -154.605 60.1113 62.5261 48.3731 44.031 -217.571
+
+Trait means
+-64.3281 28.7401 28.206 -50.1766 -14.2141 45.0116 7.56473 -38.138
+
+Trait optima: 
+-268.544 119.979 117.749 -209.467 -59.3381 187.905 31.5797 -159.211
+
+Trait means
+31.5846 29.8412 -31.1973 -48.56 -23.3247 12.6109 -8.68633 54.9394
+
+Trait optima: 
+131.853 124.575 -130.236 -202.719 -97.3713 52.6454 -36.262 229.35
+
+Trait means
+10.5763 20.822 17.4416 31.4046 -10.4009 22.6788 -18.0294 -4.90695
+
+Trait optima: 
+44.1518 86.9237 72.8117 131.102 -43.4196 94.6747 -75.2654 -20.4845
+
+Trait means
+-7.62602 20.5989 47.1998 25.146 -0.646504 64.9513 56.8987 -15.2615
+
+Trait optima: 
+-31.8356 85.9923 197.04 104.974 -2.69889 271.146 237.529 -63.7108
+
+Trait means
+-39.7669 47.6439 9.49354 -58.3538 -5.79166 14.1579 -51.5004 -29.8881
+
+Trait optima: 
+-166.011 198.894 39.6317 -243.604 -24.1779 59.1036 -214.993 -124.771
+
+Trait means
+0.00738789 -9.27001 -69.8669 4.78073 42.5879 -34.8199 4.08934 122.37
+
+Trait optima: 
+0.0308415 -38.6986 -291.666 19.9577 177.787 -145.359 17.0714 510.844
+
+Trait means
+45.3566 3.04964 46.3063 56.916 -7.3156 79.6387 38.0813 140.274
+
+Trait optima: 
+189.346 12.731 193.31 237.602 -30.5397 332.46 158.974 585.587
+
+Trait means
+-0.536056 7.14878 -15.5507 -13.6995 -4.52699 -2.16935 -32.4116 -7.52399
+
+Trait optima: 
+-2.23782 29.8433 -64.9181 -57.1898 -18.8984 -9.05616 -135.306 -31.4097
+
+Trait means
+-36.4927 12.3254 -26.5829 47.5382 38.3838 -62.4402 -87.3106 8.37069
+
+Trait optima: 
+-152.342 51.4535 -110.973 198.453 160.237 -260.663 -364.487 34.9443
+
+Trait means
+-26.6275 -54.419 -35.4887 -11.0667 20.9506 35.1405 -7.74085 59.4407
+
+Trait optima: 
+-111.159 -227.177 -148.151 -46.1992 87.4605 146.697 -32.315 248.141
+
+Trait means
+41.9691 -87.3092 -9.34724 -19.3224 -42.719 26.7121 -28.3924 27.1623
+
+Trait optima: 
+175.204 -364.481 -39.021 -80.6632 -178.335 111.512 -118.527 113.392
+
+Trait means
+-31.1271 2.73781 -11.4215 -16.592 5.98878 -17.7366 -39.0558 21.9315
+
+Trait optima: 
+-129.943 11.4293 -47.6801 -69.265 25.0008 -74.0431 -163.042 91.5554

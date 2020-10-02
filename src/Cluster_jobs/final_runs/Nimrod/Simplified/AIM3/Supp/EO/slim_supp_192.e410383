@@ -1,0 +1,21 @@
+########################### Execution Started #############################
+JobId:410383.tinmgr2
+UserName:s4395747
+GroupName:qris-uq
+ExecutionHost:fl017
+###############################################################################
+Loading required package: iterators
+Loading required package: parallel
+=>> PBS: job killed: walltime 86415 exceeded limit 86400
+########################### Job Execution History #############################
+JobId:410383.tinmgr2
+UserName:s4395747
+GroupName:qris-uq
+JobName:slim_supp_192
+SessionId:13205
+ResourcesRequested:mem=120gb,ncpus=24,place=free,walltime=24:00:00
+ResourcesUsed:cpupercent=1500,cput=239:45:14,mem=1918312kb,ncpus=24,vmem=9963020kb,walltime=24:00:15
+QueueUsed:Short
+AccountString:qris-uq
+ExitStatus:271
+###############################################################################
