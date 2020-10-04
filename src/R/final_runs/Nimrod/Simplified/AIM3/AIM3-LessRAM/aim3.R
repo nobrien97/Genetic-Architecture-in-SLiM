@@ -1026,6 +1026,36 @@ ks.test(d_relG_sel_btwn$logGV[d_relG_sel_btwn$tau.cat == sort(unique(d_relG_sel_
 
 ##################################################################
 
+
+# To make sense of any of this: ignore everything except for two bins - will have to bin into separate data frames I think
+
+d_relG_sel_btwn_ex_delmu <- d_relG_sel_btwn[d_relG_sel_btwn$delmu.cat == sort(unique(d_relG_sel_btwn$delmu.cat))[1] | 
+                                              d_relG_sel_btwn$delmu.cat == sort(unique(d_relG_sel_btwn$delmu.cat))[8], ] 
+
+
+d_relG_sel_btwn_ex_rwide <- d_relG_sel_btwn[d_relG_sel_btwn$rwide.cat == sort(unique(d_relG_sel_btwn$rwide.cat))[1] | 
+                                              d_relG_sel_btwn$rwide.cat == sort(unique(d_relG_sel_btwn$rwide.cat))[8], ] 
+
+
+d_relG_sel_btwn_ex_pleiocov <- d_relG_sel_btwn[d_relG_sel_btwn$pleiocov.cat == sort(unique(d_relG_sel_btwn$pleiocov.cat))[1] | 
+                                                 d_relG_sel_btwn$pleiocov.cat == sort(unique(d_relG_sel_btwn$pleiocov.cat))[8], ] 
+
+
+d_relG_sel_btwn_ex_pleiorate <- d_relG_sel_btwn[d_relG_sel_btwn$pleiorate.cat == sort(unique(d_relG_sel_btwn$pleiorate.cat))[1] | 
+                                                  d_relG_sel_btwn$pleiorate.cat == sort(unique(d_relG_sel_btwn$pleiorate.cat))[8], ] 
+
+d_relG_sel_btwn_ex_locisigma <- d_relG_sel_btwn[d_relG_sel_btwn$locisigma.cat == sort(unique(d_relG_sel_btwn$locisigma.cat))[1] | 
+                                                  d_relG_sel_btwn$locisigma.cat == sort(unique(d_relG_sel_btwn$locisigma.cat))[8], ] 
+
+
+d_relG_sel_btwn_ex_tau <- d_relG_sel_btwn[d_relG_sel_btwn$tau.cat == sort(unique(d_relG_sel_btwn$tau.cat))[1] | 
+                                            d_relG_sel_btwn$tau.cat == sort(unique(d_relG_sel_btwn$tau.cat))[8], ] 
+
+
+
+
+
+
 hist_logGV_sel_btwn_ex_delmu <- ggplot(d_relG_sel_btwn_ex_delmu, aes(x = logGV, fill = delmu.cat)) +
   geom_histogram(color = "blue", alpha = 0.6, position = 'identity') +
   #  geom_line(stat = StatNormalDensity, size = 1) +

@@ -76,3 +76,11 @@ src/R/final_runs/Nimrod/Simplified/AIM3/AIM3-R/d_relG_sel_btwn_delmu_tin.RDS
 src/R/final_runs/Nimrod/Simplified/AIM3/AIM3-R/d_relG_sel_btwn_delmu_tin2.RDS
 src/R/final_runs/Nimrod/Simplified/AIM3/AIM3-R/sel_online_work.RData
 src/R/final_runs/Nimrod/Simplified/AIM3/AIM3-R/d_sel_Ellipse.jmp
+src/R/final_runs/Nimrod/Simplified/AIM3/AIM3-LessRAM/d_sel_mat_delmu.RDS
+src/R/final_runs/Nimrod/Simplified/AIM3/AIM3-LessRAM/d_relG_sel_btwn_delmu_tin2.RDS
+src/R/final_runs/Nimrod/Simplified/AIM3/AIM3-LessRAM/d_relG_sel_btwn_delmu_tin.RDS
+src/R/final_runs/Nimrod/Simplified/AIM3/AIM3-LessRAM/aim3_wrkspc_2.RData
+src/R/final_runs/Nimrod/Simplified/AIM3/AIM3-LessRAM/AIM3-LessRAM.Rproj
+src/R/final_runs/Nimrod/Simplified/AIM3/AIM3-R/d_sel_mat_delmu.RDS
+src/R/final_runs/Nimrod/Simplified/AIM3/AIM3-R/sel_online_work2.RData
+src/R/final_runs/Nimrod/Simplified/AIM1/AIM-1_R/.Rhistory
