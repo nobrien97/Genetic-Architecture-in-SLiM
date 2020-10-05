@@ -730,11 +730,16 @@ d_null_het_norm$seed <- factor(d_null_het_norm$seed)
 library(nlme)
 
 
-lm_het <- lme(H ~ (delmu + pleiocov + pleiorate + locisigma + rwide)^2, random = ~1|seed , data = d_null_het_norm)
-aov_het <- aov(H ~ (delmu.cat + pleiocov.cat + pleiorate.cat + locisigma.cat + rwide.cat)^2, data = d_null_het)
+lm_het <- lme(H ~ (delmu + pleiocov + pleiorate + locisigma + rwide)^2, random = ~1|seed , data = d_null_het)
 
 summary(lm_het)
-summary.aov(aov_het)
+
+# Type III linear model
+
+lm_het <- lm(H ~ (delmu + pleiocov + pleiorate + locisigma + rwide)^2, 
+                                data = d_null_het)
+
+summary(lm_het)
 
 "
 Call:

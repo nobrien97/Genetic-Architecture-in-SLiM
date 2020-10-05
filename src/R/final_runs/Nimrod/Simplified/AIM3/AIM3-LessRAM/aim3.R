@@ -47,7 +47,7 @@ d_sel <- d_sel[d_sel$gen == 150000,] # Only deal with final timepoint
 d_sel <- d_sel[order(d_sel$modelindex),]
 
 # Add actual pleiocov line (value from the latin hypercube)
-ls_combos <- read.csv("Z:/Documents/GitHub/Genetic-Architecture-in-SLiM/src/R/pilot_runs/Pilot_Project/lscombos_sel.csv")
+#ls_combos <- read.csv("Z:/Documents/GitHub/Genetic-Architecture-in-SLiM/src/R/pilot_runs/Pilot_Project/lscombos_sel.csv")
 
 # Linux version
 ls_combos <- read.csv("/mnt/z/Documents/GitHub/Genetic-Architecture-in-SLiM/src/Cluster_jobs/final_runs/Nimrod/Simplified/AIM3/lscombos_sel.csv")
@@ -911,51 +911,53 @@ plot_logGV_sel_btwn_tau <- ggplot(dplot_relG_sel_btwn_tau, aes(x = tau.cat, y = 
   labs(x = "Difference in selection strength between comparison models", y = "Mean pairwise log generalised variance within groups")
 
 
-# Linear model of deleterious mutation, log generalised variance
-lm_logGV_sel_btwn <- lm(logGV ~ (delmudiff + pleioratediff + pleiocovdiff + rwidediff + locisigmadiff + taudiff)^2, d_relG_sel_btwn)
-summary(lm_logGV_sel_btwn)
 
-"
-Call:
-lm(formula = logGV ~ (delmudiff + pleioratediff + pleiocovdiff + 
-    rwidediff + locisigmadiff + taudiff)^2, data = d_relG_sel_btwn)
 
-Residuals:
-    Min      1Q  Median      3Q     Max 
--98.652 -13.847   0.096  14.460  96.496 
+# Type III ANOVA for log generalised variance
 
-Coefficients:
-                              Estimate Std. Error t value Pr(>|t|)    
-(Intercept)                  4.541e+00  2.806e-01  16.186  < 2e-16 ***
-delmudiff                    2.221e+00  4.100e-01   5.418 6.03e-08 ***
-pleioratediff               -1.098e+01  8.067e-01 -13.607  < 2e-16 ***
-pleiocovdiff                -1.222e+01  8.461e-01 -14.444  < 2e-16 ***
-rwidediff                   -2.777e+04  3.491e+03  -7.955 1.79e-15 ***
-locisigmadiff               -2.863e-01  4.173e-02  -6.860 6.89e-12 ***
-taudiff                     -1.598e-03  4.254e-04  -3.757 0.000172 ***
-delmudiff:pleioratediff      1.184e+01  9.027e-01  13.115  < 2e-16 ***
-delmudiff:pleiocovdiff      -3.459e+00  9.620e-01  -3.595 0.000324 ***
-delmudiff:rwidediff          4.416e+03  3.802e+03   1.161 0.245501    
-delmudiff:locisigmadiff     -1.015e+00  4.743e-02 -21.402  < 2e-16 ***
-delmudiff:taudiff            1.471e-03  4.839e-04   3.040 0.002364 ** 
-pleioratediff:pleiocovdiff   2.590e+01  1.885e+00  13.742  < 2e-16 ***
-pleioratediff:rwidediff     -4.373e+04  7.697e+03  -5.682 1.33e-08 ***
-pleioratediff:locisigmadiff  9.245e-01  9.255e-02   9.989  < 2e-16 ***
-pleioratediff:taudiff       -5.244e-03  9.382e-04  -5.589 2.28e-08 ***
-pleiocovdiff:rwidediff       5.320e+04  8.329e+03   6.387 1.69e-10 ***
-pleiocovdiff:locisigmadiff   7.361e-02  9.770e-02   0.753 0.451161    
-pleiocovdiff:taudiff         1.571e-02  1.003e-03  15.661  < 2e-16 ***
-rwidediff:locisigmadiff      5.248e+03  3.990e+02  13.152  < 2e-16 ***
-rwidediff:taudiff           -2.460e+01  4.037e+00  -6.093 1.11e-09 ***
-locisigmadiff:taudiff        4.589e-05  4.896e-05   0.937 0.348583    
----
-Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+d_relG_sel_btwn_aov <- d_relG_sel_btwn
 
-Residual standard error: 30.96 on 812778 degrees of freedom
-Multiple R-squared:  0.002563,	Adjusted R-squared:  0.002537 
-F-statistic: 99.45 on 21 and 812778 DF,  p-value: < 2.2e-16
-"
-# Explains almost nothing
+d_relG_sel_btwn_aov$delmu.cat <- cut(d_relG_sel_btwn_aov$delmudiff, breaks = 3)
+d_relG_sel_btwn_aov$pleiocov.cat <- cut(d_relG_sel_btwn_aov$pleiocovdiff, breaks = 3)
+d_relG_sel_btwn_aov$pleiorate.cat <- cut(d_relG_sel_btwn_aov$pleioratediff, breaks = 3)
+d_relG_sel_btwn_aov$rwide.cat <- cut(d_relG_sel_btwn_aov$rwidediff, breaks = 3)
+d_relG_sel_btwn_aov$locisigma.cat <- cut(d_relG_sel_btwn_aov$locisigmadiff, breaks = 3)
+d_relG_sel_btwn_aov$tau.cat <- cut(d_relG_sel_btwn_aov$taudiff, breaks = 3)
+
+
+
+library(car)
+library(emmeans)
+
+lm_relG_sel_btwn <- lm(logGV ~ (delmu.cat + pleiocov.cat + pleiorate.cat + locisigma.cat + rwide.cat + tau.cat)^2, 
+                     contrasts=list(delmu.cat='contr.sum', pleiocov.cat ='contr.sum', pleiorate.cat ='contr.sum', locisigma.cat ='contr.sum', rwide.cat ='contr.sum', tau.cat ='contr.sum'),
+                     data = d_relG_sel_btwn_aov)
+
+aov_relG_sel_btwn <- Anova(lm_relG_sel_btwn, type = 3)
+aov_relG_sel_btwn
+
+
+# logGV post-hoc
+
+emm_s_logGV_d.pc <- emmeans(lm_relG_sel_btwn, pairwise ~ delmu.cat | pleiocov.cat)
+emm_s_logGV_d.pr <- emmeans(lm_relG_sel_btwn, pairwise ~ delmu.cat | pleiorate.cat)
+emm_s_logGV_d.r <- emmeans(lm_relG_sel_btwn, pairwise ~ delmu.cat | rwide.cat)
+emm_s_logGV_d.ls <- emmeans(lm_relG_sel_btwn, pairwise ~ delmu.cat | locisigma.cat)
+emm_s_logGV_d.t <- emmeans(lm_relG_sel_btwn, pairwise ~ delmu.cat| tau.cat)
+emm_s_logGV_dr.t <- emmeans(lm_relG_sel_btwn, pairwise ~ delmu.cat*rwide.cat| tau.cat)
+
+emm_s_logGV_pc.t <- emmeans(lm_relG_sel_btwn, pairwise ~ pleiocov.cat | tau.cat)
+
+emm_s_logGV_r.pc <- emmeans(lm_relG_sel_btwn, pairwise ~ rwide.cat | pleiocov.cat)
+emm_s_logGV_r.pr <- emmeans(lm_relG_sel_btwn, pairwise ~ rwide.cat | pleiorate.cat)
+emm_s_logGV_r.ls <- emmeans(lm_relG_sel_btwn, pairwise ~ rwide.cat | locisigma.cat)
+emm_s_logGV_r.t <- emmeans(lm_relG_sel_btwn, pairwise ~ rwide.cat| tau.cat)
+
+emm_s_logGV_pr.pc <- emmeans(lm_relG_sel_btwn, pairwise ~ pleiorate.cat | rwide.cat)
+emm_s_logGV_pr.ls <- emmeans(lm_relG_sel_btwn, pairwise ~ pleiorate.cat | locisigma.cat)
+emm_s_logGV_pr.t <- emmeans(lm_relG_sel_btwn, pairwise ~ pleiorate.cat| tau.cat)
+
+
 
 # is it normal?
 qqnorm(d_relG_sel_btwn$logGV)
@@ -965,43 +967,6 @@ par(mfrow = c(2,2))
 plot(lm_logGV_sel_btwn)
 # heteroscedasticity is good though
 
-
-# To make sense of any of this: ignore everything except for three bins - low, medium, high for each parameter
-
-d_relG_sel_btwn_ex <- d_relG_sel_btwn
-d_relG_sel_btwn_ex$delmu.cat <- cut(d_relG_sel_btwn_ex$delmudiff, breaks = 3)
-d_relG_sel_btwn_ex$pleiocov.cat <- cut(d_relG_sel_btwn_ex$pleiocovdiff, breaks = 3)
-d_relG_sel_btwn_ex$pleiorate.cat <- cut(d_relG_sel_btwn_ex$pleioratediff, breaks = 3)
-d_relG_sel_btwn_ex$rwide.cat <- cut(d_relG_sel_btwn_ex$rwidediff, breaks = 3)
-d_relG_sel_btwn_ex$locisigma.cat <- cut(d_relG_sel_btwn_ex$locisigmadiff, breaks = 3)
-d_relG_sel_btwn_ex$tau.cat <- cut(d_relG_sel_btwn_ex$taudiff, breaks = 3)
-
-
-lm_relG_sel_btwn_ex_logGV <- lm(logGV ~ (delmu.cat + pleiocov.cat + pleiorate.cat + locisigma.cat + rwide.cat + tau.cat)^2 +
-                                  delmu.cat*rwide.cat*tau.cat, 
-                      contrasts=list(delmu.cat='contr.sum', pleiocov.cat ='contr.sum', pleiorate.cat ='contr.sum', locisigma.cat ='contr.sum', rwide.cat ='contr.sum', tau.cat ='contr.sum'),
-                      data = d_relG_sel_btwn_ex)
-aov_relG_sel_btwn_ex_logGV <- Anova(lm_sel_El_ratio, type = 3)
-
-
-# Area post-hoc
-
-emm_s_logGV_d.pc <- emmeans(lm_relG_sel_btwn_ex_logGV, pairwise ~ delmu.cat | pleiocov.cat)
-emm_s_logGV_d.pr <- emmeans(lm_relG_sel_btwn_ex_logGV, pairwise ~ delmu.cat | pleiorate.cat)
-emm_s_logGV_d.r <- emmeans(lm_relG_sel_btwn_ex_logGV, pairwise ~ delmu.cat | rwide.cat)
-emm_s_logGV_d.ls <- emmeans(lm_relG_sel_btwn_ex_logGV, pairwise ~ delmu.cat | locisigma.cat)
-emm_s_logGV_d.t <- emmeans(lm_relG_sel_btwn_ex_logGV, pairwise ~ delmu.cat| tau.cat)
-emm_s_logGV_dr.t <- emmeans(lm_relG_sel_btwn_ex_logGV, pairwise ~ delmu.cat*rwide.cat| tau.cat)
-
-
-emm_s_logGV_r.pc <- emmeans(lm_relG_sel_btwn_ex_logGV, pairwise ~ rwide.cat | pleiocov.cat)
-emm_s_logGV_r.pr <- emmeans(lm_relG_sel_btwn_ex_logGV, pairwise ~ rwide.cat | pleiorate.cat)
-emm_s_logGV_r.ls <- emmeans(lm_relG_sel_btwn_ex_logGV, pairwise ~ rwide.cat | locisigma.cat)
-emm_s_logGV_r.t <- emmeans(lm_relG_sel_btwn_ex_logGV, pairwise ~ rwide.cat| tau.cat)
-
-emm_s_logGV_pr.pc <- emmeans(lm_relG_sel_btwn_ex_logGV, pairwise ~ pleiorate.cat | rwide.cat)
-emm_s_logGV_pr.ls <- emmeans(lm_relG_sel_btwn_ex_logGV, pairwise ~ pleiorate.cat | locisigma.cat)
-emm_s_logGV_pr.t <- emmeans(lm_relG_sel_btwn_ex_logGV, pairwise ~ pleiorate.cat| tau.cat)
 
 
 # Pairwise differences between extreme bins
