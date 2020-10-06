@@ -615,7 +615,7 @@ emm_s_area_d.pr <- emmeans(lm_sel_El_area, pairwise ~ delmu.cat | pleiorate.cat)
 emm_s_area_d.r <- emmeans(lm_sel_El_area, pairwise ~ delmu.cat | rwide.cat)
 emm_s_area_d.ls <- emmeans(lm_sel_El_area, pairwise ~ delmu.cat | locisigma.cat)
 emm_s_area_d.t <- emmeans(lm_sel_El_area, pairwise ~ delmu.cat| tau.cat)
-emm_s_area_dr.t <- emmeans(lm_sel_El_ratio, pairwise ~ delmu.cat*rwide.cat| tau.cat)
+emm_s_area_dr.t <- emmeans(lm_sel_El_area, pairwise ~ delmu.cat*rwide.cat| tau.cat)
 
 
 emm_s_area_r.pc <- emmeans(lm_sel_El_area, pairwise ~ rwide.cat | pleiocov.cat)
@@ -1419,13 +1419,19 @@ d_opt <- data.table::fread("F:/Uni/AIM3/OUTPUT/out_8T_stabsel_opt_c.csv", header
 
 # Linux version
 
-d_opt <- data.table::fread("/mnt/f/Uni/AIM1/OUTPUT/out_8T_stabsel_opt_c.csv", header = F, integer64="character")
+d_opt <- data.table::fread("/mnt/f/Uni/AIM3/OUTPUT/out_8T_stabsel_opt_c.csv", header = F, integer64="character")
 
+
+names(d_opt) <- c("seed", "modelindex", paste0("opt", 0:7))
+d_opt$seed <- as.numeric(d_opt$seed) # For sorting
 
 # Create nested list of euclidean distances between models: we have 192 models, which is 18336 comparisons per seed, so 1,833,600 total
 # May be possible on Tinaroo? But probably better to randomly sample as with the relative PCA
 
-l_eucdists <- euc_dist(d_sel, d_opt)
+ls_popmeans <- MCmean_gen(d_sel, d_sel$modelindex, 4)
+ls_opt <- opt_gen(d_opt, d_opt$modelindex)
+
+ls_eucdists <- MCeuc_dist(d_sel, d_opt, 4)
 
 
 
@@ -1433,13 +1439,180 @@ l_eucdists <- euc_dist(d_sel, d_opt)
 
 library(tidyverse)
 
-test_df <- data.frame(
-  gen = rep(unique(d_tau_nodup$gen), each = length(unique(d_tau_nodup$seed))*length(unique(d_tau_nodup$tau))),
-  seed = rep(unique(d_tau_nodup$seed), each = length(unique(d_tau_nodup$tau))),
-  modelindex = unique(d_tau_nodup$tau),
-  distance = unlist(euc_test)
+d_eucdist <- data.frame(
+  gen = rep(unique(d_sel$gen), each = length(unique(d_sel$seed))*length(unique(d_sel$modelindex))),
+  seed = sort(rep(unique(d_sel$seed), each = length(unique(d_sel$modelindex)))),
+  modelindex = sort(unique(d_sel$modelindex)),
+  distance = unlist(ls_eucdists)
 )
 
+# Verify it has sorted correctly
+eg_means <- d_sel[,39:46][d_sel$seed == 2767825865 & d_sel$modelindex == 60,]
+eg_opts <- d_opt[,3:10][d_opt$seed == 2767825865 & d_opt$modelindex == 60,]
+
+names(eg_means) <- names(eg_opts)
+
+dist(rbind(eg_means, eg_opts))
+#> dist(rbind(eg_means, eg_opts)) eg_means <- d_sel[,39:46][d_sel$seed == 16601004 & d_sel$modelindex == 5,] eg_opts <- d_opt[,3:10][d_opt$seed == 16601004 & d_opt$modelindex == 5,]
+#454
+#1 208.2571
+
+# Correct, we'll do another one just to double check
+
+#> dist(rbind(eg_means, eg_opts)) eg_means <- d_sel[,39:46][d_sel$seed == 2767825865 & d_sel$modelindex == 60,] eg_opts <- d_opt[,3:10][d_opt$seed == 2767825865 & d_opt$modelindex == 60,]
+
+#5936
+#1 152.2622
+
+# Also correct, so the data frame is ready to be filled with predictors
+# Load in ls_cpombos if we haven't already
+# Linux version
+ls_combos <- read.csv("/mnt/z/Documents/GitHub/Genetic-Architecture-in-SLiM/src/Cluster_jobs/final_runs/Nimrod/Simplified/AIM3/lscombos_sel.csv")
+
+
+d_eucdist$delmu <- rep(ls_combos$delmu, times = 100)
+d_eucdist$rwide <- rep(ls_combos$rwide, times = 100)
+d_eucdist$pleiocov <- rep(ls_combos$pleiocov, times = 100) # Repeat 100 times, for each seed
+d_eucdist$pleiorate <- rep(ls_combos$pleiorate, times = 100)
+d_eucdist$locisigma <- rep(ls_combos$locisigma, times = 100)
+d_eucdist$tau <- rep(ls_combos$tau, times = 100)
+
+# Split into low/medium/high groups
+
+d_eucdist$delmu.cat <- cut(d_eucdist$delmu, breaks = 3)
+d_eucdist$rwide.cat <- cut(d_eucdist$rwide, breaks = 3)
+d_eucdist$pleiocov.cat <- cut(d_eucdist$pleiocov, breaks = 3)
+d_eucdist$pleiorate.cat <- cut(d_eucdist$pleiorate, breaks = 3)
+d_eucdist$locisigma.cat <- cut(d_eucdist$locisigma, breaks = 3)
+d_eucdist$tau.cat <- cut(d_eucdist$tau, breaks = 3)
+
+# Reorder so predictors are first
+
+d_eucdist <- d_eucdist[,c(1:3, 5:16, 4)]
+
+# Type III lm/ANOVA followed by least squares means contrasts as post hoc
+
+
+library(car)
+library(emmeans)
+
+lm_eucdist <- lm(distance ~ (delmu.cat + pleiocov.cat + pleiorate.cat + locisigma.cat + rwide.cat + tau.cat)^2, 
+                     contrasts=list(delmu.cat='contr.sum', pleiocov.cat ='contr.sum', pleiorate.cat ='contr.sum', locisigma.cat ='contr.sum', rwide.cat ='contr.sum', tau.cat ='contr.sum'),
+                     data = d_eucdist)
+
+aov_eucdist <- Anova(lm_eucdist, type = 3)
+aov_eucdist
+summary(lm_eucdist)
+
+par(mfrow = c(2,2))
+plot(lm_eucdist)
+# Lots of heteroskedasticity: will have to adjust for that using Eicker-Huber-White
+
+library(sandwich)
+library(estimatr)
+lm_eucdist <- lm_robust(distance ~ (delmu.cat + pleiocov.cat + pleiorate.cat + locisigma.cat + rwide.cat + tau.cat)^2, 
+                 data = d_eucdist)
+
+summary(lm_eucdist)
+
+
+emm_dist_d.pc <- emmeans(lm_eucdist, pairwise ~ delmu.cat | pleiocov.cat)
+emm_dist_d.pr <- emmeans(lm_eucdist, pairwise ~ delmu.cat | pleiorate.cat)
+emm_dist_d.r <- emmeans(lm_eucdist, pairwise ~ delmu.cat | rwide.cat)
+emm_dist_d.ls <- emmeans(lm_eucdist, pairwise ~ delmu.cat | locisigma.cat)
+emm_dist_d.t <- emmeans(lm_eucdist, pairwise ~ delmu.cat| tau.cat)
+emm_dist_dr.t <- emmeans(lm_eucdist, pairwise ~ delmu.cat*rwide.cat| tau.cat)
+
+
+emm_dist_r.pc <- emmeans(lm_eucdist, pairwise ~ rwide.cat | pleiocov.cat)
+emm_dist_r.pr <- emmeans(lm_eucdist, pairwise ~ rwide.cat | pleiorate.cat)
+emm_dist_r.ls <- emmeans(lm_eucdist, pairwise ~ rwide.cat | locisigma.cat)
+emm_dist_r.t <- emmeans(lm_eucdist, pairwise ~ rwide.cat| tau.cat)
+
+
+emm_dist_pr.pc <- emmeans(lm_eucdist, pairwise ~ pleiorate.cat | pleiocov.cat)
+emm_dist_pr.ls <- emmeans(lm_eucdist, pairwise ~ pleiorate.cat | locisigma.cat)
+emm_dist_pr.t <- emmeans(lm_eucdist, pairwise ~ pleiorate.cat| tau.cat)
+
+
+emm_dist_pc.ls <- emmeans(lm_eucdist, pairwise ~ pleiocov.cat | locisigma.cat)
+emm_dist_pc.t <- emmeans(lm_eucdist, pairwise ~ pleiocov.cat| tau.cat)
+
+emm_dist_ls.t <- emmeans(lm_eucdist, pairwise ~ locisigma.cat| tau.cat)
+
+# Plot euclidean distance from optimum: separate figure for each parameter, coloured lines for tau bin
+
+########################################
+
+# Delmu 
+dplot_eucdist_delmu <- d_eucdist[,c(10, 15:16)] %>%
+  group_by(delmu.cat, tau.cat) %>%
+  summarise(dist_mean = mean(distance), dist_se = std.error(distance))
+
+plot_eucdist_delmu <- ggplot(dplot_eucdist_delmu, aes(x = delmu.cat, y = dist_mean, colour = tau.cat, group = tau.cat)) +
+  geom_line() +
+  geom_errorbar(aes(ymin = dist_mean - (1.96*dist_se), ymax = dist_mean + (1.96*dist_se)), width = 0.2) +
+  theme_classic() +
+  labs(x = "Background selection rate", y = "Euclidean distance from optimum", color = "Selection strength (\u03C4)")
+  
+# # # # # # # # # # # # # # # # # 
+
+# Rwide 
+dplot_eucdist_rwide <- d_eucdist[,c(11, 15:16)] %>%
+  group_by(rwide.cat, tau.cat) %>%
+  summarise(dist_mean = mean(distance), dist_se = std.error(distance))
+
+plot_eucdist_rwide <- ggplot(dplot_eucdist_rwide, aes(x = rwide.cat, y = dist_mean, colour = tau.cat, group = tau.cat)) +
+  geom_line() +
+  geom_errorbar(aes(ymin = dist_mean - (1.96*dist_se), ymax = dist_mean + (1.96*dist_se)), width = 0.2) +
+  theme_classic() +
+  labs(x = "Recombination rate", y = "Euclidean distance from optimum", color = "Selection strength (\u03C4)")
+
+# # # # # # # # # # # # # # # # # 
+
+# Pleiocov 
+dplot_eucdist_pleiocov <- d_eucdist[,c(12, 15:16)] %>%
+  group_by(pleiocov.cat, tau.cat) %>%
+  summarise(dist_mean = mean(distance), dist_se = std.error(distance))
+
+plot_eucdist_pleiocov <- ggplot(dplot_eucdist_pleiocov, aes(x = pleiocov.cat, y = dist_mean, colour = tau.cat, group = tau.cat)) +
+  geom_line() +
+  geom_errorbar(aes(ymin = dist_mean - (1.96*dist_se), ymax = dist_mean + (1.96*dist_se)), width = 0.2) +
+  theme_classic() +
+  labs(x = "Pleiotropic covariance", y = "Euclidean distance from optimum", color = "Selection strength (\u03C4)")
+
+# # # # # # # # # # # # # # # # # 
+
+# pleiorate 
+dplot_eucdist_pleiorate <- d_eucdist[,c(13, 15:16)] %>%
+  group_by(pleiorate.cat, tau.cat) %>%
+  summarise(dist_mean = mean(distance), dist_se = std.error(distance))
+
+plot_eucdist_pleiorate <- ggplot(dplot_eucdist_pleiorate, aes(x = pleiorate.cat, y = dist_mean, colour = tau.cat, group = tau.cat)) +
+  geom_line() +
+  geom_errorbar(aes(ymin = dist_mean - (1.96*dist_se), ymax = dist_mean + (1.96*dist_se)), width = 0.2) +
+  theme_classic() +
+  labs(x = "Pleiotropy rate", y = "Euclidean distance from optimum", color = "Selection strength (\u03C4)")
+
+# # # # # # # # # # # # # # # # # 
+
+# locisigma 
+dplot_eucdist_locisigma <- d_eucdist[,c(14:16)] %>%
+  group_by(locisigma.cat, tau.cat) %>%
+  summarise(dist_mean = mean(distance), dist_se = std.error(distance))
+
+plot_eucdist_locisigma <- ggplot(dplot_eucdist_locisigma, aes(x = locisigma.cat, y = dist_mean, colour = tau.cat, group = tau.cat)) +
+  geom_line() +
+  geom_point() +
+  geom_errorbar(aes(ymin = dist_mean - (1.96*dist_se), ymax = dist_mean + (1.96*dist_se)), width = 0.2) +
+  theme_classic() +
+  labs(x = "Additive effect size", y = "Euclidean distance from optimum", colour = "Selection strength (\u03C4)")
+
+# # # # # # # # # # # # # # # # # 
+
+library(patchwork)
+
+(plot_eucdist_delmu | plot_spacer() | plot_eucdist_rwide) / (plot_spacer() | plot_eucdist_locisigma | plot_spacer()) / (plot_eucdist_pleiocov | plot_spacer() | plot_eucdist_pleiorate)
 
 #################################
 #           Deprecated          #

@@ -220,17 +220,17 @@ PCOA_df <- function(PCOA) {
 # Function to convert a single line from dataframe to just the mean values
 dat_to_mean <- function(dat) {
   dat <- as.vector(t(dat))
-  means <- dat[35:42]
+  means <- dat[39:46]
   means
 }
 
 # Function to rearrange data into list sorted by variables
 mean_gen <- function(dat) {
-  dat <- dplyr::arrange(dat, gen, tau, seed) # should be modelindex instead of tau in final function
+  dat <- dplyr::arrange(dat, gen, modelindex, seed) # should be modelindex instead of tau in final function
   dat <- dplyr::group_split(dat, gen) %>% setNames(unique(dat$gen))
-  dat <- lapply(dat, function(x) { dplyr::group_split(x, seed) }) # %>% setNames(unique(x$seed))}) Don't need names of seeds
+  dat <- lapply(dat, function(x) { dplyr::group_split(x, seed)  %>% setNames(unique(x$seed))}) # Don't need names of seeds
   dat <- lapply(dat, function(x) { lapply(x, function(y) {
-    split(as.matrix(y), row(y))
+    split(as.matrix(y), row(y)) %>% setNames(unique(dat$modelindex))
   })
   })
   dat <- lapply(dat, function(x) { 
@@ -268,12 +268,12 @@ MCmean_gen <- function(dat, v, cores) {
 }
 
 # Convert optimums into a list for easier comparison
-opt_gen <- function(opt) {
-  opt <- dplyr::arrange(opt, tau, seed) # should be modelindex instead of tau in final function
-  opt <- dplyr::group_split(opt, seed) # %>% setNames(unique(opt$seed)) Don't need names of seeds
+opt_gen <- function(opt, v) {
+  opt <- dplyr::arrange(opt, v, seed) # should be modelindex instead of tau in final function
+  opt <- dplyr::group_split(opt, seed)  %>% setNames(sort(unique(opt$seed)))
   opt <- lapply(opt, function (x) {
     x <- x[,3:10]
-    split(as.matrix(x), row(x))
+    split(as.matrix(x), row(x)) %>% setNames(sort(unique(v)))
   })
   opt
 }
@@ -287,7 +287,7 @@ opt_gen <- function(opt) {
 MCeuc_dist <- function(dat, opt, cores) {
   require(parallel)
   dat <- mean_gen(dat)
-  opt <- opt_gen(opt)
+  opt <- opt_gen(opt, opt$modelindex)
   dists <- parallel::mclapply(seq_along(dat), function(x) {
     lapply(seq_along(dat[[x]]), function(y) {
       lapply(seq_along(dat[[x]][[y]]), function(z) {
