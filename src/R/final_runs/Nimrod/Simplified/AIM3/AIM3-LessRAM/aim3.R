@@ -294,12 +294,15 @@ d_G_sel_El <- d_G_sel_El[,c(1:3, 15:19, 4:14)]
 # Write table for JMP
 write.table(d_G_sel_El, "d_sel_Ellipse.csv", sep = ",", row.names = F)
 
+# Load it in if we need it
+read.csv("d_sel_G_ellipse.csv")
 
 # Categorise values for plotting
-d_G_sel_El$pleiocov.cat <- cut(d_G_sel_El$pleiocov, breaks = 8) 
-d_G_sel_El$pleiorate.cat <- cut(d_G_sel_El$pleiorate, breaks = 8) 
-d_G_sel_El$locisigma.cat <- cut(d_G_sel_El$locisigma, breaks = 8) 
-d_G_sel_El$rwide.cat <- cut(d_G_sel_El$rwide, breaks = 8) 
+d_G_sel_El$delmu.cat <- cut(d_G_sel_El$delmu, breaks = 3) 
+d_G_sel_El$pleiocov.cat <- cut(d_G_sel_El$pleiocov, breaks = 3) 
+d_G_sel_El$pleiorate.cat <- cut(d_G_sel_El$pleiorate, breaks = 3) 
+d_G_sel_El$locisigma.cat <- cut(d_G_sel_El$locisigma, breaks = 3) 
+d_G_sel_El$rwide.cat <- cut(d_G_sel_El$rwide, breaks = 3) 
 d_G_sel_El$tau.cat <- cut(d_G_sel_El$tau, breaks = 3) # three levels - low, medium, high selection
 # Rearrange columns
 d_G_sel_El <- d_G_sel_El[c(1:4, 20, 5, 21, 6, 22, 7, 23, 8, 24, 9:19)]
@@ -580,31 +583,25 @@ d_G_sel_El_aov$pleiorate.cat <- cut(d_G_sel_El_aov$pleiorate, breaks = 3)
 d_G_sel_El_aov$rwide.cat <- cut(d_G_sel_El_aov$rwide, breaks = 3)
 d_G_sel_El_aov$locisigma.cat <- cut(d_G_sel_El_aov$locisigma, breaks = 3)
 d_G_sel_El_aov$tau.cat <- cut(d_G_sel_El_aov$tau, breaks = 3)
+d_G_sel_El_aov$theta_abs <- abs(d_G_sel_El_aov$theta)
+
+write.table(d_G_sel_El_aov, "d_sel_Ellipse_aov.csv", sep = ",", row.names = F)
 
 
 
-library(car)
+
+library(estimatr)
 library(emmeans)
 
-lm_sel_El_area <- lm(area ~ (delmu.cat + pleiocov.cat + pleiorate.cat + locisigma.cat + rwide.cat + tau.cat)^2, 
-                     contrasts=list(delmu.cat='contr.sum', pleiocov.cat ='contr.sum', pleiorate.cat ='contr.sum', locisigma.cat ='contr.sum', rwide.cat ='contr.sum', tau.cat ='contr.sum'),
+lm_sel_El_area <- lm_robust(area ~ (delmu.cat + pleiocov.cat + pleiorate.cat + locisigma.cat + rwide.cat + tau.cat)^2, 
                      data = d_G_sel_El_aov)
 
-aov_sel_El_area <- Anova(lm_sel_El_area, type = 3)
-aov_sel_El_area
 
-
-lm_sel_El_ratio <- lm(ratio ~ (delmu.cat + pleiocov.cat + pleiorate.cat + locisigma.cat + rwide.cat + tau.cat)^2 , 
-                     contrasts=list(delmu.cat='contr.sum', pleiocov.cat ='contr.sum', pleiorate.cat ='contr.sum', locisigma.cat ='contr.sum', rwide.cat ='contr.sum', tau.cat ='contr.sum'),
+lm_sel_El_ratio <- lm_robust(ratio ~ (delmu.cat + pleiocov.cat + pleiorate.cat + locisigma.cat + rwide.cat + tau.cat)^2 , 
                      data = d_G_sel_El_aov)
-aov_sel_El_ratio <- Anova(lm_sel_El_ratio, type = 3)
-aov_sel_El_ratio
 
-lm_sel_El_theta <- lm(theta ~ (delmu.cat + pleiocov.cat + pleiorate.cat + locisigma.cat + rwide.cat + tau.cat)^2 , 
-                     contrasts=list(delmu.cat='contr.sum', pleiocov.cat ='contr.sum', pleiorate.cat ='contr.sum', locisigma.cat ='contr.sum', rwide.cat ='contr.sum', tau.cat ='contr.sum'),
+lm_sel_El_theta <- lm_robust(theta_abs ~ (delmu.cat + pleiocov.cat + pleiorate.cat + locisigma.cat + rwide.cat + tau.cat)^2 , 
                      data = d_G_sel_El_aov)
-aov_sel_El_theta <- Anova(lm_sel_El_theta, type = 3)
-aov_sel_El_theta
 
 
 
@@ -837,8 +834,8 @@ d_relG_sel_btwn <- d_relG_sel_btwn_delmu_wider
 # Write table for JMP
 write.table(d_relG_sel_btwn, "d_relEig_sel_btwn.csv", sep = ",", row.names = F)
 
-
-
+# Read in case we need to start from this point
+d_relEig_sel_btwn <- read.csv("d_relEig_sel_btwn.csv")
 
 
 # Calculate means and SE for plotting
@@ -915,7 +912,7 @@ plot_logGV_sel_btwn_tau <- ggplot(dplot_relG_sel_btwn_tau, aes(x = tau.cat, y = 
 
 # Type III ANOVA for log generalised variance
 
-d_relG_sel_btwn_aov <- d_relG_sel_btwn
+d_relG_sel_btwn_aov <- d_relEig_sel_btwn
 
 d_relG_sel_btwn_aov$delmu.cat <- cut(d_relG_sel_btwn_aov$delmudiff, breaks = 3)
 d_relG_sel_btwn_aov$pleiocov.cat <- cut(d_relG_sel_btwn_aov$pleiocovdiff, breaks = 3)
