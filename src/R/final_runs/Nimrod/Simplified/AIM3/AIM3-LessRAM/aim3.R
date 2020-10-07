@@ -124,7 +124,7 @@ source("../../AIM1/AIM-1_R/src_G_mat.R")
 # Get population means for each trait, trait 0 to trait 7 (or 1 to 8)
 means_sel_delmu <- d_sel[,c(1:2, 6, 39:46)]
 # Group delmu values...
-means_sel_delmu$delmu.cat <- cut(means_sel_delmu$delmu, breaks = 8) 
+means_sel_delmu$delmu.cat <- cut(means_sel_delmu$delmu, breaks = 3) 
 
 
 # Get mean of means for calculating origin of G ellipses
@@ -143,7 +143,7 @@ dplot_means_sel_delmu <- pivot_longer(dplot_means_sel_delmu, cols = -c(delmu.cat
 
 # Same for variance/covariance - only grab two traits though, since that's all we can plot
 vars_sel_delmu <- d_sel[,c(1:3, 5:10, 47:48, 55)]
-vars_sel_delmu$delmu.cat <- cut(vars_sel_delmu$delmu, breaks = 8) 
+vars_sel_delmu$delmu.cat <- cut(vars_sel_delmu$delmu, breaks = 3) 
 
 
 # Mean variances, goes with mean eigenvalues/eigenvectors
@@ -182,6 +182,7 @@ d_G_PC_sel_delmu <- ListToDF(G_sel_org, Gvecs, delmu)
 d_G_PC_sel_delmu$delmu <- as.numeric(d_G_PC_sel_delmu$delmu)
 d_G_PC_sel_delmu$Gmax.val <- as.numeric(d_G_PC_sel_delmu$Gmax.val)
 d_G_PC_sel_delmu$G2.val <- as.numeric(d_G_PC_sel_delmu$G2.val)
+d_G_PC_sel_delmu$seed <- as.numeric(d_G_PC_sel_delmu$seed)
 
 # Lets add a ratio of major/minor axis as well: major axis = 2sqrt(Gmax.val), minor = 2sqrt(G2.val) : we can remove the 2
 
@@ -194,7 +195,7 @@ d_G_PC_sel_delmu$ratio <- sqrt(d_G_PC_sel_delmu$Gmax.val)/sqrt(d_G_PC_sel_delmu$
 # And group delmu values...
 
 
-d_G_PC_sel_delmu$delmu.cat <- cut(d_G_PC_sel_delmu$delmu, breaks = 8) 
+d_G_PC_sel_delmu$delmu.cat <- cut(d_G_PC_sel_delmu$delmu, breaks = 3) 
 
 
 dplot_G_PC_sel_delmu <- d_G_PC_sel_delmu[-c(1, 2, 3)] %>%
@@ -1610,6 +1611,231 @@ plot_eucdist_locisigma <- ggplot(dplot_eucdist_locisigma, aes(x = locisigma.cat,
 library(patchwork)
 
 (plot_eucdist_delmu | plot_spacer() | plot_eucdist_rwide) / (plot_spacer() | plot_eucdist_locisigma | plot_spacer()) / (plot_eucdist_pleiocov | plot_spacer() | plot_eucdist_pleiorate)
+
+
+########################################################################################
+
+# Combined data frames: null and sel models
+
+
+###################################################################################################
+#                                 Import BIG data: all 1024 models                                #
+###################################################################################################
+d_null_big <- read.csv("/mnt/z/Documents/GitHub/Genetic-Architecture-in-SLiM/src/R/final_runs/Nimrod/Simplified/AIM1/AIM-1_R/d_null_1024.csv")
+
+# Get rid of first useless column
+d_null_big <- d_null_big[,-1]
+
+d_null_mat <- d_null_big[,c(1:2, 6, 47:82)]
+
+means_null_delmu <- d_null_big[,c(1:2, 6, 39:46)]
+means_null_delmu$delmu.cat <- cut(means_null_delmu$delmu, breaks = 3) 
+
+vars_null_delmu <- d_null_big[,c(1:2, 6, 47:48, 55)]
+vars_null_delmu$delmu.cat <- cut(vars_null_delmu$delmu, breaks = 3) 
+
+
+# Generate G matrices from data according to delmu value
+G_null_delmu <- MCmat_gen(d_null_mat, d_null_mat$delmu, 4)
+
+# Generate eigenvalues and vectors of each
+G_PC_delmu <- MCPCA(G_null_delmu, 4)
+
+# Organise into a more reasonable output for transforming to data frame
+G_org <- MCOrg_G(G_PC_delmu, 4)
+
+# Names of eigenvectors for data frame columns
+
+Gvecs <- c(paste0("Gmax.vec", 1:8), paste0("G2.vec", 1:8))
+
+# Generate data frame of eigenvalues and vectors
+d_G_PC_delmu <- ListToDF(G_org, Gvecs, delmu)
+
+# Coerce data for analysis/averaging
+d_G_PC_delmu$delmu <- as.numeric(d_G_PC_delmu$delmu)
+d_G_PC_delmu$Gmax.val <- as.numeric(d_G_PC_delmu$Gmax.val)
+d_G_PC_delmu$G2.val <- as.numeric(d_G_PC_delmu$G2.val)
+d_G_PC_delmu$seed <- as.numeric(d_G_PC_delmu$seed)
+
+# Lets add a ratio of major/minor axis as well: major axis = 2sqrt(Gmax.val), minor = 2sqrt(G2.val) : we can remove the 2
+
+d_G_PC_delmu$ratio <- sqrt(d_G_PC_delmu$Gmax.val)/sqrt(d_G_PC_delmu$G2.val)
+
+
+# Plot G ellipse: variances of traits 1 and 2, with a 95% confidence ellipse around them, 
+# Gmax and G2 being the axes of variation
+
+# And group delmu values...
+
+
+d_G_PC_delmu$delmu.cat <- cut(d_G_PC_delmu$delmu, breaks = 3) 
+
+
+#First sort data frames so they are in the same order
+means_null_delmu <- arrange(means_null_delmu, seed, delmu)
+d_G_PC_delmu <- arrange(d_G_PC_delmu, seed, delmu)
+vars_null_delmu <- arrange(vars_null_delmu, seed, delmu)
+
+
+d_G_El_delmu <- data.frame(
+  seed = d_G_PC_delmu$seed,
+  delmu = d_G_PC_delmu$delmu,
+  delmu.cat = d_G_PC_delmu$delmu.cat,
+  meanT0 = means_null_delmu$mean0,
+  meanT1 = means_null_delmu$mean1,
+  theta = (atan2((d_G_PC_delmu$Gmax.val - vars_null_delmu$var0), vars_null_delmu$phenocov_01))*(180/pi), # Convert to degrees with 180/pi
+  major_len = (1.96*sqrt(d_G_PC_delmu$Gmax.val)),
+  minor_len = (1.96*sqrt(d_G_PC_delmu$G2.val))
+)
+# Convert to radians with pi/180, calculate where the vertices and covertices should go
+d_G_El_delmu$vert_x <- (cos(d_G_El_delmu$theta*(pi/180)))*(d_G_El_delmu$major_len)
+d_G_El_delmu$vert_y <- (sin(d_G_El_delmu$theta*(pi/180)))*(d_G_El_delmu$major_len)
+d_G_El_delmu$covert_x <- (cos((d_G_El_delmu$theta-90)*(pi/180)))*(d_G_El_delmu$minor_len)
+d_G_El_delmu$covert_y <- (sin((d_G_El_delmu$theta-90)*(pi/180)))*(d_G_El_delmu$minor_len)
+d_G_El_delmu$ratio <- d_G_El_delmu$major_len/d_G_El_delmu$minor_len
+
+# Calculate area of the ellipse, for comparison
+d_G_El_delmu$area <- pi*d_G_El_delmu$major_len*d_G_El_delmu$minor_len
+
+# Add the other variables
+d_G_El_delmu <- arrange(d_G_El_delmu, seed, delmu)
+d_null_big <- arrange(d_null_big, seed, delmu)
+
+d_G_El <- d_G_El_delmu 
+
+d_G_El$pleiocov <- d_null_big$pleiocov
+d_G_El$pleiorate <- d_null_big$pleiorate
+d_G_El$locisigma <- d_null_big$locisigma
+d_G_El$rwide <- d_null_big$rwide
+d_G_El$tau <- 0.0 # Set up for combining with the selection output
+
+d_G_El <- d_G_El[c(1:3, 15:18, 4:14)]
+
+# Write table for JMP
+write.table(d_G_El, "d_Ellipse.csv", sep = ",", row.names = F)
+
+
+
+# Saved progress - open this to avoid having to run the above lines
+d_G_El <- read.csv("d_sel_G_ellipse.csv")
+d_G_sel_El <- read.csv("d_Ellipse.csv")
+
+d_Ellipse_c <- bind_rows(d_G_El, d_G_sel_El)
+
+# Add factors to combined ellipse
+
+# Categorise values for plotting
+d_Ellipse_c$delmu.cat <- cut(d_Ellipse_c$delmu, breaks = 3, labels = c("Low", "Medium", "High"))
+d_Ellipse_c$pleiocov.cat <- cut(d_Ellipse_c$pleiocov, breaks = 3, labels = c("Low", "Medium", "High")) 
+d_Ellipse_c$pleiorate.cat <- cut(d_Ellipse_c$pleiorate, breaks = 3, labels = c("Low", "Medium", "High")) 
+d_Ellipse_c$locisigma.cat <- cut(d_Ellipse_c$locisigma, breaks = 3, labels = c("Low", "Medium", "High")) 
+d_Ellipse_c$rwide.cat <- cut(d_Ellipse_c$rwide, breaks = 3, labels = c("Low", "Medium", "High")) 
+
+# Custom breaks for Tau so we can differentiate from null models and selection models
+tau_bp <- c(-Inf, 0.1, 333.3, 666.6, Inf)
+
+d_Ellipse_c$tau.cat <- cut(d_Ellipse_c$tau, breaks = tau_bp, labels = c("Null", "High", "Medium", "Low")) 
+
+# Rearrange columns
+d_Ellipse_c <- d_Ellipse_c[c(1:4, 20, 5, 21, 6, 22, 7, 23, 19, 24, 8:18)]
+
+# Add absolute value column for theta
+d_Ellipse_c$theta_abs <- abs(d_Ellipse_c$theta) 
+
+
+write.table(d_Ellipse_c, "d_Ellipse_c.csv", sep = ",", row.names = F)
+
+# lm and post hocs
+
+
+
+library(estimatr)
+library(emmeans)
+
+lm_sel_El_area <- lm_robust(area ~ delmu.cat + pleiocov.cat + pleiorate.cat + locisigma.cat + rwide.cat + tau.cat +
+                              delmu.cat * tau.cat + pleiorate.cat * tau.cat + pleiocov.cat * tau.cat +
+                              pleiorate.cat * pleiocov.cat * tau.cat + pleiorate.cat * rwide.cat * tau.cat +
+                              pleiocov.cat * rwide.cat * tau.cat + pleiorate.cat * delmu.cat * tau.cat +
+                              pleiocov.cat * delmu.cat * tau.cat + pleiorate.cat * locisigma.cat * tau.cat +
+                              pleiocov.cat * locisigma.cat * tau.cat,
+                            data = d_Ellipse_c)
+
+summary(lm_sel_El_area)
+
+
+lm_sel_El_ratio <- lm_robust(ratio ~ delmu.cat + pleiocov.cat + pleiorate.cat + locisigma.cat + rwide.cat + tau.cat +
+                               delmu.cat * tau.cat + pleiorate.cat * tau.cat + pleiocov.cat * tau.cat +
+                               pleiorate.cat * pleiocov.cat * tau.cat + pleiorate.cat * rwide.cat * tau.cat +
+                               pleiocov.cat * rwide.cat * tau.cat + pleiorate.cat * delmu.cat * tau.cat +
+                               pleiocov.cat * delmu.cat * tau.cat + pleiorate.cat * locisigma.cat * tau.cat +
+                               pleiocov.cat * locisigma.cat * tau.cat,
+                             data = d_Ellipse_c)
+
+summary(lm_sel_El_ratio)
+
+
+lm_sel_El_theta <- lm_robust(theta_abs ~ delmu.cat + pleiocov.cat + pleiorate.cat + locisigma.cat + rwide.cat + tau.cat +
+                               delmu.cat * tau.cat + pleiorate.cat * tau.cat + pleiocov.cat * tau.cat +
+                               pleiorate.cat * pleiocov.cat * tau.cat + pleiorate.cat * rwide.cat * tau.cat +
+                               pleiocov.cat * rwide.cat * tau.cat + pleiorate.cat * delmu.cat * tau.cat +
+                               pleiocov.cat * delmu.cat * tau.cat + pleiorate.cat * locisigma.cat * tau.cat +
+                               pleiocov.cat * locisigma.cat * tau.cat,
+                             data = d_Ellipse_c)
+
+summary(lm_sel_El_theta)
+
+
+
+# Area post-hoc
+
+emm_s_area_d.t <- emmeans(lm_sel_El_area, pairwise ~ delmu.cat| tau.cat)
+emm_s_area_pr.t <- emmeans(lm_sel_El_area, pairwise ~ pleiorate.cat| tau.cat)
+emm_s_area_pc.t <- emmeans(lm_sel_El_area, pairwise ~ pleiocov.cat| tau.cat)
+emm_s_area_pr.pc.t <- emmeans(lm_sel_El_area, pairwise ~ pleiorate.cat * pleiocov.cat | tau.cat)
+emm_s_area_pr.r.t <- emmeans(lm_sel_El_area, pairwise ~ pleiorate.cat * rwide.cat | tau.cat)
+emm_s_area_pc.r.t <- emmeans(lm_sel_El_area, pairwise ~ pleiocov.cat * rwide.cat | tau.cat)
+emm_s_area_pr.d.t <- emmeans(lm_sel_El_area, pairwise ~ pleiorate.cat * delmu.cat | tau.cat)
+emm_s_area_pc.d.t <- emmeans(lm_sel_El_area, pairwise ~ pleiocov.cat * delmu.cat | tau.cat)
+emm_s_area_pr.ls.t <- emmeans(lm_sel_El_area, pairwise ~ pleiorate.cat * locisigma.cat | tau.cat)
+emm_s_area_pc.ls.t <- emmeans(lm_sel_El_area, pairwise ~ pleiocov.cat * locisigma.cat | tau.cat)
+
+
+
+# Ratio post-hoc
+
+emm_s_ratio_d.t <- emmeans(lm_sel_El_ratio, pairwise ~ delmu.cat| tau.cat)
+emm_s_ratio_pr.t <- emmeans(lm_sel_El_ratio, pairwise ~ pleiorate.cat| tau.cat)
+emm_s_ratio_pc.t <- emmeans(lm_sel_El_ratio, pairwise ~ pleiocov.cat| tau.cat)
+emm_s_ratio_pr.pc.t <- emmeans(lm_sel_El_ratio, pairwise ~ pleiorate.cat * pleiocov.cat | tau.cat)
+emm_s_ratio_pr.r.t <- emmeans(lm_sel_El_ratio, pairwise ~ pleiorate.cat * rwide.cat | tau.cat)
+emm_s_ratio_pc.r.t <- emmeans(lm_sel_El_ratio, pairwise ~ pleiocov.cat * rwide.cat | tau.cat)
+emm_s_ratio_pr.d.t <- emmeans(lm_sel_El_ratio, pairwise ~ pleiorate.cat * delmu.cat | tau.cat)
+emm_s_ratio_pc.d.t <- emmeans(lm_sel_El_ratio, pairwise ~ pleiocov.cat * delmu.cat | tau.cat)
+emm_s_ratio_pr.ls.t <- emmeans(lm_sel_El_ratio, pairwise ~ pleiorate.cat * locisigma.cat | tau.cat)
+emm_s_ratio_pc.ls.t <- emmeans(lm_sel_El_ratio, pairwise ~ pleiocov.cat * locisigma.cat | tau.cat)
+
+# Theta post-hoc
+
+emm_s_theta_d.t <- emmeans(lm_sel_El_theta, pairwise ~ delmu.cat| tau.cat)
+emm_s_theta_pr.t <- emmeans(lm_sel_El_theta, pairwise ~ pleiorate.cat| tau.cat)
+emm_s_theta_pc.t <- emmeans(lm_sel_El_theta, pairwise ~ pleiocov.cat| tau.cat)
+emm_s_theta_pr.pc.t <- emmeans(lm_sel_El_theta, pairwise ~ pleiorate.cat * pleiocov.cat | tau.cat)
+emm_s_theta_pr.r.t <- emmeans(lm_sel_El_theta, pairwise ~ pleiorate.cat * rwide.cat | tau.cat)
+emm_s_theta_pc.r.t <- emmeans(lm_sel_El_theta, pairwise ~ pleiocov.cat * rwide.cat | tau.cat)
+emm_s_theta_pr.d.t <- emmeans(lm_sel_El_theta, pairwise ~ pleiorate.cat * delmu.cat | tau.cat)
+emm_s_theta_pc.d.t <- emmeans(lm_sel_El_theta, pairwise ~ pleiocov.cat * delmu.cat | tau.cat)
+emm_s_theta_pr.ls.t <- emmeans(lm_sel_El_theta, pairwise ~ pleiorate.cat * locisigma.cat | tau.cat)
+emm_s_theta_pc.ls.t <- emmeans(lm_sel_El_theta, pairwise ~ pleiocov.cat * locisigma.cat | tau.cat)
+
+
+##############################################
+
+# Regular data: combine
+
+
+
+
+
 
 #################################
 #           Deprecated          #

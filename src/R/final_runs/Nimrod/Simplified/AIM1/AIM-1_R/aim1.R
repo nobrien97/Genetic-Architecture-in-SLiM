@@ -153,7 +153,7 @@ source("src_G_mat.R")
 # Get population means for each trait, trait 0 to trait 7 (or 1 to 8)
 means_null_delmu <- d_null[,c(1:2, 6, 39:46)]
 # Group delmu values...
-means_null_delmu$delmu.cat <- cut(means_null_delmu$delmu, breaks = 8) 
+means_null_delmu$delmu.cat <- cut(means_null_delmu$delmu, breaks = 3) 
 
 # pop means 1024 version
 means_null_delmu <- d_null_big[,c(1:2, 6, 39:46)]
@@ -383,14 +383,14 @@ write.table(d_G_El_delmu, "d_Ellipse_delmu.csv", sep = ",", row.names = F)
 # and dplot_G_El_delmu so seed and delmu values align
 
 d_G_El_delmu <- arrange(d_G_El_delmu, seed, delmu)
-d_null <- arrange(d_null, seed, delmu)
+d_null_big <- arrange(d_null_big, seed, delmu)
 
 d_G_El <- d_G_El_delmu 
 
-d_G_El$pleiocov <- d_null$pleiocov
-d_G_El$pleiorate <- d_null$pleiorate
-d_G_El$locisigma <- d_null$locisigma
-d_G_El$rwide <- d_null$rwide
+d_G_El$pleiocov <- d_null_big$pleiocov
+d_G_El$pleiorate <- d_null_big$pleiorate
+d_G_El$locisigma <- d_null_big$locisigma
+d_G_El$rwide <- d_null_big$rwide
 
 d_G_El <- d_G_El[c(1:3, 15:18, 4:14)]
 
@@ -399,10 +399,10 @@ write.table(d_G_El, "d_Ellipse.csv", sep = ",", row.names = F)
 
 
 # Categorise values for plotting
-d_G_El$pleiocov.cat <- cut(d_G_El$pleiocov, breaks = 8) 
-d_G_El$pleiorate.cat <- cut(d_G_El$pleiorate, breaks = 8) 
-d_G_El$locisigma.cat <- cut(d_G_El$locisigma, breaks = 8) 
-d_G_El$rwide.cat <- cut(d_G_El$rwide, breaks = 8) 
+d_G_El$pleiocov.cat <- cut(d_G_El$pleiocov, breaks = 3) 
+d_G_El$pleiorate.cat <- cut(d_G_El$pleiorate, breaks = 3) 
+d_G_El$locisigma.cat <- cut(d_G_El$locisigma, breaks = 3) 
+d_G_El$rwide.cat <- cut(d_G_El$rwide, breaks = 3) 
 # Rearrange columns
 d_G_El <- d_G_El[c(1:4, 19, 5, 20, 6, 21, 7, 22, 8:18)]
 
