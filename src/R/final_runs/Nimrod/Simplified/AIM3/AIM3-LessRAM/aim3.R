@@ -1830,7 +1830,187 @@ emm_s_theta_pc.ls.t <- emmeans(lm_sel_El_theta, pairwise ~ pleiocov.cat * locisi
 
 ##############################################
 
-# Regular data: combine
+# Regular data: combine into one
+
+d_null_big <- read.csv("/mnt/z/Documents/GitHub/Genetic-Architecture-in-SLiM/src/R/final_runs/Nimrod/Simplified/AIM1/AIM-1_R/d_null_1024.csv")
+d_null_big <- d_null_big[,-c(1, 112)] # Get rid of useless first row (row names) and heterozygosity (since we don't have that for selection model)
+d_null_big$tau <- 0.0 # initialise tau for null
+d_sel <- read.csv("d_sel.csv") # d_sel modelindices are different to those of null, so we will add 1024 to their number, and combine both ls_combos into one matrix
+
+d_sel$modelindex <- d_sel$modelindex + 1024
+
+d_raw_c <- bind_rows(d_null_big, d_sel)
+
+d_raw_c$delmu.cat <- cut(d_raw_c$delmu, breaks = 3, labels = c("Low", "Medium", "High"))
+d_raw_c$pleiocov.cat <- cut(d_raw_c$pleiocov, breaks = 3, labels = c("Low", "Medium", "High")) 
+d_raw_c$pleiorate.cat <- cut(d_raw_c$pleiorate, breaks = 3, labels = c("Low", "Medium", "High")) 
+d_raw_c$locisigma.cat <- cut(d_raw_c$locisigma, breaks = 3, labels = c("Low", "Medium", "High")) 
+d_raw_c$rwide.cat <- cut(d_raw_c$rwide, breaks = 3, labels = c("Low", "Medium", "High")) 
+
+# Custom breaks for Tau so we can differentiate from null models and selection models
+tau_bp <- c(-Inf, 0.1, 333.3, 666.6, Inf)
+
+d_raw_c$tau.cat <- cut(d_raw_c$tau, breaks = tau_bp, labels = c("Null", "High", "Medium", "Low")) 
+
+
+d_raw_c <- d_raw_c[,c(1:10, 111:116, 11:110)]
+
+
+
+d_raw_mat <- d_raw_c[,c(1:2, 5:16, 53:88)] # G matrix: gen, seed, delmu, variances and covariances
+
+
+# Save d_sel_mat to send to supercomputer to run the comparisons
+saveRDS(d_raw_mat, "d_raw_mat.RDS")
+
+source("../../AIM1/AIM-1_R/src_G_mat.R")
+
+
+
+# Relative eigenanalysis: Pairs of matrices, compare bins of selection for some variable
+# E.g. null low delmu vs high sel low delmu etc.
+
+rPCA_c <- rPCA(d_raw_mat, 1000)
+
+# Organise into a more reasonable output for transforming to data frame
+
+rPCA_org <- MCOrg_rPCA(rPCA_c, 4)
+
+
+# Names of eigenvectors for data frame columns
+
+relGvecs <- c(paste0("relGmax.vec", 1:8), paste0("relG2.vec", 1:8))
+
+# Generate data frame of eigenvalues and vectors
+d_relG <- ListToDF(rPCA_org, relGvecs, delmu.rwide)
+
+names(d_relG)[1:3] <- c("Replicate", "delmu.rwide", "tau")
+
+d_relG$Replicate <- rep(1:1000, each = 27) # Refactor replicate column according to the replicate number
+
+# These values are stored as list objects, make them a regular numeric vector
+d_relG$relGmax.val <- as.numeric(d_relG$relGmax.val)
+d_relG$relG2.val <- as.numeric(d_relG$relG2.val)
+d_relG$relGV <- as.numeric(d_relG$relGV)
+d_relG$logGV <- as.numeric(d_relG$logGV)
+d_relG$distCov <- as.numeric(d_relG$distCov)
+
+d_relG <- separate(data = d_relG,
+                    col = delmu.rwide,
+                    into = c("delmu", "rwide"))
+
+# Reorder the factor levels to low - medium - high
+d_relG$delmu <- factor(d_relG$delmu, levels = c("Low", "Medium", "High"))
+d_relG$rwide <- factor(d_relG$rwide, levels = c("Low", "Medium", "High"))
+d_relG$tau <- factor(d_relG$tau, levels = c("Low", "Med", "High"))
+
+
+write.csv(d_relG, "d_rPCA.csv", row.names = F)
+
+##############################################################################################################################################
+
+# Plot the rPCA output - logGV
+
+# box plots, violin plots, showing the data/range
+library(ggsci)
+
+# Transform to means and SE
+dplot_relG_delmu.rwide <- d_relG[,-1] %>%
+  group_by(delmu, rwide, tau) %>%
+  summarise_all(list(groupmean = mean, se = std.error))
+
+# Plot
+plot_logGV_delmu.rwide <- ggplot(dplot_relG_delmu.rwide, aes(x = tau, y = logGV_groupmean, fill = delmu)) +
+  geom_col(position = "dodge") +
+  geom_errorbar(aes(ymin = logGV_groupmean - (1.96*logGV_se), ymax = logGV_groupmean + (1.96*logGV_se)), width = 0.2, position = position_dodge(0.9)) +
+  scale_fill_npg() +
+  theme_classic() +
+  facet_grid(rwide~.) +
+  scale_x_discrete(labels = c("Low", "Medium", "High")) +
+  labs(x = "\u0394\u03C4 between comparison models", y = "Mean pairwise log generalised variance",
+       fill = "Rate of background \nselection")
+
+# Thanks to: https://stackoverflow.com/a/37292665/13586824
+# Add rwide label
+# Labels 
+labelR = "Recombination rate"
+
+# Get the ggplot grob
+plot_gtab <- ggplotGrob(plot_logGV_delmu.rwide)
+
+# Get the positions of the strips in the gtable: t = top, l = left, ...
+posR <- subset(plot_gtab$layout, grepl("strip-r", name), select = t:r)
+posT <- subset(plot_gtab$layout, grepl("strip-t", name), select = t:r)
+
+# Add a new column to the right of current right strips, 
+# and a new row on top of current top strips
+width <- plot_gtab$widths[max(posR$r)]    # width of current right strips
+height <- plot_gtab$heights[min(posT$t)]  # height of current top strips
+
+plot_gtab <- gtable_add_cols(plot_gtab, width, max(posR$r))  
+
+# Construct the new strip grobs
+stripR <- gTree(name = "Strip_right", children = gList(
+  rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
+  textGrob(labelR, rot = -90, gp = gpar(fontsize = 8.8, col = "black"))))
+
+
+# Position the grobs in the gtable
+plot_gtab <- gtable_add_grob(plot_gtab, stripR, t = min(posR$t), l = max(posR$r) + 1, b = max(posR$b), name = "strip-right")
+
+# Add small gaps between strips
+plot_gtab <- gtable_add_cols(plot_gtab, unit(1/5, "line"), max(posR$r))
+
+# Draw it
+grid.newpage()
+grid.draw(plot_gtab)
+
+# Interpreting relative generalised variance: overall x varied this many times over the null condition
+# individual relative eigenvalues give an idea of how this variation is spread across combinations of traits
+
+
+viol_logGV_delmu.rwide <- ggplot(d_relG, aes(x = tau, y = logGV, fill = delmu)) +
+  geom_violin(position = "dodge") +
+  scale_fill_npg() +
+#  geom_boxplot(color = "gray13", alpha = 0.6, width = 0.1, position = position_dodge(0.9)) +
+  scale_colour_npg() +
+  theme_classic() +
+  facet_grid(rwide~.) +
+  scale_x_discrete(labels = c("Low", "Medium", "High")) +
+  labs(x = "\u0394\u03C4 between comparison models", y = "Log generalised variance between groups",
+       fill = "Rate of background \nselection")
+
+# Get the ggplot grob
+plot_gtab <- ggplotGrob(viol_logGV_delmu.rwide)
+
+# Get the positions of the strips in the gtable: t = top, l = left, ...
+posR <- subset(plot_gtab$layout, grepl("strip-r", name), select = t:r)
+posT <- subset(plot_gtab$layout, grepl("strip-t", name), select = t:r)
+
+# Add a new column to the right of current right strips, 
+# and a new row on top of current top strips
+width <- plot_gtab$widths[max(posR$r)]    # width of current right strips
+height <- plot_gtab$heights[min(posT$t)]  # height of current top strips
+
+plot_gtab <- gtable_add_cols(plot_gtab, width, max(posR$r))  
+
+# Construct the new strip grobs
+stripR <- gTree(name = "Strip_right", children = gList(
+  rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
+  textGrob(labelR, rot = -90, gp = gpar(fontsize = 8.8, col = "black"))))
+
+
+# Position the grobs in the gtable
+plot_gtab <- gtable_add_grob(plot_gtab, stripR, t = min(posR$t), l = max(posR$r) + 1, b = max(posR$b), name = "strip-right")
+
+# Add small gaps between strips
+plot_gtab <- gtable_add_cols(plot_gtab, unit(1/5, "line"), max(posR$r))
+
+# Draw it
+grid.newpage()
+grid.draw(plot_gtab)
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 
 
 
@@ -1850,3 +2030,22 @@ for (i in 1:nrow(d_sel)) {
   d_sel$locisigma[i] <- ls_combos[1:192,]$locisigma[d_sel$modelindex[i]]
   
 }
+
+# Testing for new dat_to_mat function, making sure that we can get a couple of matrices out and do rPCA on them
+
+d_raw_mat$interact <- interaction(d_raw_mat$delmu.cat, d_raw_mat$rwide.cat)
+
+test_df <- d_raw_mat[1:4,]
+for (sel in unique(d_raw_mat$tau.cat)) {
+  test_df[match(sel, unique(d_raw_mat$tau.cat)),] <- slice_sample(subset(d_raw_mat, interact == "Low.High" & tau.cat == sel), 1) # Randomly sample from the proper subset of data (certain interaction and selection strength)
+}
+test_sample_null <- slice_sample(subset(d_raw_mat, interact == "Low.High" & tau.cat == "Null"), 1)
+test_sample_null <- dat_to_mat_rPCA(test_sample_null)
+test_sample_high <- slice_sample(subset(d_raw_mat, interact == "Low.High" & tau.cat == "High"), 1)
+test_sample_high <- dat_to_mat_rPCA(test_sample_high)
+test_rel_high <- vcvComp::relative.eigen(test_sample_null, test_sample_high)
+
+test_rel_ls <- vector("list", 10)
+test_rel_ls[[1]] <- list(High = test_rel_high)
+
+

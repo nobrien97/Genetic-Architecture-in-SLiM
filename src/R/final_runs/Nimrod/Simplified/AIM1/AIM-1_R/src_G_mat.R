@@ -512,7 +512,111 @@ MC_relW_PW_combn <- function(G, n=100, cores) {
   
 }
 
+# Relative PCA 3: comparing null against sel models
+# Need to pick similar values for our tested interaction (e.g. bins of low recom + high delmu etc.), with different levels of selection
+# So testing difference from NULL with logGV
+# Will require different matrix structure with multiple predictors
 
+# 1) Add an interaction term to use as a subsetter
+# 2) Randomly choose a row which fits each unique interaction term for each tau category
+# 3) Convert to matrix and run three rPCAs, one for each selection term (null vs low, null vs med, null vs high)
+# 4) Store output in nested list
+# 5) Repeat for number of replicates
+# 6) Name list properly
+
+rPCA <- function(dat, n) {
+  require(dplyr)
+  require(vcvComp)
+  
+  dat$interact <- interaction(dat$delmu.cat, dat$rwide.cat) # Interaction between the two
+
+  # For each unique interaction, randomly select n rows with that interaction from null, low, medium, and high selection
+  # Then dat_to_mat those rows, and do three rPCAs: null, low, medium, high, and store that output in a list
+  # so logGV_low <- rPCA_null.low$logGV or something
+  i <- 1
+  rel_ls <- vector("list", n)
+  while (i < (n+1)) { # While we're still running replicates, do the for loop (eek - but seems to run alright, not too slow)
+  for (inter in unique(dat$interact)) { 
+    sampled_rows <- dat[4,] # Create new data frame to fill in with the same columns as the original data, we overwrite the original rows
+    for (sel in unique(dat$tau.cat)) {
+      sampled_rows[match(sel, unique(dat$tau.cat)),] <- slice_sample(subset(dat, interact == inter & tau.cat == sel), 1) # Randomly sample from the proper subset of data (certain interaction and selection strength)
+    }
+    sample_null <- dat_to_mat_rPCA(sampled_rows[sampled_rows$tau.cat == "Null",] )
+    sample_high <- dat_to_mat_rPCA(sampled_rows[sampled_rows$tau.cat == "High",] )
+    sample_med <- dat_to_mat_rPCA(sampled_rows[sampled_rows$tau.cat == "Medium",] )
+    sample_low <- dat_to_mat_rPCA(sampled_rows[sampled_rows$tau.cat == "Low",] )
+    
+    rel_low <- vcvComp::relative.eigen(sample_null, sample_low)
+    rel_med <- vcvComp::relative.eigen(sample_null, sample_med)
+    rel_high <- vcvComp::relative.eigen(sample_null, sample_high)
+    
+    # Store output in list
+    rel_ls[[i]][[match(inter, unique(dat$interact))]] <- list(Low = rel_low,
+                                                              Med = rel_med,
+                                                              High = rel_high)
+    }
+    # At the end of the loop (before we repeat), name the element of the list we just did (i.e. the replicate)
+    names(rel_ls[[i]]) <- unique(dat$interact)
+    i <- i+1
+  }
+  rel_ls
+}
+
+
+
+
+
+# This function is slightly different to dat_to_mat() because the d_raw_mat used has more columns for each of the parameters, 
+# so indexing vars and covs is different
+dat_to_mat_rPCA <- function(dat) {
+  dat <- as.vector(t(dat))
+  vars <- dat[15:22]
+  covs <- dat[23:50]
+  M <- matrix(data = c(
+    vars[1], covs[1:7],
+    covs[1], vars[2], covs[8:13],
+    covs[c(2, 8)], vars[3], covs[14:18],
+    covs[c(3, 9, 14)], vars[4], covs[19:22],
+    covs[c(4, 10, 15, 19)], vars[5], covs[23:25],
+    covs[c(5, 11, 16, 20, 23)], vars[6], covs[26:27],
+    covs[c(6, 12, 17, 21, 24, 26)], vars[7], covs[28],
+    covs[c(7, 13, 18, 22, 25, 27, 28)], vars[8]), nrow = 8, byrow = T
+  )
+  mode(M) = "numeric"
+  M
+}
+
+MCOrg_rPCA <- function(relPCs, cores) {
+  require(tidyverse)
+  parallel::mclapply(relPCs, function(x) {
+    lapply(x, function(y) {
+      lapply(y, function(z) {
+        list(relGmax.val = z$relValues[1],
+             relG2.val = z$relValues[2],
+             relGV = z$relGV,
+             logGV = z$logGV,
+             distCov = z$distCov,
+             relGmax.vec1 = z$relVectors[1,1],
+             relGmax.vec2 = z$relVectors[2,1],
+             relGmax.vec3 = z$relVectors[3,1],
+             relGmax.vec4 = z$relVectors[4,1],
+             relGmax.vec5 = z$relVectors[5,1],
+             relGmax.vec6 = z$relVectors[6,1],
+             relGmax.vec7 = z$relVectors[7,1],
+             relGmax.vec8 = z$relVectors[8,1],
+             relG2.vec1 = z$relVectors[1,2],
+             relG2.vec2 = z$relVectors[2,2],
+             relG2.vec3 = z$relVectors[3,2],
+             relG2.vec4 = z$relVectors[4,2],
+             relG2.vec5 = z$relVectors[5,2],
+             relG2.vec6 = z$relVectors[6,2],
+             relG2.vec7 = z$relVectors[7,2],
+             relG2.vec8 = z$relVectors[8,2]
+        )
+      })
+    })
+  }, mc.cores = cores)
+}
 
 
 
