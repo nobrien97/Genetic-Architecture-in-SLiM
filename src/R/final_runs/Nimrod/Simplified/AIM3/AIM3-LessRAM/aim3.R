@@ -1829,6 +1829,7 @@ emm_s_theta_pc.ls.t <- emmeans(lm_sel_El_theta, pairwise ~ pleiocov.cat * locisi
 
 
 ##############################################
+set.seed(873662137) # sampled using sample(1:2147483647, 1)
 
 # Regular data: combine into one
 
@@ -1855,13 +1856,14 @@ d_raw_c$tau.cat <- cut(d_raw_c$tau, breaks = tau_bp, labels = c("Null", "High", 
 
 d_raw_c <- d_raw_c[,c(1:10, 111:116, 11:110)]
 
-
+write.csv(d_raw_c, "d_raw_c.csv")
 
 d_raw_mat <- d_raw_c[,c(1:2, 5:16, 53:88)] # G matrix: gen, seed, delmu, variances and covariances
 
 
 # Save d_sel_mat to send to supercomputer to run the comparisons
 saveRDS(d_raw_mat, "d_raw_mat.RDS")
+
 
 source("../../AIM1/AIM-1_R/src_G_mat.R")
 
@@ -1908,6 +1910,12 @@ d_relG$tau <- factor(d_relG$tau, levels = c("Low", "Med", "High"))
 write.csv(d_relG, "d_rPCA.csv", row.names = F)
 
 ##############################################################################################################################################
+set.seed(873662137) # sampled using sample(1:2147483647, 1)
+
+d_relG <- read.csv("d_rPCA.csv")
+d_relG$delmu <- factor(d_relG$delmu, levels = c("Low", "Medium", "High"))
+d_relG$rwide <- factor(d_relG$rwide, levels = c("Low", "Medium", "High"))
+d_relG$tau <- factor(d_relG$tau, levels = c("Low", "Med", "High"))
 
 # Plot the rPCA output - logGV
 
@@ -1965,6 +1973,62 @@ plot_gtab <- gtable_add_cols(plot_gtab, unit(1/5, "line"), max(posR$r))
 grid.newpage()
 grid.draw(plot_gtab)
 
+#############################################################################
+
+# Plot means connected by a line, boxplots for each group as well
+
+
+# Plot
+boxplot_logGV_delmu.rwide <- ggplot(d_relG, aes(x = tau, y = logGV, fill = delmu)) +
+  scale_fill_npg() +
+  geom_boxplot(color = "gray13", alpha = 0.6, width = 0.7, position = position_dodge(0.9)) +
+  stat_summary(fun=mean, geom="point", aes(group = delmu), shape=20, size=6, color="black", fill="black", position = position_dodge(0.9)) +
+  stat_summary(fun=mean, geom="line", aes(group = delmu), size=1, color="black", position = position_dodge(0.9)) +
+  scale_colour_npg() +
+  theme_classic() +
+  facet_grid(rwide~.) +
+  scale_x_discrete(labels = c("Low", "Medium", "High")) +
+  labs(x = "\u0394\u03C4 between comparison models", y = "Log generalised variance between groups",
+       fill = "Rate of background \nselection")
+
+# Thanks to: https://stackoverflow.com/a/37292665/13586824
+# Add rwide label
+# Labels 
+labelR = "Recombination rate"
+
+# Get the ggplot grob
+plot_gtab <- ggplotGrob(plot_logGV_delmu.rwide)
+
+# Get the positions of the strips in the gtable: t = top, l = left, ...
+posR <- subset(plot_gtab$layout, grepl("strip-r", name), select = t:r)
+posT <- subset(plot_gtab$layout, grepl("strip-t", name), select = t:r)
+
+# Add a new column to the right of current right strips, 
+# and a new row on top of current top strips
+width <- plot_gtab$widths[max(posR$r)]    # width of current right strips
+height <- plot_gtab$heights[min(posT$t)]  # height of current top strips
+
+plot_gtab <- gtable_add_cols(plot_gtab, width, max(posR$r))  
+
+# Construct the new strip grobs
+stripR <- gTree(name = "Strip_right", children = gList(
+  rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
+  textGrob(labelR, rot = -90, gp = gpar(fontsize = 8.8, col = "black"))))
+
+
+# Position the grobs in the gtable
+plot_gtab <- gtable_add_grob(plot_gtab, stripR, t = min(posR$t), l = max(posR$r) + 1, b = max(posR$b), name = "strip-right")
+
+# Add small gaps between strips
+plot_gtab <- gtable_add_cols(plot_gtab, unit(1/5, "line"), max(posR$r))
+
+# Draw it
+grid.newpage()
+grid.draw(plot_gtab)
+
+
+
+
 # Interpreting relative generalised variance: overall x varied this many times over the null condition
 # individual relative eigenvalues give an idea of how this variation is spread across combinations of traits
 
@@ -2014,7 +2078,109 @@ grid.draw(plot_gtab)
 
 
 
+# Wow 2020, what a time to be alive
 
+
+# Eigentensor analysis
+
+ls_ET <- eigentensor_G(d_raw_mat, 4, 4)
+
+
+# Organise into a more reasonable output for transforming to data frame
+
+ls_ET_org <- MCOrg_ET(ls_ET, 4)
+
+
+# Names of eigenvectors for data frame columns
+
+ETGvecs <- c(paste0("Gmax.vec", 1:8), paste0("G2.vec", 1:8))
+
+# Generate data frame of eigenvalues and vectors
+d_ETG <- ListToDF_ET(ls_ET_org, ETGvecs)
+
+# Remove unnecessary third column (contains the eigentensor: we could do multiple eigentensors, and then we would keep this)
+d_ETG <- d_ETG[,-3]
+
+names(d_ETG)[1:2] <- c("Replicate", "delmu.rwide")
+
+d_ETG$Replicate <- rep(1:4, each = 9) # Refactor replicate column according to the replicate number
+
+# These values are stored as list objects, make them a regular numeric vector
+d_ETG$Gmax.val <- as.numeric(d_ETG$Gmax.val)
+d_ETG$G2.val <- as.numeric(d_ETG$G2.val)
+
+d_ETG <- separate(data = d_ETG,
+                   col = delmu.rwide,
+                   into = c("delmu", "rwide"))
+
+# Reorder the factor levels to low - medium - high
+d_ETG$delmu <- factor(d_ETG$delmu, levels = c("Low", "Medium", "High"))
+d_ETG$rwide <- factor(d_ETG$rwide, levels = c("Low", "Medium", "High"))
+
+write.csv(d_ETG, "d_ET.csv", row.names = F)
+
+# The above will be run on Tinaroo for 1000 replicates, so will import that here
+
+d_ETG <- read.csv("d_ETG.csv")
+
+#########################################################################
+
+#Plot the eigenanalysis of tensor 1: gmax vs parameters
+
+
+# box plots, violin plots, showing the data/range
+library(ggsci)
+
+# Transform to means and SE
+dplot_relG_delmu.rwide <- d_relG[,-1] %>%
+  group_by(delmu, rwide, tau) %>%
+  summarise_all(list(groupmean = mean, se = std.error))
+
+# Plot
+plot_logGV_delmu.rwide <- ggplot(dplot_relG_delmu.rwide, aes(x = tau, y = logGV_groupmean, fill = delmu)) +
+  geom_col(position = "dodge") +
+  geom_errorbar(aes(ymin = logGV_groupmean - (1.96*logGV_se), ymax = logGV_groupmean + (1.96*logGV_se)), width = 0.2, position = position_dodge(0.9)) +
+  scale_fill_npg() +
+  theme_classic() +
+  facet_grid(rwide~.) +
+  scale_x_discrete(labels = c("Low", "Medium", "High")) +
+  labs(x = "\u0394\u03C4 between comparison models", y = "Mean pairwise log generalised variance",
+       fill = "Rate of background \nselection")
+
+# Thanks to: https://stackoverflow.com/a/37292665/13586824
+# Add rwide label
+# Labels 
+labelR = "Recombination rate"
+
+# Get the ggplot grob
+plot_gtab <- ggplotGrob(plot_logGV_delmu.rwide)
+
+# Get the positions of the strips in the gtable: t = top, l = left, ...
+posR <- subset(plot_gtab$layout, grepl("strip-r", name), select = t:r)
+posT <- subset(plot_gtab$layout, grepl("strip-t", name), select = t:r)
+
+# Add a new column to the right of current right strips, 
+# and a new row on top of current top strips
+width <- plot_gtab$widths[max(posR$r)]    # width of current right strips
+height <- plot_gtab$heights[min(posT$t)]  # height of current top strips
+
+plot_gtab <- gtable_add_cols(plot_gtab, width, max(posR$r))  
+
+# Construct the new strip grobs
+stripR <- gTree(name = "Strip_right", children = gList(
+  rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
+  textGrob(labelR, rot = -90, gp = gpar(fontsize = 8.8, col = "black"))))
+
+
+# Position the grobs in the gtable
+plot_gtab <- gtable_add_grob(plot_gtab, stripR, t = min(posR$t), l = max(posR$r) + 1, b = max(posR$b), name = "strip-right")
+
+# Add small gaps between strips
+plot_gtab <- gtable_add_cols(plot_gtab, unit(1/5, "line"), max(posR$r))
+
+# Draw it
+grid.newpage()
+grid.draw(plot_gtab)
 
 
 #################################
@@ -2048,4 +2214,56 @@ test_rel_high <- vcvComp::relative.eigen(test_sample_null, test_sample_high)
 test_rel_ls <- vector("list", 10)
 test_rel_ls[[1]] <- list(High = test_rel_high)
 
+# Testing multithreading of eigentensor function
 
+
+test_df <- d_raw_mat[1:4,]
+d_raw_mat$interact <- interaction(d_raw_mat$delmu.cat, d_raw_mat$rwide.cat)
+for (sel in unique(d_raw_mat$tau.cat)) {
+  test_df[match(sel, unique(d_raw_mat$tau.cat)),] <- slice_sample(subset(d_raw_mat, interact == "Low.High" & tau.cat == sel), 1) # Randomly sample from the proper subset of data (certain interaction and selection strength)
+}
+test_sample_null <- slice_sample(subset(d_raw_mat, interact == "Low.High" & tau.cat == "Null"), 1)
+test_sample_null <- dat_to_mat_rPCA(test_sample_null)
+test_sample_high <- slice_sample(subset(d_raw_mat, interact == "Low.High" & tau.cat == "High"), 1)
+test_sample_high <- dat_to_mat_rPCA(test_sample_high)
+test_sample_med <- slice_sample(subset(d_raw_mat, interact == "Low.High" & tau.cat == "Medium"), 1)
+test_sample_med <- dat_to_mat_rPCA(test_sample_med)
+test_sample_low <- slice_sample(subset(d_raw_mat, interact == "Low.High" & tau.cat == "Low"), 1)
+test_sample_low <- dat_to_mat_rPCA(test_sample_low)
+
+
+test_array <- simplify2array(list(test_sample_null, test_sample_high, test_sample_med, test_sample_low))
+test_rel_high <- evolqg::EigenTensorDecomposition(test_array)
+test_eig_high <- eigen(test_rel_high$matrices[,,1])
+
+test_rel_ls <- vector("list", 10)
+test_rel_ls[[1]] <- list(High = test_eig_high)
+
+
+lapply(unique(d_raw_mat$tau.cat), function(y) {
+  test_df[match(y, unique(d_raw_mat$tau.cat)),] <<- slice_sample(subset(d_raw_mat, interact == "Low.High" & tau.cat == y), 1) # Randomly sample from the proper subset of data (certain interaction and selection strength)
+})
+
+sample_null <- dat_to_mat_rPCA(sampled_rows[sampled_rows$tau.cat == "Null",] )
+sample_high <- dat_to_mat_rPCA(sampled_rows[sampled_rows$tau.cat == "High",] )
+sample_med <- dat_to_mat_rPCA(sampled_rows[sampled_rows$tau.cat == "Medium",] )
+sample_low <- dat_to_mat_rPCA(sampled_rows[sampled_rows$tau.cat == "Low",] )
+
+test_ET <- parallel::mclapply(unique(d_raw_mat$interact), function(x) {
+  sampled_rows <- d_raw_mat[1:4,] # Create new d_raw_mata frame to fill in with the same columns as the original d_raw_mata, we overwrite the original rows
+  lapply(unique(d_raw_mat$tau.cat), function(y, sampled_rows) {
+    sampled_rows[match(y, unique(d_raw_mat$tau.cat)),] <<- slice_sample(subset(d_raw_mat, interact == x & tau.cat == y), 1) # Randomly sample from the proper subset of d_raw_mata (certain interaction and selection strength)
+  }, sampled_rows = sampled_rows)
+  
+  sample_null <- dat_to_mat_rPCA(sampled_rows[sampled_rows$tau.cat == "Null",] )
+  sample_high <- dat_to_mat_rPCA(sampled_rows[sampled_rows$tau.cat == "High",] )
+  sample_med <- dat_to_mat_rPCA(sampled_rows[sampled_rows$tau.cat == "Medium",] )
+  sample_low <- dat_to_mat_rPCA(sampled_rows[sampled_rows$tau.cat == "Low",] )
+  
+  ETs <- evolqg::EigenTensorDecomposition(simplify2array(list(sample_null, sample_low, sample_med, sample_high)))
+  
+  eig_ETs <- eigen(ETs$matrices[,,1]) # Eigenanalysis on the first eigentensor
+  
+  # Store output in list
+  ET_ls[[1]][[match(x, unique(d_raw_mat$interact))]] <- list(ET1_eig = eig_ETs)
+}, mc.cores = 4)

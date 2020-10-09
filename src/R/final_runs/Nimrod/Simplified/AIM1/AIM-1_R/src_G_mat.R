@@ -652,3 +652,99 @@ MCOrg_relG <- function(G, cores) {
     })
   }, mc.cores = cores)
 }
+
+
+# Eigentensors: Includes null, low, medium, high, characterises variability between all of them
+# Need to pick similar values for our tested interaction (e.g. bins of low recom + high delmu etc.), with different levels of selection
+# So testing difference from NULL with first eigentensor's eigenvalues
+# Will require different matrix structure with multiple predictors
+
+# 1) Add an interaction term to use as a subsetter
+# 2) Randomly choose a row which fits each unique interaction term for each tau category
+# 3) Convert to matrix and run three eigentensor decompositions, one for each selection term (null vs low, null vs med, null vs high)
+# 4) Run regular eigenanlysis on first eigentensor for each term
+# 5) Store output in nested list
+# 6) Repeat for number of replicates
+# 7) Name list properly
+
+eigentensor_G <- function(dat, n, cores) {
+  require(dplyr)
+  require(parallel)
+  require(evolqg)
+  
+  dat$interact <- interaction(dat$delmu.cat, dat$rwide.cat) # Interaction between the two
+  
+  # For each unique interaction, randomly select n rows with that interaction from null, low, medium, and high selection
+  # Then dat_to_mat those rows, and do three rPCAs: null, low, medium, high, and store that output in a list
+  # so logGV_low <- rPCA_null.low$logGV or something
+  ET_ls <- vector("list", n)
+#  while (i < (n+1)) { # While we're still running replicates, do the for loop (eek - but seems to run alright, not too slow)
+ET <-  parallel::mclapply((1:n), function(iter) {
+    lapply(unique(dat$interact), function(x) {
+      sampled_rows <- dat[1:4,] # Create new data frame to fill in with the same columns as the original data, we overwrite the original rows
+      lapply(unique(dat$tau.cat), function(y, sampled_rows) {
+        sampled_rows[match(y, unique(dat$tau.cat)),] <<- slice_sample(subset(dat, interact == x & tau.cat == y), 1) # Randomly sample from the proper subset of data (certain interaction and selection strength)
+      }, sampled_rows = sampled_rows)
+      
+      sample_null <- dat_to_mat_rPCA(sampled_rows[sampled_rows$tau.cat == "Null",] )
+      sample_high <- dat_to_mat_rPCA(sampled_rows[sampled_rows$tau.cat == "High",] )
+      sample_med <- dat_to_mat_rPCA(sampled_rows[sampled_rows$tau.cat == "Medium",] )
+      sample_low <- dat_to_mat_rPCA(sampled_rows[sampled_rows$tau.cat == "Low",] )
+      
+      ETs <- evolqg::EigenTensorDecomposition(simplify2array(list(sample_null, sample_low, sample_med, sample_high)))
+      
+      eig_ETs <- eigen(ETs$matrices[,,1]) # Eigenanalysis on the first eigentensor
+      # Store output in list
+      ET_ls[[match(x, unique(dat$interact))]] <<- list(ET1_eig = eig_ETs)
+    })
+    # At the end of the loop (before we repeat), name the element of the list we just did (i.e. the replicate)
+    names(ET_ls) <<- unique(dat$interact)
+    ET_ls
+    }, mc.cores = cores)
+  
+  ET
+  
+  }
+  
+#}
+
+# Organise into list with 1 value each list element, so unlist works properly: separate relative eigenvalues/vectors 
+# into columns cuts down to only Gmax and G2
+MCOrg_ET <- function(G, cores) {
+  require(tidyverse)
+  parallel::mclapply(G, function(x) {
+    lapply(x, function(y) {
+      lapply(y, function(z) {
+        list(Gmax.val = z$values[1],
+             G2.val = z$values[2],
+             Gmax.vec1 = z$vectors[1,1],
+             Gmax.vec2 = z$vectors[2,1],
+             Gmax.vec3 = z$vectors[3,1],
+             Gmax.vec4 = z$vectors[4,1],
+             Gmax.vec5 = z$vectors[5,1],
+             Gmax.vec6 = z$vectors[6,1],
+             Gmax.vec7 = z$vectors[7,1],
+             Gmax.vec8 = z$vectors[8,1],
+             G2.vec1 = z$vectors[1,2],
+             G2.vec2 = z$vectors[2,2],
+             G2.vec3 = z$vectors[3,2],
+             G2.vec4 = z$vectors[4,2],
+             G2.vec5 = z$vectors[5,2],
+             G2.vec6 = z$vectors[6,2],
+             G2.vec7 = z$vectors[7,2],
+             G2.vec8 = z$vectors[8,2]
+        )
+      })
+    })
+  }, mc.cores = cores)
+}
+
+ListToDF_ET <- function(Glist, responses) {
+  require(rrapply)
+  require(tidyr)
+  rrapply(Glist, how = "melt") %>%
+    pivot_wider(names_from = "L4") %>%
+    unnest(responses)
+}
+
+
