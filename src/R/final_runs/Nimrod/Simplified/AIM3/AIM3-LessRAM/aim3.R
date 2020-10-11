@@ -1856,7 +1856,10 @@ d_raw_c$tau.cat <- cut(d_raw_c$tau, breaks = tau_bp, labels = c("Null", "High", 
 
 d_raw_c <- d_raw_c[,c(1:10, 111:116, 11:110)]
 
-write.csv(d_raw_c, "d_raw_c.csv")
+write.csv(d_raw_c, "d_raw_c.csv", row.names = F)
+
+# Import in case we start here with no saved workspace
+d_raw_c <- read.csv("d_raw_c.csv")
 
 d_raw_mat <- d_raw_c[,c(1:2, 5:16, 53:88)] # G matrix: gen, seed, delmu, variances and covariances
 
@@ -1909,6 +1912,31 @@ d_relG$tau <- factor(d_relG$tau, levels = c("Low", "Med", "High"))
 
 write.csv(d_relG, "d_rPCA.csv", row.names = F)
 
+# lm and emmeans
+
+library(estimatr)
+library(emmeans)
+
+lm_rPCA_logGV <- lm_robust(logGV ~ delmu * rwide * tau,
+                            data = d_relG)
+
+summary(lm_rPCA_logGV)
+
+emm_logGV_d.t <- emmeans(lm_rPCA_logGV, pairwise ~ delmu| tau)
+emm_logGV_r.t <- emmeans(lm_rPCA_logGV, pairwise ~ rwide| tau)
+emm_logGV_d.r.t <- emmeans(lm_rPCA_logGV, pairwise ~ delmu*rwide| tau)
+
+lm_rPCA_relGmax <- lm_robust(relGmax.val ~ delmu * rwide * tau,
+                           data = d_relG)
+
+summary(lm_rPCA_relGmax)
+
+emm_relGmax_d.t <- emmeans(lm_rPCA_relGmax, pairwise ~ delmu| tau)
+emm_relGmax_r.t <- emmeans(lm_rPCA_relGmax, pairwise ~ rwide| tau)
+emm_relGmax_d.r.t <- emmeans(lm_rPCA_relGmax, pairwise ~ delmu*rwide| tau)
+
+
+
 ##############################################################################################################################################
 set.seed(873662137) # sampled using sample(1:2147483647, 1)
 
@@ -1921,6 +1949,8 @@ d_relG$tau <- factor(d_relG$tau, levels = c("Low", "Med", "High"))
 
 # box plots, violin plots, showing the data/range
 library(ggsci)
+library(gtable)
+library(grid)
 
 # Transform to means and SE
 dplot_relG_delmu.rwide <- d_relG[,-1] %>%
@@ -1977,27 +2007,49 @@ grid.draw(plot_gtab)
 
 # Plot means connected by a line, boxplots for each group as well
 
-
+  
 # Plot
-boxplot_logGV_delmu.rwide <- ggplot(d_relG, aes(x = tau, y = logGV, fill = delmu)) +
-  scale_fill_npg() +
-  geom_boxplot(color = "gray13", alpha = 0.6, width = 0.7, position = position_dodge(0.9)) +
-  stat_summary(fun=mean, geom="point", aes(group = delmu), shape=20, size=6, color="black", fill="black", position = position_dodge(0.9)) +
-  stat_summary(fun=mean, geom="line", aes(group = delmu), size=1, color="black", position = position_dodge(0.9)) +
+boxplot_logGV_delmu.rwide <- ggplot(d_relG, aes(x = delmu, y = logGV)) +
+  facet_grid(rwide~tau, labeller = labeller(tau = c(Low = "Low", 
+                                                       Med = "Medium",
+                                                       High = "High"))) +
+  xlab("Deleterious mutation rate") +
+  ylab("Log generalised variance between groups") +
+  geom_boxplot(fill = rep(pal_npg()(3), times = 9), alpha = 0.3, width = 0.5, col = "gray10", position = position_dodge(0.9)) +
+  geom_point(data = dplot_relG_delmu.rwide, mapping = aes(x = delmu, y = logGV_groupmean),
+             inherit.aes = F, position = position_dodge(0.9), size = 3, col = pal_npg()(1)[1]) +
+  geom_errorbar(
+    mapping = 
+      aes(x = delmu,
+          y = logGV_groupmean,
+          group = delmu,
+          ymin = (logGV_groupmean - (1.96*logGV_se)), 
+          ymax = (logGV_groupmean + (1.96*logGV_se))
+      ), 
+    width = 0.25,
+    position = position_dodge(0.9),
+    col = pal_npg()(1)[1],
+    data = dplot_relG_delmu.rwide, 
+    inherit.aes = FALSE) +
+  geom_line(data = dplot_relG_delmu.rwide, mapping = aes(x = delmu, y = logGV_groupmean, group = tau),
+             inherit.aes = F, position = position_dodge(0.9), size = 1.25, col = pal_npg()(1)[1]) +
   scale_colour_npg() +
   theme_classic() +
-  facet_grid(rwide~.) +
-  scale_x_discrete(labels = c("Low", "Medium", "High")) +
-  labs(x = "\u0394\u03C4 between comparison models", y = "Log generalised variance between groups",
-       fill = "Rate of background \nselection")
+  theme(strip.text.x = element_text(size = 12),
+        strip.text.y = element_text(size = 12),
+        axis.text.x = element_text(size = 10, face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold"),
+        axis.title.x = element_text(margin = margin(t = 10), face = "bold"),
+        text = element_text(size = 12))
 
 # Thanks to: https://stackoverflow.com/a/37292665/13586824
 # Add rwide label
 # Labels 
 labelR = "Recombination rate"
+labelT = "\u0394\u03C4 between comparison models"
 
 # Get the ggplot grob
-plot_gtab <- ggplotGrob(plot_logGV_delmu.rwide)
+plot_gtab <- ggplotGrob(boxplot_logGV_delmu.rwide)
 
 # Get the positions of the strips in the gtable: t = top, l = left, ...
 posR <- subset(plot_gtab$layout, grepl("strip-r", name), select = t:r)
@@ -2009,18 +2061,24 @@ width <- plot_gtab$widths[max(posR$r)]    # width of current right strips
 height <- plot_gtab$heights[min(posT$t)]  # height of current top strips
 
 plot_gtab <- gtable_add_cols(plot_gtab, width, max(posR$r))  
+plot_gtab <- gtable_add_rows(plot_gtab, height, min(posT$t)-1)
 
 # Construct the new strip grobs
 stripR <- gTree(name = "Strip_right", children = gList(
   rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
-  textGrob(labelR, rot = -90, gp = gpar(fontsize = 8.8, col = "black"))))
+  textGrob(labelR, rot = -90, gp = gpar(fontsize = 12, col = "black", fontface = "bold"))))
 
+stripT <- gTree(name = "Strip_top", children = gList(
+  rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
+  textGrob(labelT, gp = gpar(fontsize = 12, col = "black", fontface = "bold"))))
 
 # Position the grobs in the gtable
-plot_gtab <- gtable_add_grob(plot_gtab, stripR, t = min(posR$t), l = max(posR$r) + 1, b = max(posR$b), name = "strip-right")
+plot_gtab <- gtable_add_grob(plot_gtab, stripR, t = min(posR$t) + 1, l = max(posR$r) + 1, b = max(posR$b) + 1, name = "strip-right")
+plot_gtab <- gtable_add_grob(plot_gtab, stripT, t = min(posT$t), l = min(posT$l), r = max(posT$r), name = "strip-top")
 
 # Add small gaps between strips
 plot_gtab <- gtable_add_cols(plot_gtab, unit(1/5, "line"), max(posR$r))
+plot_gtab <- gtable_add_rows(plot_gtab, unit(1/5, "line"), min(posT$t))
 
 # Draw it
 grid.newpage()
@@ -2077,13 +2135,9 @@ grid.draw(plot_gtab)
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 
 
-
-# Wow 2020, what a time to be alive
-
-
 # Eigentensor analysis
 
-ls_ET <- eigentensor_G(d_raw_mat, 4, 4)
+ls_ET <- eigentensor_G(d_raw_mat, 1000, 4)
 
 
 # Organise into a more reasonable output for transforming to data frame
@@ -2121,7 +2175,19 @@ write.csv(d_ETG, "d_ET.csv", row.names = F)
 
 # The above will be run on Tinaroo for 1000 replicates, so will import that here
 
-d_ETG <- read.csv("d_ETG.csv")
+d_ETG <- read.csv("d_ET.csv")
+
+# lm and emmeans
+
+lm_ET_Gmax <- lm_robust(Gmax.val ~ delmu * rwide,
+                             data = d_ETG)
+
+summary(lm_ET_Gmax)
+
+emm_ETGmax_d.r <- emmeans(lm_ET_Gmax, pairwise ~ delmu | rwide)
+
+
+
 
 #########################################################################
 
@@ -2132,14 +2198,14 @@ d_ETG <- read.csv("d_ETG.csv")
 library(ggsci)
 
 # Transform to means and SE
-dplot_relG_delmu.rwide <- d_relG[,-1] %>%
+dplot_ETG_delmu.rwide <- d_ETG[,-1] %>%
   group_by(delmu, rwide, tau) %>%
   summarise_all(list(groupmean = mean, se = std.error))
 
 # Plot
-plot_logGV_delmu.rwide <- ggplot(dplot_relG_delmu.rwide, aes(x = tau, y = logGV_groupmean, fill = delmu)) +
+plot_ETG_delmu.rwide <- ggplot(dplot_ETG_delmu.rwide, aes(x = tau, y = Gmax.val_groupmean, fill = delmu)) +
   geom_col(position = "dodge") +
-  geom_errorbar(aes(ymin = logGV_groupmean - (1.96*logGV_se), ymax = logGV_groupmean + (1.96*logGV_se)), width = 0.2, position = position_dodge(0.9)) +
+  geom_errorbar(aes(ymin = Gmax.val_groupmean - (1.96*logGV_se), ymax = Gmax.val_groupmean + (1.96*logGV_se)), width = 0.2, position = position_dodge(0.9)) +
   scale_fill_npg() +
   theme_classic() +
   facet_grid(rwide~.) +

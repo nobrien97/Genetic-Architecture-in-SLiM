@@ -8,6 +8,7 @@ library(parallel)
 library(rrapply)
 library(tidyr)
 
+d_raw_mat <- readRDS("d_raw_mat.RDS")
 
 # Sample 1000 times to get a nice big matrix of eigenanalysis of eigentensor 1
 # Will take around 20 minutes to do this step on Tinaroo

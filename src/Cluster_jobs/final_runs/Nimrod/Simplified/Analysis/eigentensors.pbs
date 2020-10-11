@@ -7,4 +7,5 @@
 
 module load R/3.6.0+tidyverse+rstan+rtdists
 
+R
 R --file=/home/$USER/SLiM/Scripts/Analysis/ET_analysis_list_write.R
