@@ -524,11 +524,11 @@ MC_relW_PW_combn <- function(G, n=100, cores) {
 # 5) Repeat for number of replicates
 # 6) Name list properly
 
-rPCA <- function(dat, n) {
+rPCA <- function(dat, var1, var2, n) {
   require(dplyr)
   require(vcvComp)
   
-  dat$interact <- interaction(dat$delmu.cat, dat$rwide.cat) # Interaction between the two
+  dat$interact <- interaction(var1, var2) # Interaction between the two
 
   # For each unique interaction, randomly select n rows with that interaction from null, low, medium, and high selection
   # Then dat_to_mat those rows, and do three rPCAs: null, low, medium, high, and store that output in a list
@@ -537,7 +537,7 @@ rPCA <- function(dat, n) {
   rel_ls <- vector("list", n)
   while (i < (n+1)) { # While we're still running replicates, do the for loop (eek - but seems to run alright, not too slow)
   for (inter in unique(dat$interact)) { 
-    sampled_rows <- dat[4,] # Create new data frame to fill in with the same columns as the original data, we overwrite the original rows
+    sampled_rows <- dat[1:4,] # Create new data frame to fill in with the same columns as the original data, we overwrite the original rows
     for (sel in unique(dat$tau.cat)) {
       sampled_rows[match(sel, unique(dat$tau.cat)),] <- slice_sample(subset(dat, interact == inter & tau.cat == sel), 1) # Randomly sample from the proper subset of data (certain interaction and selection strength)
     }
@@ -667,19 +667,18 @@ MCOrg_relG <- function(G, cores) {
 # 6) Repeat for number of replicates
 # 7) Name list properly
 
-eigentensor_G <- function(dat, n, cores) {
+eigentensor_G <- function(dat, var1, var2, n, cores) {
+  require(plyr)
   require(dplyr)
   require(parallel)
   require(evolqg)
   
-  dat$interact <- interaction(dat$delmu.cat, dat$rwide.cat) # Interaction between the two
+  dat$interact <- interaction(var1, var2) # Interaction between the two
   
   # For each unique interaction, randomly select n rows with that interaction from null, low, medium, and high selection
-  # Then dat_to_mat those rows, and do three rPCAs: null, low, medium, high, and store that output in a list
-  # so logGV_low <- rPCA_null.low$logGV or something
-  ET_ls <- vector("list", n)
-#  while (i < (n+1)) { # While we're still running replicates, do the for loop (eek - but seems to run alright, not too slow)
-ET <-  parallel::mclapply((1:n), function(iter) {
+  # Then dat_to_mat those rows, and do ET decomp between the models: null, low, medium, high, and store that output in a list
+  ET_ls <- vector("list", length(unique(dat$interact)))
+  ET <-  parallel::mclapply((1:n), function(iter) {
     lapply(unique(dat$interact), function(x) {
       sampled_rows <- dat[1:4,] # Create new data frame to fill in with the same columns as the original data, we overwrite the original rows
       lapply(unique(dat$tau.cat), function(y, sampled_rows) {
@@ -695,7 +694,8 @@ ET <-  parallel::mclapply((1:n), function(iter) {
       
       eig_ETs <- eigen(ETs$matrices[,,1]) # Eigenanalysis on the first eigentensor
       # Store output in list
-      ET_ls[[match(x, unique(dat$interact))]] <<- list(ET1_eig = eig_ETs)
+      ET_ls[[match(x, unique(dat$interact))]] <<- list(ET = ETs,
+                                                       ET1_eig = eig_ETs)
     })
     # At the end of the loop (before we repeat), name the element of the list we just did (i.e. the replicate)
     names(ET_ls) <<- unique(dat$interact)
@@ -704,40 +704,79 @@ ET <-  parallel::mclapply((1:n), function(iter) {
   
   ET
   
-  }
+}
   
-#}
 
 # Organise into list with 1 value each list element, so unlist works properly: separate relative eigenvalues/vectors 
 # into columns cuts down to only Gmax and G2
+MCOrg_ETeig <- function(G, cores) {
+  require(tidyverse)
+  parallel::mclapply(G, function(x) {
+    lapply(x, function(y) {
+      list(Gmax.val = y[2]$values[1],
+           G2.val = y[2]$values[2],
+           Gmax.vec1 = y[2]$vectors[1,1],
+           Gmax.vec2 = y[2]$vectors[2,1],
+            Gmax.vec3 = y[2]$vectors[3,1],
+           Gmax.vec4 = y[2]$vectors[4,1],
+           Gmax.vec5 = y[2]$vectors[5,1],
+           Gmax.vec6 = y[2]$vectors[6,1],
+           Gmax.vec7 = y[2]$vectors[7,1],
+           Gmax.vec8 = y[2]$vectors[8,1],
+           G2.vec1 = y[2]$vectors[1,2],
+           G2.vec2 = y[2]$vectors[2,2],
+           G2.vec3 = y[2]$vectors[3,2],
+           G2.vec4 = y[2]$vectors[4,2],
+           G2.vec5 = y[2]$vectors[5,2],
+           G2.vec6 = y[2]$vectors[6,2],
+           G2.vec7 = y[2]$vectors[7,2],
+           G2.vec8 = y[2]$vectors[8,2]
+       )
+    })
+  }, mc.cores = cores)
+}
+
 MCOrg_ET <- function(G, cores) {
   require(tidyverse)
   parallel::mclapply(G, function(x) {
     lapply(x, function(y) {
-      lapply(y, function(z) {
-        list(Gmax.val = z$values[1],
-             G2.val = z$values[2],
-             Gmax.vec1 = z$vectors[1,1],
-             Gmax.vec2 = z$vectors[2,1],
-             Gmax.vec3 = z$vectors[3,1],
-             Gmax.vec4 = z$vectors[4,1],
-             Gmax.vec5 = z$vectors[5,1],
-             Gmax.vec6 = z$vectors[6,1],
-             Gmax.vec7 = z$vectors[7,1],
-             Gmax.vec8 = z$vectors[8,1],
-             G2.vec1 = z$vectors[1,2],
-             G2.vec2 = z$vectors[2,2],
-             G2.vec3 = z$vectors[3,2],
-             G2.vec4 = z$vectors[4,2],
-             G2.vec5 = z$vectors[5,2],
-             G2.vec6 = z$vectors[6,2],
-             G2.vec7 = z$vectors[7,2],
-             G2.vec8 = z$vectors[8,2]
-        )
-      })
-    })
+      Vs <- diag(y[1]$matrices[,,1])
+      CVs <- diag(y[1]$matrices[,,1])
+        list(ET1.proj_N = y[1]$projection[1,1],
+             ET1.proj_L = y[1]$projection[2,1],
+             ET1.proj_M = y[1]$projection[3,1],
+             ET1.proj_H = y[1]$projection[4,1],
+             ET1.mat_V0 = Vs[1],
+             ET1.mat_V1 = Vs[2],
+             ET1.mat_V2 = Vs[3],
+             ET1.mat_V3 = Vs[4],
+             ET1.mat_V4 = Vs[5],
+             ET1.mat_V5 = Vs[6],
+             ET1.mat_V6 = Vs[7],
+             ET1.mat_V7 = Vs[8],
+             ET1.mat_CV01 = diag(y[1]$matrices[,,1])[1],
+             
+             Gmax.vec4 = y[1]$vectors[4,1],
+             Gmax.vec5 = y[1]$vectors[5,1],
+             Gmax.vec6 = y[1]$vectors[6,1],
+             Gmax.vec7 = y[1]$vectors[7,1],
+             Gmax.vec8 = y[1]$vectors[8,1],
+             G2.vec1 = y[1]$vectors[1,2],
+             G2.vec2 = y[1]$vectors[2,2],
+             G2.vec3 = y[1]$vectors[3,2],
+             G2.vec4 = y[1]$vectors[4,2],
+             G2.vec5 = y[1]$vectors[5,2],
+             G2.vec6 = y[1]$vectors[6,2],
+             G2.vec7 = y[1]$vectors[7,2],
+             G2.vec8 = y[1]$vectors[8,2]
+       )
+   })
   }, mc.cores = cores)
 }
+
+
+
+
 
 ListToDF_ET <- function(Glist, responses) {
   require(rrapply)

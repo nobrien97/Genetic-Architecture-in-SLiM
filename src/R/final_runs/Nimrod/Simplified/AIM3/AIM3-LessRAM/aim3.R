@@ -2134,10 +2134,10 @@ grid.draw(plot_gtab)
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 
-
 # Eigentensor analysis
+# Run this on supercomputer so it doesn't take too long
 
-ls_ET <- eigentensor_G(d_raw_mat, 1000, 4)
+ls_ET_test <- eigentensor_G(d_raw_mat, d_raw_mat$delmu.cat, d_raw_mat$rwide.cat, 1000, 4)
 
 
 # Organise into a more reasonable output for transforming to data frame
@@ -2199,44 +2199,75 @@ library(ggsci)
 
 # Transform to means and SE
 dplot_ETG_delmu.rwide <- d_ETG[,-1] %>%
-  group_by(delmu, rwide, tau) %>%
+  group_by(delmu, rwide) %>%
   summarise_all(list(groupmean = mean, se = std.error))
 
-# Plot
-plot_ETG_delmu.rwide <- ggplot(dplot_ETG_delmu.rwide, aes(x = tau, y = Gmax.val_groupmean, fill = delmu)) +
+# Plot means
+plot_ETG_delmu.rwide <- ggplot(dplot_ETG_delmu.rwide, aes(x = rwide, y = Gmax.val_groupmean, fill = delmu)) +
   geom_col(position = "dodge") +
-  geom_errorbar(aes(ymin = Gmax.val_groupmean - (1.96*logGV_se), ymax = Gmax.val_groupmean + (1.96*logGV_se)), width = 0.2, position = position_dodge(0.9)) +
+  geom_errorbar(aes(ymin = Gmax.val_groupmean - (1.96*Gmax.val_se), ymax = Gmax.val_groupmean + (1.96*Gmax.val_se)), width = 0.2, position = position_dodge(0.9)) +
   scale_fill_npg() +
   theme_classic() +
-  facet_grid(rwide~.) +
   scale_x_discrete(labels = c("Low", "Medium", "High")) +
-  labs(x = "\u0394\u03C4 between comparison models", y = "Mean pairwise log generalised variance",
-       fill = "Rate of background \nselection")
+  xlab("Recombination rate") +
+  ylab(expression(bold("G")[max]~of~bold("E")[1])) +
+  labs(fill = "Rate of background \nselection")
+
+# Boxplots
+
+boxplot_ETG_delmu.rwide <- ggplot(d_ETG, aes(x = rwide, y = Gmax.val, fill = delmu)) +
+  facet_grid(delmu~.) +
+  xlab("Recombination rate") +
+  ylab(expression(bold("G")[max]~of~bold("E")[1])) +
+  geom_boxplot(fill = rep(pal_npg()(3), times = 3), alpha = 0.3, width = 0.5, col = "gray10", position = position_dodge(0.9)) +
+  geom_point(data = dplot_ETG_delmu.rwide, mapping = aes(x = rwide, y = Gmax.val_groupmean),
+             inherit.aes = F, position = position_dodge(0.9), size = 3, col = pal_npg()(1)[1]) +
+  geom_errorbar(
+    mapping = 
+      aes(x = rwide,
+          y = Gmax.val_groupmean,
+          group = delmu,
+          ymin = (Gmax.val_groupmean - (1.96*Gmax.val_se)), 
+          ymax = (Gmax.val_groupmean + (1.96*Gmax.val_se))
+      ), 
+    width = 0.25,
+    position = position_dodge(0.9),
+    col = pal_npg()(1)[1],
+    data = dplot_ETG_delmu.rwide, 
+    inherit.aes = FALSE) +
+  geom_line(data = dplot_ETG_delmu.rwide, mapping = aes(x = rwide, y = Gmax.val_groupmean, group = delmu),
+            inherit.aes = F, position = position_dodge(0.9), size = 1.25, col = pal_npg()(1)[1]) +
+  scale_colour_npg() +
+  theme_classic() +
+  theme(legend.text = element_text(size = 10),
+        axis.text.x = element_text(size = 10, face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold"),
+        axis.title.x = element_text(margin = margin(t = 10), face = "bold"),
+        text = element_text(size = 12))
 
 # Thanks to: https://stackoverflow.com/a/37292665/13586824
-# Add rwide label
+# Add delmu label
 # Labels 
-labelR = "Recombination rate"
+library(grid)
+library(gtable)
+labelR = "Deleterious mutation rate"
 
 # Get the ggplot grob
-plot_gtab <- ggplotGrob(plot_logGV_delmu.rwide)
+plot_gtab <- ggplotGrob(boxplot_ETG_delmu.rwide)
 
 # Get the positions of the strips in the gtable: t = top, l = left, ...
 posR <- subset(plot_gtab$layout, grepl("strip-r", name), select = t:r)
-posT <- subset(plot_gtab$layout, grepl("strip-t", name), select = t:r)
 
 # Add a new column to the right of current right strips, 
 # and a new row on top of current top strips
 width <- plot_gtab$widths[max(posR$r)]    # width of current right strips
-height <- plot_gtab$heights[min(posT$t)]  # height of current top strips
 
 plot_gtab <- gtable_add_cols(plot_gtab, width, max(posR$r))  
 
 # Construct the new strip grobs
 stripR <- gTree(name = "Strip_right", children = gList(
   rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
-  textGrob(labelR, rot = -90, gp = gpar(fontsize = 8.8, col = "black"))))
-
+  textGrob(labelR, rot = -90, gp = gpar(fontsize = 12, col = "black", fontface = "bold"))))
 
 # Position the grobs in the gtable
 plot_gtab <- gtable_add_grob(plot_gtab, stripR, t = min(posR$t), l = max(posR$r) + 1, b = max(posR$b), name = "strip-right")
@@ -2247,6 +2278,128 @@ plot_gtab <- gtable_add_cols(plot_gtab, unit(1/5, "line"), max(posR$r))
 # Draw it
 grid.newpage()
 grid.draw(plot_gtab)
+
+###########################################################################################################
+
+# Other comparisons: Instead of rwide, delmu, tau
+# pleiocov, pleiorate, tau
+# pleiorate, rwide, tau
+# pleiocov, rwide, tau
+# pleiorate, delmu, tau
+# pleiocov, delmu, tau
+# pleiorate, locisigma, tau
+# pleiocov, locisigma, tau
+
+# relGV
+
+d_raw_mat <- readRDS("d_raw_mat.RDS")
+
+
+
+# Relative eigenanalysis: Pairs of matrices, compare bins of selection for some variable
+# Will have to modify function to ensure we can choose parameters - pretty easy, just parameterise the interaction (var1, var2)
+rPCA_pr.pc.t <- rPCA(d_raw_mat, d_raw_mat$pleiorate.cat, d_raw_mat$pleiocov.cat, 10)
+rPCA_pr.r.t <- rPCA(d_raw_mat, d_raw_mat$pleiorate.cat, d_raw_mat$rwide.cat, 1000)
+rPCA_pc.r.t <- rPCA(d_raw_mat, d_raw_mat$pleiocov.cat, d_raw_mat$rwide.cat, 1000)
+rPCA_pr.d.t <- rPCA(d_raw_mat, d_raw_mat$pleiorate.cat, d_raw_mat$delmu.cat, 1000)
+rPCA_pc.d.t <- rPCA(d_raw_mat, d_raw_mat$pleiocov.cat, d_raw_mat$delmu.cat, 1000)
+rPCA_pr.ls.t <- rPCA(d_raw_mat, d_raw_mat$pleiorate.cat, d_raw_mat$locisigma.cat, 1000)
+rPCA_pc.ls.t <- rPCA(d_raw_mat, d_raw_mat$pleiocov.cat, d_raw_mat$locisigma.cat, 1000)
+
+# multithread this with mclapply so we don't have to wait as long
+
+ls_rPCAs <- parallel::mcmapply(rPCA, dat = d_raw_mat, n = 1, var1 = c(d_raw_mat$pleiorate.cat, d_raw_mat$pleiorate.cat, 
+                                                               d_raw_mat$pleiocov.cat, d_raw_mat$pleiorate.cat,
+                                                               d_raw_mat$pleiocov.cat, d_raw_mat$pleiorate.cat,
+                                                               d_raw_mat$pleiocov.cat),
+                   var2 = c(d_raw_mat$pleiocov.cat, d_raw_mat$rwide.cat, d_raw_mat$rwide.cat, d_raw_mat$delmu.cat,
+                            d_raw_mat$delmu.cat, d_raw_mat$locisigma.cat, d_raw_mat$locisigma.cat), SIMPLIFY = F)
+
+rPCA_combos1 <- c("d_raw_mat$pleiorate.cat", "d_raw_mat$pleiorate.cat", "d_raw_mat$pleiocov.cat", "d_raw_mat$pleiorate.cat",
+                  "d_raw_mat$pleiocov.cat", "d_raw_mat$pleiorate.cat", "d_raw_mat$pleiocov.cat")
+
+rPCA_combos2 <-c("d_raw_mat$pleiocov.cat", "d_raw_mat$rwide.cat", "d_raw_mat$rwide.cat", "d_raw_mat$delmu.cat",
+                 "d_raw_mat$delmu.cat", "d_raw_mat$locisigma.cat", "d_raw_mat$locisigma.cat")
+
+
+library(doParallel)
+library(future)
+library(foreach)
+
+cl <- makeCluster(future::availableCores())
+registerDoParallel(cl)
+
+foreach(i=rPCA_combos1)
+
+stopCluster(cl)
+
+
+
+# Organise into a more reasonable output for transforming to data frame
+
+rPCA_org <- MCOrg_rPCA(rPCA_c, 4)
+
+
+# Names of eigenvectors for data frame columns
+
+relGvecs <- c(paste0("relGmax.vec", 1:8), paste0("relG2.vec", 1:8))
+
+# Generate data frame of eigenvalues and vectors
+d_relG <- ListToDF(rPCA_org, relGvecs, delmu.rwide)
+
+names(d_relG)[1:3] <- c("Replicate", "delmu.rwide", "tau")
+
+d_relG$Replicate <- rep(1:1000, each = 27) # Refactor replicate column according to the replicate number
+
+# These values are stored as list objects, make them a regular numeric vector
+d_relG$relGmax.val <- as.numeric(d_relG$relGmax.val)
+d_relG$relG2.val <- as.numeric(d_relG$relG2.val)
+d_relG$relGV <- as.numeric(d_relG$relGV)
+d_relG$logGV <- as.numeric(d_relG$logGV)
+d_relG$distCov <- as.numeric(d_relG$distCov)
+
+d_relG <- separate(data = d_relG,
+                   col = delmu.rwide,
+                   into = c("delmu", "rwide"))
+
+# Reorder the factor levels to low - medium - high
+d_relG$delmu <- factor(d_relG$delmu, levels = c("Low", "Medium", "High"))
+d_relG$rwide <- factor(d_relG$rwide, levels = c("Low", "Medium", "High"))
+d_relG$tau <- factor(d_relG$tau, levels = c("Low", "Med", "High"))
+
+
+write.csv(d_relG, "d_rPCA.csv", row.names = F)
+
+d_relG <- read.csv("d_rPCA.csv")
+
+# lm and emmeans
+
+library(estimatr)
+library(emmeans)
+
+
+lm_rPCA_logGV <- lm_robust(logGV ~ delmu * rwide * tau,
+                           data = d_relG)
+
+summary(lm_rPCA_logGV)
+
+emm_logGV_d.t <- emmeans(lm_rPCA_logGV, pairwise ~ delmu| tau)
+emm_logGV_r.t <- emmeans(lm_rPCA_logGV, pairwise ~ rwide| tau)
+emm_logGV_d.r.t <- emmeans(lm_rPCA_logGV, pairwise ~ delmu*rwide| tau)
+
+lm_rPCA_relGmax <- lm_robust(relGmax.val ~ delmu * rwide * tau,
+                             data = d_relG)
+
+summary(lm_rPCA_relGmax)
+
+emm_relGmax_d.t <- emmeans(lm_rPCA_relGmax, pairwise ~ delmu| tau)
+emm_relGmax_r.t <- emmeans(lm_rPCA_relGmax, pairwise ~ rwide| tau)
+emm_relGmax_d.r.t <- emmeans(lm_rPCA_relGmax, pairwise ~ delmu*rwide| tau)
+
+
+
+
+
 
 
 #################################
@@ -2333,3 +2486,11 @@ test_ET <- parallel::mclapply(unique(d_raw_mat$interact), function(x) {
   # Store output in list
   ET_ls[[1]][[match(x, unique(d_raw_mat$interact))]] <- list(ET1_eig = eig_ETs)
 }, mc.cores = 4)
+
+# Testing list structure
+test_tmp <- vector('list', 9)
+test <- vector('list', 20)
+
+test_tmp[[match("Low.Low", unique(d_raw_mat$interact))]] <- list(ET = rnorm(10),
+                                                            ET1_eig = rnorm(10, 10))
+test[[1]] <- test_tmp 
