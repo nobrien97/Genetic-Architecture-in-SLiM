@@ -91,3 +91,6 @@ src/R/final_runs/Nimrod/Simplified/AIM3/AIM3-LessRAM/d_rPCA.jmp
 src/R/final_runs/Nimrod/Simplified/AIM3/AIM3-LessRAM/d_raw_mat.RDS
 src/R/final_runs/Nimrod/Simplified/AIM3/AIM3-LessRAM/.Xauthority
 src/R/final_runs/Nimrod/Simplified/AIM3/AIM3-LessRAM/SupplementaryMaterial R Code.R
+src/R/final_runs/Nimrod/Simplified/AIM3/AIM3-LessRAM/ls_ET_d.r.RDS
+src/R/final_runs/Nimrod/Simplified/AIM3/AIM3-LessRAM/ls_ET_pr.pc.RDS
+src/R/final_runs/Nimrod/Simplified/AIM3/AIM3-LessRAM/ls_ET_pr.r.RDS

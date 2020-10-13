@@ -1745,8 +1745,18 @@ d_Ellipse_c$theta_abs <- abs(d_Ellipse_c$theta)
 
 write.table(d_Ellipse_c, "d_Ellipse_c.csv", sep = ",", row.names = F)
 
+d_Ellipse_c <- read.csv("d_Ellipse_c.csv")
+
 # lm and post hocs
 
+# Refactor parameter levels
+
+d_Ellipse_c$delmu.cat <- factor(d_Ellipse_c$delmu.cat, levels = c("Low", "Medium", "High"))
+d_Ellipse_c$rwide.cat <- factor(d_Ellipse_c$rwide.cat, levels = c("Low", "Medium", "High"))
+d_Ellipse_c$pleiorate.cat <- factor(d_Ellipse_c$pleiorate.cat, levels = c("Low", "Medium", "High"))
+d_Ellipse_c$pleiocov.cat <- factor(d_Ellipse_c$pleiocov.cat, levels = c("Low", "Medium", "High"))
+d_Ellipse_c$locisigma.cat <- factor(d_Ellipse_c$locisigma.cat, levels = c("Low", "Medium", "High"))
+d_Ellipse_c$tau.cat <- factor(d_Ellipse_c$tau.cat, levels = c("Null", "Low", "Medium", "High"))
 
 
 library(estimatr)
@@ -1785,6 +1795,15 @@ lm_sel_El_theta <- lm_robust(theta_abs ~ delmu.cat + pleiocov.cat + pleiorate.ca
 summary(lm_sel_El_theta)
 
 
+lm_sel_El_Gmax <- lm_robust(major_len ~ delmu.cat + pleiocov.cat + pleiorate.cat + locisigma.cat + rwide.cat + tau.cat +
+                              delmu.cat * tau.cat + pleiorate.cat * tau.cat + pleiocov.cat * tau.cat +
+                              pleiorate.cat * pleiocov.cat * tau.cat + pleiorate.cat * rwide.cat * tau.cat +
+                              pleiocov.cat * rwide.cat * tau.cat + pleiorate.cat * delmu.cat * tau.cat +
+                              pleiocov.cat * delmu.cat * tau.cat + pleiorate.cat * locisigma.cat * tau.cat +
+                              pleiocov.cat * locisigma.cat * tau.cat,
+                            data = d_Ellipse_c)
+
+summary(lm_sel_El_Gmax)
 
 # Area post-hoc
 
@@ -1827,8 +1846,487 @@ emm_s_theta_pc.d.t <- emmeans(lm_sel_El_theta, pairwise ~ pleiocov.cat * delmu.c
 emm_s_theta_pr.ls.t <- emmeans(lm_sel_El_theta, pairwise ~ pleiorate.cat * locisigma.cat | tau.cat)
 emm_s_theta_pc.ls.t <- emmeans(lm_sel_El_theta, pairwise ~ pleiocov.cat * locisigma.cat | tau.cat)
 
+# Major axis post-hoc
 
-##############################################
+emm_s_Gmax_d.t <- emmeans(lm_sel_El_Gmax, pairwise ~ delmu.cat | tau.cat)
+emm_s_Gmax_d.r.t <- emmeans(lm_sel_El_Gmax, pairwise ~ delmu.cat * rwide.cat | tau.cat)
+emm_s_Gmax_pr.t <- emmeans(lm_sel_El_Gmax, pairwise ~ pleiorate.cat| tau.cat)
+emm_s_Gmax_pc.t <- emmeans(lm_sel_El_Gmax, pairwise ~ pleiocov.cat| tau.cat)
+emm_s_Gmax_pr.pc.t <- emmeans(lm_sel_El_Gmax, pairwise ~ pleiorate.cat * pleiocov.cat | tau.cat)
+emm_s_Gmax_pr.r.t <- emmeans(lm_sel_El_Gmax, pairwise ~ pleiorate.cat * rwide.cat | tau.cat)
+emm_s_Gmax_pc.r.t <- emmeans(lm_sel_El_Gmax, pairwise ~ pleiocov.cat * rwide.cat | tau.cat)
+emm_s_Gmax_pr.d.t <- emmeans(lm_sel_El_Gmax, pairwise ~ pleiorate.cat * delmu.cat | tau.cat)
+emm_s_Gmax_pc.d.t <- emmeans(lm_sel_El_Gmax, pairwise ~ pleiocov.cat * delmu.cat | tau.cat)
+emm_s_Gmax_pr.ls.t <- emmeans(lm_sel_El_Gmax, pairwise ~ pleiorate.cat * locisigma.cat | tau.cat)
+emm_s_Gmax_pc.ls.t <- emmeans(lm_sel_El_Gmax, pairwise ~ pleiocov.cat * locisigma.cat | tau.cat)
+
+
+#############################################################################################
+#############################################################################################
+#############################################################################################
+
+################## Plot ellipses! Should be a 4x3 matrix of ellipses
+
+
+# Calculate means
+
+# delmu
+
+dplot_G_sel_El_delmu <- d_Ellipse_c[c(3, 13, 14:24)] %>%
+  group_by(delmu.cat, tau.cat) %>%
+  summarise_all(list(groupmean = mean, se = std.error))
+
+
+dplot_G_sel_El_delmu$vert_x_groupmean <- (cos(dplot_G_sel_El_delmu$theta_groupmean*(pi/180)))*(dplot_G_sel_El_delmu$major_len_groupmean)
+dplot_G_sel_El_delmu$vert_y_groupmean <- (sin(dplot_G_sel_El_delmu$theta_groupmean*(pi/180)))*(dplot_G_sel_El_delmu$major_len_groupmean)
+dplot_G_sel_El_delmu$covert_x_groupmean <- (cos((dplot_G_sel_El_delmu$theta_groupmean-90)*(pi/180)))*(dplot_G_sel_El_delmu$minor_len_groupmean)
+dplot_G_sel_El_delmu$covert_y_groupmean <- (sin((dplot_G_sel_El_delmu$theta_groupmean-90)*(pi/180)))*(dplot_G_sel_El_delmu$minor_len_groupmean)
+dplot_G_sel_El_delmu$area_groupmean <- pi*dplot_G_sel_El_delmu$major_len_groupmean*dplot_G_sel_El_delmu$minor_len_groupmean
+
+
+#Pleiotropic mutational covariance
+dplot_G_El_sel_pleiocov <- d_Ellipse_c[c(5, 13, 14:24)] %>%
+  group_by(pleiocov.cat, tau.cat) %>%
+  summarise_all(list(groupmean = mean, se = std.error))
+
+# Mean vertices and covertices
+dplot_G_El_sel_pleiocov$vert_x_groupmean <- (cos(dplot_G_El_sel_pleiocov$theta_groupmean*(pi/180)))*(dplot_G_El_sel_pleiocov$major_len_groupmean)
+dplot_G_El_sel_pleiocov$vert_y_groupmean <- (sin(dplot_G_El_sel_pleiocov$theta_groupmean*(pi/180)))*(dplot_G_El_sel_pleiocov$major_len_groupmean)
+dplot_G_El_sel_pleiocov$covert_x_groupmean <- (cos((dplot_G_El_sel_pleiocov$theta_groupmean-90)*(pi/180)))*(dplot_G_El_sel_pleiocov$minor_len_groupmean)
+dplot_G_El_sel_pleiocov$covert_y_groupmean <- (sin((dplot_G_El_sel_pleiocov$theta_groupmean-90)*(pi/180)))*(dplot_G_El_sel_pleiocov$minor_len_groupmean)
+dplot_G_El_sel_pleiocov$area_groupmean <- pi*dplot_G_El_sel_pleiocov$major_len_groupmean*dplot_G_El_sel_pleiocov$minor_len_groupmean
+
+
+########################################################
+
+# Pleiotropy rate
+
+dplot_G_El_sel_pleiorate <- d_Ellipse_c[c(7, 13, 14:24)] %>%
+  group_by(pleiorate.cat, tau.cat) %>%
+  summarise_all(list(groupmean = mean, se = std.error))
+
+# Mean vertices and covertices
+dplot_G_El_sel_pleiorate$vert_x_groupmean <- (cos(dplot_G_El_sel_pleiorate$theta_groupmean*(pi/180)))*(dplot_G_El_sel_pleiorate$major_len_groupmean)
+dplot_G_El_sel_pleiorate$vert_y_groupmean <- (sin(dplot_G_El_sel_pleiorate$theta_groupmean*(pi/180)))*(dplot_G_El_sel_pleiorate$major_len_groupmean)
+dplot_G_El_sel_pleiorate$covert_x_groupmean <- (cos((dplot_G_El_sel_pleiorate$theta_groupmean-90)*(pi/180)))*(dplot_G_El_sel_pleiorate$minor_len_groupmean)
+dplot_G_El_sel_pleiorate$covert_y_groupmean <- (sin((dplot_G_El_sel_pleiorate$theta_groupmean-90)*(pi/180)))*(dplot_G_El_sel_pleiorate$minor_len_groupmean)
+dplot_G_El_sel_pleiorate$area_groupmean <- pi*dplot_G_El_sel_pleiorate$major_len_groupmean*dplot_G_El_sel_pleiorate$minor_len_groupmean
+
+
+#######################################################
+
+# Additive effect size distribution
+
+dplot_G_El_sel_locisigma <- d_Ellipse_c[c(9, 13, 14:24)] %>%
+  group_by(locisigma.cat, tau.cat) %>%
+  summarise_all(list(groupmean = mean, se = std.error))
+
+# Mean vertices and covertices
+dplot_G_El_sel_locisigma$vert_x_groupmean <- (cos(dplot_G_El_sel_locisigma$theta_groupmean*(pi/180)))*(dplot_G_El_sel_locisigma$major_len_groupmean)
+dplot_G_El_sel_locisigma$vert_y_groupmean <- (sin(dplot_G_El_sel_locisigma$theta_groupmean*(pi/180)))*(dplot_G_El_sel_locisigma$major_len_groupmean)
+dplot_G_El_sel_locisigma$covert_x_groupmean <- (cos((dplot_G_El_sel_locisigma$theta_groupmean-90)*(pi/180)))*(dplot_G_El_sel_locisigma$minor_len_groupmean)
+dplot_G_El_sel_locisigma$covert_y_groupmean <- (sin((dplot_G_El_sel_locisigma$theta_groupmean-90)*(pi/180)))*(dplot_G_El_sel_locisigma$minor_len_groupmean)
+dplot_G_El_sel_locisigma$area_groupmean <- pi*dplot_G_El_sel_locisigma$major_len_groupmean*dplot_G_El_sel_locisigma$minor_len_groupmean
+
+#######################################################
+
+# Recombination rate
+
+dplot_G_El_sel_rwide <- d_Ellipse_c[c(11, 13, 14:24)] %>%
+  group_by(rwide.cat, tau.cat) %>%
+  summarise_all(list(groupmean = mean, se = std.error))
+
+# Mean vertices and covertices
+dplot_G_El_sel_rwide$vert_x_groupmean <- (cos(dplot_G_El_sel_rwide$theta_groupmean*(pi/180)))*(dplot_G_El_sel_rwide$major_len_groupmean)
+dplot_G_El_sel_rwide$vert_y_groupmean <- (sin(dplot_G_El_sel_rwide$theta_groupmean*(pi/180)))*(dplot_G_El_sel_rwide$major_len_groupmean)
+dplot_G_El_sel_rwide$covert_x_groupmean <- (cos((dplot_G_El_sel_rwide$theta_groupmean-90)*(pi/180)))*(dplot_G_El_sel_rwide$minor_len_groupmean)
+dplot_G_El_sel_rwide$covert_y_groupmean <- (sin((dplot_G_El_sel_rwide$theta_groupmean-90)*(pi/180)))*(dplot_G_El_sel_rwide$minor_len_groupmean)
+dplot_G_El_sel_rwide$area_groupmean <- pi*dplot_G_El_sel_rwide$major_len_groupmean*dplot_G_El_sel_rwide$minor_len_groupmean
+
+#######################################################
+
+#####################################################################
+
+# Plot the ellipses for pleiocov, pleiorate, locisigma, and rwide
+
+library(ggforce)
+library(grid)
+library(gtable)
+# geom_ellipse() expects angle in radians
+plot_GEllipse_sel_pleiocov <- ggplot() +
+  geom_ellipse(data = dplot_G_El_sel_pleiocov, aes(x0 = meanT0_groupmean, y0 = meanT1_groupmean, 
+                                                   a = major_len_groupmean, b = minor_len_groupmean, angle = (theta_groupmean * pi/180))) +
+  geom_ellipse(data = dplot_G_El_sel_pleiocov, aes(x0 = (meanT0_groupmean + 1.96*meanT0_se), y0 = (meanT1_groupmean + 1.96*meanT1_se), 
+                                                   a = (major_len_groupmean + 1.96*major_len_se), 
+                                                   b = (minor_len_groupmean + 1.96*minor_len_se), angle = ((theta_groupmean+1.96*theta_se) * pi/180)), 
+               colour = "grey", linetype = "dashed") +
+  geom_ellipse(data = dplot_G_El_sel_pleiocov, aes(x0 = (meanT0_groupmean - 1.96*meanT0_se), y0 = (meanT1_groupmean - 1.96*meanT1_se), 
+                                                   a = (major_len_groupmean - 1.96*major_len_se), 
+                                                   b = (minor_len_groupmean - 1.96*minor_len_se), angle = ((theta_groupmean-1.96*theta_se) * pi/180)), 
+               colour = "grey", linetype = "dashed") +
+  geom_segment(data = dplot_G_El_sel_pleiocov, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean + vert_x_groupmean), yend = (meanT1_groupmean + vert_y_groupmean))) +
+  geom_segment(data = dplot_G_El_sel_pleiocov, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean - vert_x_groupmean), yend = (meanT1_groupmean - vert_y_groupmean))) +
+  geom_segment(data = dplot_G_El_sel_pleiocov, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean + covert_x_groupmean), yend = (meanT1_groupmean + covert_y_groupmean))) +
+  geom_segment(data = dplot_G_El_sel_pleiocov, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean - covert_x_groupmean), yend = (meanT1_groupmean - covert_y_groupmean))) +
+  coord_fixed() +
+  theme_classic() +
+  facet_grid(tau.cat ~ pleiocov.cat) +
+  xlab("Trait 0") +
+  ylab("Trait 1") +
+  theme(strip.text.x = element_text(size = 12),
+        strip.text.y = element_text(size = 12),
+        axis.text.x = element_text(size = 10, face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold"),
+        axis.title.x = element_text(margin = margin(t = 10), face = "bold"),
+        text = element_text(size = 12))
+
+
+# Thanks to: https://stackoverflow.com/a/37292665/13586824
+# Add rwide label
+# Labels 
+labelT = "Mutational pleiotropic covariance"
+labelR = "Selection strength (\u03C4)"
+
+# Get the ggplot grob
+plot_gtab <- ggplotGrob(plot_GEllipse_sel_pleiocov)
+
+# Get the positions of the strips in the gtable: t = top, l = left, ...
+posR <- subset(plot_gtab$layout, grepl("strip-r", name), select = t:r)
+posT <- subset(plot_gtab$layout, grepl("strip-t", name), select = t:r)
+
+# Add a new column to the right of current right strips, 
+# and a new row on top of current top strips
+width <- plot_gtab$widths[max(posR$r)]    # width of current right strips
+height <- plot_gtab$heights[min(posT$t)]  # height of current top strips
+
+plot_gtab <- gtable_add_cols(plot_gtab, width, max(posR$r))  
+plot_gtab <- gtable_add_rows(plot_gtab, height, min(posT$t)-1)
+
+# Construct the new strip grobs
+stripR <- gTree(name = "Strip_right", children = gList(
+  rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
+  textGrob(labelR, rot = -90, gp = gpar(fontsize = 12, col = "black", fontface = "bold"))))
+
+stripT <- gTree(name = "Strip_top", children = gList(
+  rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
+  textGrob(labelT, gp = gpar(fontsize = 12, col = "black", fontface = "bold"))))
+
+# Position the grobs in the gtable
+plot_gtab <- gtable_add_grob(plot_gtab, stripR, t = min(posR$t) + 1, l = max(posR$r) + 1, b = max(posR$b) + 1, name = "strip-right")
+plot_gtab <- gtable_add_grob(plot_gtab, stripT, t = min(posT$t), l = min(posT$l), r = max(posT$r), name = "strip-top")
+
+# Add small gaps between strips
+plot_gtab <- gtable_add_cols(plot_gtab, unit(1/5, "line"), max(posR$r))
+plot_gtab <- gtable_add_rows(plot_gtab, unit(1/5, "line"), min(posT$t))
+
+# Draw it
+grid.newpage()
+grid.draw(plot_gtab)
+
+
+# # # # # # # # # # # # # # # # # # 
+
+plot_GEllipse_sel_pleiorate <- ggplot() +
+  geom_ellipse(data = dplot_G_El_sel_pleiorate, aes(x0 = meanT0_groupmean, y0 = meanT1_groupmean, 
+                                                    a = major_len_groupmean, b = minor_len_groupmean, angle = (theta_groupmean * pi/180))) +
+  geom_ellipse(data = dplot_G_El_sel_pleiorate, aes(x0 = (meanT0_groupmean + 1.96*meanT0_se), y0 = (meanT1_groupmean + 1.96*meanT1_se), 
+                                                    a = (major_len_groupmean + 1.96*major_len_se), 
+                                                    b = (minor_len_groupmean + 1.96*minor_len_se), angle = ((theta_groupmean+1.96*theta_se) * pi/180)), 
+               colour = "grey", linetype = "dashed") +
+  geom_ellipse(data = dplot_G_El_sel_pleiorate, aes(x0 = (meanT0_groupmean - 1.96*meanT0_se), y0 = (meanT1_groupmean - 1.96*meanT1_se), 
+                                                    a = (major_len_groupmean - 1.96*major_len_se), 
+                                                    b = (minor_len_groupmean - 1.96*minor_len_se), angle = ((theta_groupmean-1.96*theta_se) * pi/180)), 
+               colour = "grey", linetype = "dashed") +
+  geom_segment(data = dplot_G_El_sel_pleiorate, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean + vert_x_groupmean), yend = (meanT1_groupmean + vert_y_groupmean))) +
+  geom_segment(data = dplot_G_El_sel_pleiorate, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean - vert_x_groupmean), yend = (meanT1_groupmean - vert_y_groupmean))) +
+  geom_segment(data = dplot_G_El_sel_pleiorate, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean + covert_x_groupmean), yend = (meanT1_groupmean + covert_y_groupmean))) +
+  geom_segment(data = dplot_G_El_sel_pleiorate, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean - covert_x_groupmean), yend = (meanT1_groupmean - covert_y_groupmean))) +
+  coord_fixed() +
+  theme_classic() +
+  facet_grid(tau.cat ~ pleiorate.cat) +
+  xlab("Trait 0") +
+  ylab("Trait 1") +
+  theme(strip.text.x = element_text(size = 12),
+        strip.text.y = element_text(size = 12),
+        axis.text.x = element_text(size = 10, face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold"),
+        axis.title.x = element_text(margin = margin(t = 10), face = "bold"),
+        text = element_text(size = 12))
+
+
+# Thanks to: https://stackoverflow.com/a/37292665/13586824
+# Add rwide label
+# Labels 
+labelT = "Rate of pleiotropy"
+labelR = "Selection strength (\u03C4)"
+
+# Get the ggplot grob
+plot_gtab <- ggplotGrob(plot_GEllipse_sel_pleiorate)
+
+# Get the positions of the strips in the gtable: t = top, l = left, ...
+posR <- subset(plot_gtab$layout, grepl("strip-r", name), select = t:r)
+posT <- subset(plot_gtab$layout, grepl("strip-t", name), select = t:r)
+
+# Add a new column to the right of current right strips, 
+# and a new row on top of current top strips
+width <- plot_gtab$widths[max(posR$r)]    # width of current right strips
+height <- plot_gtab$heights[min(posT$t)]  # height of current top strips
+
+plot_gtab <- gtable_add_cols(plot_gtab, width, max(posR$r))  
+plot_gtab <- gtable_add_rows(plot_gtab, height, min(posT$t)-1)
+
+# Construct the new strip grobs
+stripR <- gTree(name = "Strip_right", children = gList(
+  rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
+  textGrob(labelR, rot = -90, gp = gpar(fontsize = 12, col = "black", fontface = "bold"))))
+
+stripT <- gTree(name = "Strip_top", children = gList(
+  rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
+  textGrob(labelT, gp = gpar(fontsize = 12, col = "black", fontface = "bold"))))
+
+# Position the grobs in the gtable
+plot_gtab <- gtable_add_grob(plot_gtab, stripR, t = min(posR$t) + 1, l = max(posR$r) + 1, b = max(posR$b) + 1, name = "strip-right")
+plot_gtab <- gtable_add_grob(plot_gtab, stripT, t = min(posT$t), l = min(posT$l), r = max(posT$r), name = "strip-top")
+
+# Add small gaps between strips
+plot_gtab <- gtable_add_cols(plot_gtab, unit(1/5, "line"), max(posR$r))
+plot_gtab <- gtable_add_rows(plot_gtab, unit(1/5, "line"), min(posT$t))
+
+# Draw it
+grid.newpage()
+grid.draw(plot_gtab)
+
+# # # # # # # # # # # # # # # # # # 
+
+plot_GEllipse_sel_locisigma <- ggplot() +
+  geom_ellipse(data = dplot_G_El_sel_locisigma, aes(x0 = meanT0_groupmean, y0 = meanT1_groupmean, 
+                                                    a = major_len_groupmean, b = minor_len_groupmean, angle = (theta_groupmean * pi/180))) +
+  geom_ellipse(data = dplot_G_El_sel_locisigma, aes(x0 = (meanT0_groupmean + 1.96*meanT0_se), y0 = (meanT1_groupmean + 1.96*meanT1_se), 
+                                                    a = (major_len_groupmean + 1.96*major_len_se), 
+                                                    b = (minor_len_groupmean + 1.96*minor_len_se), angle = ((theta_groupmean+1.96*theta_se) * pi/180)), 
+               colour = "grey", linetype = "dashed") +
+  geom_ellipse(data = dplot_G_El_sel_locisigma, aes(x0 = (meanT0_groupmean - 1.96*meanT0_se), y0 = (meanT1_groupmean - 1.96*meanT1_se), 
+                                                    a = (major_len_groupmean - 1.96*major_len_se), 
+                                                    b = (minor_len_groupmean - 1.96*minor_len_se), angle = ((theta_groupmean-1.96*theta_se) * pi/180)), 
+               colour = "grey", linetype = "dashed") +
+  geom_segment(data = dplot_G_El_sel_locisigma, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean + vert_x_groupmean), yend = (meanT1_groupmean + vert_y_groupmean))) +
+  geom_segment(data = dplot_G_El_sel_locisigma, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean - vert_x_groupmean), yend = (meanT1_groupmean - vert_y_groupmean))) +
+  geom_segment(data = dplot_G_El_sel_locisigma, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean + covert_x_groupmean), yend = (meanT1_groupmean + covert_y_groupmean))) +
+  geom_segment(data = dplot_G_El_sel_locisigma, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean - covert_x_groupmean), yend = (meanT1_groupmean - covert_y_groupmean))) +
+  coord_fixed() +
+  theme_classic() +
+  facet_grid(tau.cat ~ locisigma.cat) +
+  xlab("Trait 0") +
+  ylab("Trait 1") +
+  theme(strip.text.x = element_text(size = 12),
+        strip.text.y = element_text(size = 12),
+        axis.text.x = element_text(size = 10, face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold"),
+        axis.title.x = element_text(margin = margin(t = 10), face = "bold"),
+        text = element_text(size = 12))
+
+
+# Thanks to: https://stackoverflow.com/a/37292665/13586824
+# Add rwide label
+# Labels 
+labelT = "Additive effect size"
+labelR = "Selection strength (\u03C4)"
+
+# Get the ggplot grob
+plot_gtab <- ggplotGrob(plot_GEllipse_sel_locisigma)
+
+# Get the positions of the strips in the gtable: t = top, l = left, ...
+posR <- subset(plot_gtab$layout, grepl("strip-r", name), select = t:r)
+posT <- subset(plot_gtab$layout, grepl("strip-t", name), select = t:r)
+
+# Add a new column to the right of current right strips, 
+# and a new row on top of current top strips
+width <- plot_gtab$widths[max(posR$r)]    # width of current right strips
+height <- plot_gtab$heights[min(posT$t)]  # height of current top strips
+
+plot_gtab <- gtable_add_cols(plot_gtab, width, max(posR$r))  
+plot_gtab <- gtable_add_rows(plot_gtab, height, min(posT$t)-1)
+
+# Construct the new strip grobs
+stripR <- gTree(name = "Strip_right", children = gList(
+  rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
+  textGrob(labelR, rot = -90, gp = gpar(fontsize = 12, col = "black", fontface = "bold"))))
+
+stripT <- gTree(name = "Strip_top", children = gList(
+  rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
+  textGrob(labelT, gp = gpar(fontsize = 12, col = "black", fontface = "bold"))))
+
+# Position the grobs in the gtable
+plot_gtab <- gtable_add_grob(plot_gtab, stripR, t = min(posR$t) + 1, l = max(posR$r) + 1, b = max(posR$b) + 1, name = "strip-right")
+plot_gtab <- gtable_add_grob(plot_gtab, stripT, t = min(posT$t), l = min(posT$l), r = max(posT$r), name = "strip-top")
+
+# Add small gaps between strips
+plot_gtab <- gtable_add_cols(plot_gtab, unit(1/5, "line"), max(posR$r))
+plot_gtab <- gtable_add_rows(plot_gtab, unit(1/5, "line"), min(posT$t))
+
+# Draw it
+grid.newpage()
+grid.draw(plot_gtab)
+
+# # # # # # # # # # # # # # # # # # 
+
+plot_GEllipse_sel_rwide <- ggplot() +
+  geom_ellipse(data = dplot_G_El_sel_rwide, aes(x0 = meanT0_groupmean, y0 = meanT1_groupmean, 
+                                                a = major_len_groupmean, b = minor_len_groupmean, angle = (theta_groupmean * pi/180))) +
+  geom_ellipse(data = dplot_G_El_sel_rwide, aes(x0 = (meanT0_groupmean + 1.96*meanT0_se), y0 = (meanT1_groupmean + 1.96*meanT1_se), 
+                                                a = (major_len_groupmean + 1.96*major_len_se), 
+                                                b = (minor_len_groupmean + 1.96*minor_len_se), angle = ((theta_groupmean+1.96*theta_se) * pi/180)), 
+               colour = "grey", linetype = "dashed") +
+  geom_ellipse(data = dplot_G_El_sel_rwide, aes(x0 = (meanT0_groupmean - 1.96*meanT0_se), y0 = (meanT1_groupmean - 1.96*meanT1_se), 
+                                                a = (major_len_groupmean - 1.96*major_len_se), 
+                                                b = (minor_len_groupmean - 1.96*minor_len_se), angle = ((theta_groupmean-1.96*theta_se) * pi/180)), 
+               colour = "grey", linetype = "dashed") +
+  geom_segment(data = dplot_G_El_sel_rwide, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean + vert_x_groupmean), yend = (meanT1_groupmean + vert_y_groupmean))) +
+  geom_segment(data = dplot_G_El_sel_rwide, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean - vert_x_groupmean), yend = (meanT1_groupmean - vert_y_groupmean))) +
+  geom_segment(data = dplot_G_El_sel_rwide, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean + covert_x_groupmean), yend = (meanT1_groupmean + covert_y_groupmean))) +
+  geom_segment(data = dplot_G_El_sel_rwide, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean - covert_x_groupmean), yend = (meanT1_groupmean - covert_y_groupmean))) +
+  coord_fixed() +
+  theme_classic() +
+  facet_grid(tau.cat ~ rwide.cat) +
+  xlab("Trait 0") +
+  ylab("Trait 1") +
+  theme(strip.text.x = element_text(size = 12),
+        strip.text.y = element_text(size = 12),
+        axis.text.x = element_text(size = 10, face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold"),
+        axis.title.x = element_text(margin = margin(t = 10), face = "bold"),
+        text = element_text(size = 12))
+
+
+# Thanks to: https://stackoverflow.com/a/37292665/13586824
+# Add rwide label
+# Labels 
+labelT = "Recombination rate"
+labelR = "Selection strength (\u03C4)"
+
+# Get the ggplot grob
+plot_gtab <- ggplotGrob(plot_GEllipse_sel_pleiocov)
+
+# Get the positions of the strips in the gtable: t = top, l = left, ...
+posR <- subset(plot_gtab$layout, grepl("strip-r", name), select = t:r)
+posT <- subset(plot_gtab$layout, grepl("strip-t", name), select = t:r)
+
+# Add a new column to the right of current right strips, 
+# and a new row on top of current top strips
+width <- plot_gtab$widths[max(posR$r)]    # width of current right strips
+height <- plot_gtab$heights[min(posT$t)]  # height of current top strips
+
+plot_gtab <- gtable_add_cols(plot_gtab, width, max(posR$r))  
+plot_gtab <- gtable_add_rows(plot_gtab, height, min(posT$t)-1)
+
+# Construct the new strip grobs
+stripR <- gTree(name = "Strip_right", children = gList(
+  rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
+  textGrob(labelR, rot = -90, gp = gpar(fontsize = 12, col = "black", fontface = "bold"))))
+
+stripT <- gTree(name = "Strip_top", children = gList(
+  rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
+  textGrob(labelT, gp = gpar(fontsize = 12, col = "black", fontface = "bold"))))
+
+# Position the grobs in the gtable
+plot_gtab <- gtable_add_grob(plot_gtab, stripR, t = min(posR$t) + 1, l = max(posR$r) + 1, b = max(posR$b) + 1, name = "strip-right")
+plot_gtab <- gtable_add_grob(plot_gtab, stripT, t = min(posT$t), l = min(posT$l), r = max(posT$r), name = "strip-top")
+
+# Add small gaps between strips
+plot_gtab <- gtable_add_cols(plot_gtab, unit(1/5, "line"), max(posR$r))
+plot_gtab <- gtable_add_rows(plot_gtab, unit(1/5, "line"), min(posT$t))
+
+# Draw it
+grid.newpage()
+grid.draw(plot_gtab)
+
+# # # # # # # # # # # # # # # # # # 
+
+# Background selection
+
+library(ggforce)
+# geom_ellipse() expects angle in radians
+plot_GEllipse_sel_delmu <- ggplot() +
+  geom_ellipse(data = dplot_G_sel_El_delmu, aes(x0 = meanT0_groupmean, y0 = meanT1_groupmean, 
+                                                a = major_len_groupmean, b = minor_len_groupmean, angle = (theta_groupmean * pi/180))) +
+  # the second and third ellipses are 95% CI around the mean ellipse
+  geom_ellipse(data = dplot_G_sel_El_delmu, aes(x0 = (meanT0_groupmean+1.96*meanT0_se), y0 = (meanT1_groupmean+1.96*meanT1_se), 
+                                                a = (major_len_groupmean + 1.96*major_len_se), 
+                                                b = (minor_len_groupmean + 1.96*minor_len_se), angle = ((theta_groupmean+1.96*theta_se) * pi/180)), 
+               colour = "grey", linetype = "dashed") +
+  geom_ellipse(data = dplot_G_sel_El_delmu, aes(x0 = (meanT0_groupmean-1.96*meanT0_se), y0 = (meanT1_groupmean-1.96*meanT1_se), 
+                                                a = (major_len_groupmean - 1.96*major_len_se), 
+                                                b = (minor_len_groupmean - 1.96*minor_len_se), angle = ((theta_groupmean-1.96*theta_se) * pi/180)), 
+               colour = "grey", linetype = "dashed") +
+  geom_segment(data = dplot_G_sel_El_delmu, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean + vert_x_groupmean), yend = (meanT1_groupmean + vert_y_groupmean))) +
+  geom_segment(data = dplot_G_sel_El_delmu, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean - vert_x_groupmean), yend = (meanT1_groupmean - vert_y_groupmean))) +
+  geom_segment(data = dplot_G_sel_El_delmu, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean + covert_x_groupmean), yend = (meanT1_groupmean + covert_y_groupmean))) +
+  geom_segment(data = dplot_G_sel_El_delmu, aes(x = meanT0_groupmean, y = meanT1_groupmean, xend = (meanT0_groupmean - covert_x_groupmean), yend = (meanT1_groupmean - covert_y_groupmean))) +
+  coord_fixed() +
+  theme_classic() +
+  facet_grid(tau.cat ~ delmu.cat) +
+  xlab("Trait 0") +
+  ylab("Trait 1") +
+  theme(strip.text.x = element_text(size = 12),
+        strip.text.y = element_text(size = 12),
+        axis.text.x = element_text(size = 10, face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold"),
+        axis.title.x = element_text(margin = margin(t = 10), face = "bold"),
+        text = element_text(size = 12))
+
+
+# Thanks to: https://stackoverflow.com/a/37292665/13586824
+# Add rwide label
+# Labels 
+labelT = "Rate of background selection"
+labelR = "Selection strength (\u03C4)"
+
+# Get the ggplot grob
+plot_gtab <- ggplotGrob(plot_GEllipse_sel_pleiocov)
+
+# Get the positions of the strips in the gtable: t = top, l = left, ...
+posR <- subset(plot_gtab$layout, grepl("strip-r", name), select = t:r)
+posT <- subset(plot_gtab$layout, grepl("strip-t", name), select = t:r)
+
+# Add a new column to the right of current right strips, 
+# and a new row on top of current top strips
+width <- plot_gtab$widths[max(posR$r)]    # width of current right strips
+height <- plot_gtab$heights[min(posT$t)]  # height of current top strips
+
+plot_gtab <- gtable_add_cols(plot_gtab, width, max(posR$r))  
+plot_gtab <- gtable_add_rows(plot_gtab, height, min(posT$t)-1)
+
+# Construct the new strip grobs
+stripR <- gTree(name = "Strip_right", children = gList(
+  rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
+  textGrob(labelR, rot = -90, gp = gpar(fontsize = 12, col = "black", fontface = "bold"))))
+
+stripT <- gTree(name = "Strip_top", children = gList(
+  rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
+  textGrob(labelT, gp = gpar(fontsize = 12, col = "black", fontface = "bold"))))
+
+# Position the grobs in the gtable
+plot_gtab <- gtable_add_grob(plot_gtab, stripR, t = min(posR$t) + 1, l = max(posR$r) + 1, b = max(posR$b) + 1, name = "strip-right")
+plot_gtab <- gtable_add_grob(plot_gtab, stripT, t = min(posT$t), l = min(posT$l), r = max(posT$r), name = "strip-top")
+
+# Add small gaps between strips
+plot_gtab <- gtable_add_cols(plot_gtab, unit(1/5, "line"), max(posR$r))
+plot_gtab <- gtable_add_rows(plot_gtab, unit(1/5, "line"), min(posT$t))
+
+# Draw it
+grid.newpage()
+grid.draw(plot_gtab)
+
+library(patchwork)
+
+(plot_GEllipse_sel_delmu | plot_GEllipse_sel_pleiocov) / (plot_GEllipse_sel_pleiorate) / (plot_GEllipse_sel_rwide | plot_GEllipse_sel_locisigma)
+
+
+
+
+
+
+
 set.seed(873662137) # sampled using sample(1:2147483647, 1)
 
 # Regular data: combine into one
@@ -2134,38 +2632,65 @@ grid.draw(plot_gtab)
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 
+source("../../AIM1/AIM-1_R/src_G_mat.R")
+source("../../AIM1/AIM-1_R/src_plot.R")
+
+
+# Set the seed
+
+set.seed(873662137) # sampled using sample(1:2147483647, 1)
+
+
 # Eigentensor analysis
 # Run this on supercomputer so it doesn't take too long
 
-ls_ET_test <- eigentensor_G(d_raw_mat, d_raw_mat$delmu.cat, d_raw_mat$rwide.cat, 1000, 4)
+ls_ET <- eigentensor_G(d_raw_mat, d_raw_mat$delmu.cat, d_raw_mat$rwide.cat, 1000, 4)
 
+
+saveRDS(ls_ET, "ls_ET_d.r.RDS")
+
+ls_ET <- readRDS("ls_ET_d.r.RDS")
 
 # Organise into a more reasonable output for transforming to data frame
+
+ls_ETeig_org <- MCOrg_ETeig(ls_ET, 4)
 
 ls_ET_org <- MCOrg_ET(ls_ET, 4)
 
 
 # Names of eigenvectors for data frame columns
 
-ETGvecs <- c(paste0("Gmax.vec", 1:8), paste0("G2.vec", 1:8))
+ETGeigvecs <- c(paste0("Gmax.vec", 1:8), paste0("G2.vec", 1:8))
+
+ETGvecs <- names(ls_ET_org[[1]][[1]])
 
 # Generate data frame of eigenvalues and vectors
+d_ETGeig <- ListToDF_ET(ls_ETeig_org, ETGeigvecs)
+
 d_ETG <- ListToDF_ET(ls_ET_org, ETGvecs)
 
-# Remove unnecessary third column (contains the eigentensor: we could do multiple eigentensors, and then we would keep this)
-d_ETG <- d_ETG[,-3]
-
+# Set names
 names(d_ETG)[1:2] <- c("Replicate", "delmu.rwide")
+names(d_ETGeig)[1:2] <- c("Replicate", "delmu.rwide")
 
-d_ETG$Replicate <- rep(1:4, each = 9) # Refactor replicate column according to the replicate number
+
+d_ETG$Replicate <- rep(1:1000, each = 9) # Refactor replicate column according to the replicate number
+d_ETGeig$Replicate <- rep(1:1000, each = 9) # Refactor replicate column according to the replicate number
+
+
 
 # These values are stored as list objects, make them a regular numeric vector
-d_ETG$Gmax.val <- as.numeric(d_ETG$Gmax.val)
-d_ETG$G2.val <- as.numeric(d_ETG$G2.val)
+d_ETGeig$Gmax.val <- as.numeric(d_ETGeig$Gmax.val)
+d_ETGeig$G2.val <- as.numeric(d_ETGeig$G2.val)
 
 d_ETG <- separate(data = d_ETG,
                    col = delmu.rwide,
                    into = c("delmu", "rwide"))
+
+d_ETGeig <- separate(data = d_ETGeig,
+                  col = delmu.rwide,
+                  into = c("delmu", "rwide"))
+
 
 # Reorder the factor levels to low - medium - high
 d_ETG$delmu <- factor(d_ETG$delmu, levels = c("Low", "Medium", "High"))
@@ -2173,18 +2698,410 @@ d_ETG$rwide <- factor(d_ETG$rwide, levels = c("Low", "Medium", "High"))
 
 write.csv(d_ETG, "d_ET.csv", row.names = F)
 
-# The above will be run on Tinaroo for 1000 replicates, so will import that here
+write.csv(d_ETGeig, "d_ETeig.csv", row.names = F)
+
 
 d_ETG <- read.csv("d_ET.csv")
 
+# pivot_longer the projected values into factors to plot against their given values
+
+d_ETG <- d_ETG %>% pivot_longer(
+  cols = c("ET1.proj_N", "ET1.proj_L", "ET1.proj_M", "ET1.proj_H"),
+  names_to = "Projection",
+  values_to = "Proj_val"
+)
+
+d_ETG$Projection <- factor(d_ETG$Projection, levels = c("ET1.proj_N", "ET1.proj_L", "ET1.proj_M", "ET1.proj_H"))
+d_ETG$Projection <- plyr::revalue(d_ETG$Projection, c("ET1.proj_N" = "Null", "ET1.proj_L" = "Low", "ET1.proj_M" = "Medium", "ET1.proj_H" = "High"))
+
+# Now calculate the mean eigentensor per group
+
+dmean_ETG_delmu.rwide <- d_ETG[,-1] %>%
+  group_by(delmu, rwide, Projection) %>%
+  summarise_all(list(groupmean = mean, se = std.error))
+
+
+# Plot the figures of the projection
+
+# Colour scale
+cs <- scales::seq_gradient_pal("blue", "#ff8c00", "Lab")(seq(0,1, length.out = 100))
+cs <- cs[c(1, 15, 45, 100)]
+
+plot_ETproj_d.r <- ggplot(dmean_ETG_delmu.rwide, aes(x = delmu, y = Proj_val_groupmean, col = Projection)) +
+  facet_grid(rwide~.) +
+  geom_point(position = position_dodge(0.9)) +
+  geom_errorbar(aes(
+    ymin = (Proj_val_groupmean - (1.96*Proj_val_se)), 
+    ymax = (Proj_val_groupmean + (1.96*Proj_val_se))
+  ),
+  width = 0.25,
+  position = position_dodge(0.9)) +
+  scale_color_manual(values=cs) +
+  theme_classic() +
+#  geom_hline(aes(yintercept = -Inf), lwd = 1) +
+#  geom_hline(aes(yintercept = Inf), lwd = 1) +
+  labs(x = "Background selection rate", y = "Coordinates in Eigentensor 1", col = "Selection strength (\u03C4)") +
+  theme(strip.text.x = element_text(size = 12),
+        strip.text.y = element_text(size = 12),
+        axis.text.x = element_text(size = 10, face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold"),
+        axis.title.x = element_text(margin = margin(t = 10), face = "bold"),
+#        axis.line.x = element_blank(),
+        text = element_text(size = 12))
+
+
+# Thanks to: https://stackoverflow.com/a/37292665/13586824
+# Add delmu label
+# Labels 
+library(grid)
+library(gtable)
+labelR = "Recombination rate"
+
+# Get the ggplot grob
+plot_gtab <- ggplotGrob(plot_ETproj_d.r)
+
+# Get the positions of the strips in the gtable: t = top, l = left, ...
+posR <- subset(plot_gtab$layout, grepl("strip-r", name), select = t:r)
+
+# Add a new column to the right of current right strips, 
+# and a new row on top of current top strips
+width <- plot_gtab$widths[max(posR$r)]    # width of current right strips
+
+plot_gtab <- gtable_add_cols(plot_gtab, width, max(posR$r))  
+
+# Construct the new strip grobs
+stripR <- gTree(name = "Strip_right", children = gList(
+  rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
+  textGrob(labelR, rot = -90, gp = gpar(fontsize = 12, col = "black", fontface = "bold"))))
+
+# Position the grobs in the gtable
+plot_gtab <- gtable_add_grob(plot_gtab, stripR, t = min(posR$t), l = max(posR$r) + 1, b = max(posR$b), name = "strip-right")
+
+# Add small gaps between strips
+plot_gtab <- gtable_add_cols(plot_gtab, unit(1/5, "line"), max(posR$r))
+
+# Draw it
+grid.newpage()
+grid.draw(plot_gtab)
+
+
+# lm and emmeans
+library(estimatr)
+library(emmeans)
+
+lm_ETeig_Gmax <- lm_robust(Gmax.val ~ delmu * rwide,
+                             data = d_ETGeig)
+
+summary(lm_ETeig_Gmax)
+
+emm_ETeigGmax_d.r <- emmeans(lm_ETeig_Gmax, pairwise ~ delmu | rwide)
+
+############################################################################################
+# Repeat for other comparisons
+
+d_raw_mat <- readRDS("d_raw_mat.RDS")
+
+
+ls_ET_pr.pc <- eigentensor_G(d_raw_mat, d_raw_mat$pleiorate.cat, d_raw_mat$pleiocov.cat, 1000, 4)
+saveRDS(ls_ET_pr.pc, "ls_ET_pr.pc.RDS")
+ls_ET_pr.r <- eigentensor_G(d_raw_mat, d_raw_mat$pleiorate.cat, d_raw_mat$rwide.cat, 1000, 4)
+saveRDS(ls_ET_pr.r, "ls_ET_pr.r.RDS")
+ls_ET_pc.r <- eigentensor_G(d_raw_mat, d_raw_mat$pleiocov.cat, d_raw_mat$rwide.cat, 1000, 4)
+saveRDS(ls_ET_pc.r, "ls_ET_pc.r.RDS")
+ls_ET_pr.d <- eigentensor_G(d_raw_mat, d_raw_mat$pleiorate.cat, d_raw_mat$delmu.cat, 1000, 4)
+saveRDS(ls_ET_pr.d, "ls_ET_pr.d.RDS")
+ls_ET_pc.d <- eigentensor_G(d_raw_mat, d_raw_mat$pleiocov.cat, d_raw_mat$delmu.cat, 1000, 4)
+saveRDS(ls_ET_pc.d, "ls_ET_pc.d.RDS")
+ls_ET_pr.ls <- eigentensor_G(d_raw_mat, d_raw_mat$pleiorate.cat, d_raw_mat$locisigma.cat, 1000, 4)
+saveRDS(ls_ET_pr.ls, "ls_ET_pr.ls.RDS")
+ls_ET_pc.ls <- eigentensor_G(d_raw_mat, d_raw_mat$pleiocov.cat, d_raw_mat$locisigma.cat, 1000, 4)
+saveRDS(ls_ET_pc.ls, "ls_ET_pc.ls.RDS")
+
+##########################################################################################
+# Pleiorate - pleiocov
+
+saveRDS(ls_ET_pr.pc, "ls_ET_pr.pc.RDS")
+
+ls_ET_pr.pc <- readRDS("ls_ET_pr.pc.RDS")
+
+# Organise into a more reasonable output for transforming to data frame
+
+ls_ETeig_pr.pc_org <- MCOrg_ETeig(ls_ET_pr.pc, 4)
+
+ls_ET_pr.pc_org <- MCOrg_ET(ls_ET_pr.pc, 4)
+
+
+# Names of eigenvectors for data frame columns
+
+ETGeigvecs <- c(paste0("Gmax.vec", 1:8), paste0("G2.vec", 1:8))
+
+ETGvecs <- names(ls_ET_pr.pc_org[[1]][[1]])
+
+# Generate data frame of eigenvalues and vectors
+d_ETGeig_pr.pc <- ListToDF_ET(ls_ETeig_pr.pc_org, ETGeigvecs)
+
+d_ETG_pr.pc <- ListToDF_ET(ls_ET_pr.pc_org, ETGvecs)
+
+# Set names
+names(d_ETG_pr.pc)[1:2] <- c("Replicate", "pleiorate.pleiocov")
+names(d_ETGeig_pr.pc)[1:2] <- c("Replicate", "pleiorate.pleiocov")
+
+
+d_ETG_pr.pc$Replicate <- rep(1:1000, each = 9) # Refactor replicate column according to the replicate number
+d_ETGeig_pr.pc$Replicate <- rep(1:1000, each = 9) # Refactor replicate column according to the replicate number
+
+
+
+# These values are stored as list objects, make them a regular numeric vector
+d_ETGeig_pr.pc$Gmax.val <- as.numeric(d_ETGeig_pr.pc$Gmax.val)
+d_ETGeig_pr.pc$G2.val <- as.numeric(d_ETGeig_pr.pc$G2.val)
+
+d_ETG_pr.pc <- separate(data = d_ETG_pr.pc,
+                  col = pleiorate.pleiocov,
+                  into = c("pleiorate", "pleiocov"))
+
+d_ETGeig_pr.pc <- separate(data = d_ETGeig_pr.pc,
+                     col = pleiorate.pleiocov,
+                     into = c("pleiorate", "pleiocov"))
+
+
+# Reorder the factor levels to low - medium - high
+d_ETG_pr.pc$pleiorate <- factor(d_ETG_pr.pc$pleiorate, levels = c("Low", "Medium", "High"))
+d_ETG_pr.pc$pleiocov <- factor(d_ETG_pr.pc$pleiocov, levels = c("Low", "Medium", "High"))
+
+write.csv(d_ETG_pr.pc, "d_ET_pr.pc.csv", row.names = F)
+
+write.csv(d_ETGeig_pr.pc, "d_ETeig_pr.pc.csv", row.names = F)
+
+
+d_ETG_pr.pc <- read.csv("d_ET_pr.pc.csv")
+
+# pivot_longer the projected values into factors to plot against their given values
+
+d_ETG_pr.pc <- d_ETG_pr.pc %>% pivot_longer(
+  cols = c("ET1.proj_N", "ET1.proj_L", "ET1.proj_M", "ET1.proj_H"),
+  names_to = "Projection",
+  values_to = "Proj_val"
+)
+
+d_ETG_pr.pc$Projection <- factor(d_ETG_pr.pc$Projection, levels = c("ET1.proj_N", "ET1.proj_L", "ET1.proj_M", "ET1.proj_H"))
+d_ETG_pr.pc$Projection <- plyr::revalue(d_ETG_pr.pc$Projection, c("ET1.proj_N" = "Null", "ET1.proj_L" = "Low", "ET1.proj_M" = "Medium", "ET1.proj_H" = "High"))
+
+
+# Now calculate the mean eigentensor per group
+
+dmean_ETG_pleiorate.pleiocov <- d_ETG_pr.pc[,-1] %>%
+  group_by(pleiorate, pleiocov, Projection) %>%
+  summarise_all(list(groupmean = mean, se = std.error))
+
+# Plot
+plot_ETproj_pr.pc <- ggplot(dmean_ETG_pleiorate.pleiocov, aes(x = pleiorate, y = Proj_val_groupmean, col = Projection)) +
+  facet_grid(pleiocov~.) +
+  geom_point(position = position_dodge(0.9)) +
+  geom_errorbar(aes(
+    ymin = (Proj_val_groupmean - (1.96*Proj_val_se)), 
+    ymax = (Proj_val_groupmean + (1.96*Proj_val_se))
+  ),
+  width = 0.25,
+  position = position_dodge(0.9)) +
+  scale_color_manual(values=cs) +
+  theme_classic() +
+  labs(x = "Rate of pleiotropy", y = "Coordinates in Eigentensor 1", col = "Selection strength (\u03C4)") +
+  theme(strip.text.x = element_text(size = 12),
+        strip.text.y = element_text(size = 12),
+        axis.text.x = element_text(size = 10, face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold"),
+        axis.title.x = element_text(margin = margin(t = 10), face = "bold"),
+        text = element_text(size = 12))
+
+
+# Thanks to: https://stackoverflow.com/a/37292665/13586824
+# Add delmu label
+# Labels 
+library(grid)
+library(gtable)
+labelR = "Mutational pleiotropic covariance"
+
+# Get the ggplot grob
+plot_gtab <- ggplotGrob(plot_ETproj_pr.pc)
+
+# Get the positions of the strips in the gtable: t = top, l = left, ...
+posR <- subset(plot_gtab$layout, grepl("strip-r", name), select = t:r)
+
+# Add a new column to the right of current right strips, 
+# and a new row on top of current top strips
+width <- plot_gtab$widths[max(posR$r)]    # width of current right strips
+
+plot_gtab <- gtable_add_cols(plot_gtab, width, max(posR$r))  
+
+# Construct the new strip grobs
+stripR <- gTree(name = "Strip_right", children = gList(
+  rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
+  textGrob(labelR, rot = -90, gp = gpar(fontsize = 12, col = "black", fontface = "bold"))))
+
+# Position the grobs in the gtable
+plot_gtab <- gtable_add_grob(plot_gtab, stripR, t = min(posR$t), l = max(posR$r) + 1, b = max(posR$b), name = "strip-right")
+
+# Add small gaps between strips
+plot_gtab <- gtable_add_cols(plot_gtab, unit(1/5, "line"), max(posR$r))
+
+# Draw it
+grid.newpage()
+grid.draw(plot_gtab)
+
+
+
+
+###########################################################################################
+
+
 # lm and emmeans
 
-lm_ET_Gmax <- lm_robust(Gmax.val ~ delmu * rwide,
-                             data = d_ETG)
+lm_ETeig_pr.pc_Gmax <- lm_robust(Gmax.val ~ pleiorate * pleiocov,
+                           data = d_ETGeig_pr.pc)
 
-summary(lm_ET_Gmax)
+summary(lm_ETeig_pr.pc_Gmax)
 
-emm_ETGmax_d.r <- emmeans(lm_ET_Gmax, pairwise ~ delmu | rwide)
+emm_ETeigGmax_pr.pc <- emmeans(lm_ETeig_pr.pc_Gmax, pairwise ~ pleiorate | pleiocov)
+
+
+#########################################################################################
+
+# Pleiorate - rwide
+
+
+saveRDS(ls_ET_pr.r, "ls_ET_pr.r.RDS")
+
+ls_ET_pr.r <- readRDS("ls_ET_pr.r.RDS")
+
+# Organise into a more reasonable output for transforming to data frame
+
+ls_ETeig_pr.r_org <- MCOrg_ETeig(ls_ET_pr.r, 4)
+
+ls_ET_pr.r_org <- MCOrg_ET(ls_ET_pr.r, 4)
+
+
+# Names of eigenvectors for data frame columns
+
+ETGeigvecs <- c(paste0("Gmax.vec", 1:8), paste0("G2.vec", 1:8))
+
+ETGvecs <- names(ls_ET_pr.r_org[[1]][[1]])
+
+# Generate data frame of eigenvalues and vectors
+d_ETGeig_pr.r <- ListToDF_ET(ls_ETeig_pr.r_org, ETGeigvecs)
+
+d_ETG_pr.r <- ListToDF_ET(ls_ET_pr.r_org, ETGvecs)
+
+# Set names
+names(d_ETG_pr.r)[1:2] <- c("Replicate", "pleiorate.rwide")
+names(d_ETGeig_pr.r)[1:2] <- c("Replicate", "pleiorate.rwide")
+
+
+d_ETG_pr.r$Replicate <- rep(1:1000, each = 9) # Refactor replicate column according to the replicate number
+d_ETGeig_pr.r$Replicate <- rep(1:1000, each = 9) # Refactor replicate column according to the replicate number
+
+
+
+# These values are stored as list objects, make them a regular numeric vector
+d_ETGeig_pr.r$Gmax.val <- as.numeric(d_ETGeig_pr.r$Gmax.val)
+d_ETGeig_pr.r$G2.val <- as.numeric(d_ETGeig_pr.r$G2.val)
+d_ETGeig_pr.r$Gtot.val <- as.numeric(d_ETGeig_pr.r$Gtot.val)
+d_ETGeig_pr.r$Gmaxprop.val <- as.numeric(d_ETGeig_pr.r$Gmaxprop.val)
+
+
+
+d_ETG_pr.r <- separate(data = d_ETG_pr.r,
+                        col = pleiorate.rwide,
+                        into = c("pleiorate", "rwide"))
+
+d_ETGeig_pr.r <- separate(data = d_ETGeig_pr.r,
+                           col = pleiorate.rwide,
+                           into = c("pleiorate", "rwide"))
+
+
+# Reorder the factor levels to low - medium - high
+d_ETG_pr.r$pleiorate <- factor(d_ETG_pr.r$pleiorate, levels = c("Low", "Medium", "High"))
+d_ETG_pr.r$rwide <- factor(d_ETG_pr.r$rwide, levels = c("Low", "Medium", "High"))
+
+write.csv(d_ETG_pr.r, "d_ET_pr.r.csv", row.names = F)
+
+write.csv(d_ETGeig_pr.r, "d_ETeig_pr.r.csv", row.names = F)
+
+
+d_ETG_pr.r <- read.csv("d_ET_pr.r.csv")
+
+# pivot_longer the projected values into factors to plot against their given values
+
+d_ETG_pr.r <- d_ETG_pr.r %>% pivot_longer(
+  cols = c("ET1.proj_N", "ET1.proj_L", "ET1.proj_M", "ET1.proj_H"),
+  names_to = "Projection",
+  values_to = "Proj_val"
+)
+
+d_ETG_pr.r$Projection <- factor(d_ETG_pr.r$Projection, levels = c("ET1.proj_N", "ET1.proj_L", "ET1.proj_M", "ET1.proj_H"))
+d_ETG_pr.r$Projection <- plyr::revalue(d_ETG_pr.r$Projection, c("ET1.proj_N" = "Null", "ET1.proj_L" = "Low", "ET1.proj_M" = "Medium", "ET1.proj_H" = "High"))
+
+
+# Now calculate the mean eigentensor per group
+
+dmean_ETG_pleiorate.rwide <- d_ETG_pr.r[,-1] %>%
+  group_by(pleiorate, rwide, Projection) %>%
+  summarise_all(list(groupmean = mean, se = std.error))
+
+# Plot
+plot_ETproj_pr.r <- ggplot(dmean_ETG_pleiorate.rwide, aes(x = pleiorate, y = Proj_val_groupmean, col = Projection)) +
+  facet_grid(rwide~.) +
+  geom_point(position = position_dodge(0.9)) +
+  geom_errorbar(aes(
+    ymin = (Proj_val_groupmean - (1.96*Proj_val_se)), 
+    ymax = (Proj_val_groupmean + (1.96*Proj_val_se))
+  ),
+  width = 0.25,
+  position = position_dodge(0.9)) +
+  scale_color_manual(values=cs) +
+  theme_classic() +
+  labs(x = "Rate of pleiotropy", y = "Coordinates in Eigentensor 1", col = "Selection strength (\u03C4)") +
+  theme(strip.text.x = element_text(size = 12),
+        strip.text.y = element_text(size = 12),
+        axis.text.x = element_text(size = 10, face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold"),
+        axis.title.x = element_text(margin = margin(t = 10), face = "bold"),
+        text = element_text(size = 12))
+
+
+# Thanks to: https://stackoverflow.com/a/37292665/13586824
+# Add delmu label
+# Labels 
+library(grid)
+library(gtable)
+labelR = "Recombination rate"
+
+# Get the ggplot grob
+plot_gtab <- ggplotGrob(plot_ETproj_pr.r)
+
+# Get the positions of the strips in the gtable: t = top, l = left, ...
+posR <- subset(plot_gtab$layout, grepl("strip-r", name), select = t:r)
+
+# Add a new column to the right of current right strips, 
+# and a new row on top of current top strips
+width <- plot_gtab$widths[max(posR$r)]    # width of current right strips
+
+plot_gtab <- gtable_add_cols(plot_gtab, width, max(posR$r))  
+
+# Construct the new strip grobs
+stripR <- gTree(name = "Strip_right", children = gList(
+  rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
+  textGrob(labelR, rot = -90, gp = gpar(fontsize = 12, col = "black", fontface = "bold"))))
+
+# Position the grobs in the gtable
+plot_gtab <- gtable_add_grob(plot_gtab, stripR, t = min(posR$t), l = max(posR$r) + 1, b = max(posR$b), name = "strip-right")
+
+# Add small gaps between strips
+plot_gtab <- gtable_add_cols(plot_gtab, unit(1/5, "line"), max(posR$r))
+
+# Draw it
+grid.newpage()
+grid.draw(plot_gtab)
 
 
 
