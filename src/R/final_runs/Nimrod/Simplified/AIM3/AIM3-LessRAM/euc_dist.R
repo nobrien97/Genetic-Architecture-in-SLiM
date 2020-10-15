@@ -117,24 +117,17 @@ d_eucdist$tau.cat <- factor(d_eucdist$tau.cat, levels = c("High", "Medium", "Low
 
 library(emmeans)
 library(estimatr)
-lm_eucdist <- lm_robust(distance ~ delmu.cat*rwide.cat*tau.cat + pleiorate.cat*pleiocov.cat*tau.cat +
-                          pleiorate.cat*rwide.cat*tau.cat + pleiocov.cat*rwide.cat*tau.cat +
-                          pleiorate.cat*delmu.cat*tau.cat + pleiocov.cat*delmu.cat*tau.cat + 
-                          pleiorate.cat*locisigma.cat*tau.cat + pleiocov.cat*locisigma.cat*tau.cat,
+lm_eucdist <- lm_robust(distance ~ delmu.cat*rwide.cat*locisigma.cat + tau.cat,
                         data = d_eucdist)
 
 summary(lm_eucdist)
-
-par(mfrow = c(2,2))
-plot(lm_eucdist)
-# Lots of heteroskedasticity: will have to adjust for that using Eicker-Huber-White
 
 emm_dist_contr_d.r.t <- pairs(pairs(emmeans(lm_eucdist, ~ delmu.cat * rwide.cat | tau.cat,
                                       at = list(delmu.cat = c("Low", "High"),
                                                 rwide.cat = c("Low", "High"),
                                                 tau.cat = c("Low")))), by = NULL)
 
-emm_dist_d.r.t <- emmeans(lm_eucdist, pairwise ~ delmu.cat * rwide.cat | tau.cat)
+emm_dist_d.r.ls <- emmeans(lm_eucdist, pairwise ~ delmu.cat * rwide.cat * locisigma.cat)
 emm_dist_d.t <- emmeans(lm_eucdist, pairwise ~ delmu.cat | tau.cat)
 
 
@@ -171,6 +164,73 @@ emm_dist_contr_pr.ls.t <- pairs(pairs(emmeans(lm_eucdist, ~ pleiorate.cat * loci
 
 emm_dist_pc.ls.t <- emmeans(lm_eucdist, pairwise ~ pleiocov.cat * locisigma.cat | tau.cat)
 emm_dist_pc.r.t <- emmeans(lm_eucdist, pairwise ~ pleiocov.cat * rwide.cat | tau.cat)
+
+
+############################################################################################################
+############################################################################################################
+############################################################################################################
+# Delmu * rwide * ls
+dplot_eucdist_d.r.ls <- d_eucdist[,c(10, 11, 14, 16)] %>%
+  group_by(delmu.cat, rwide.cat, locisigma.cat) %>%
+  summarise_all(list(dist_mean = mean, dist_se = std.error))
+
+plot_eucdist_d.r.ls <- ggplot(dplot_eucdist_d.r.ls, aes(x = rwide.cat, y = dist_mean, fill = delmu.cat)) +
+  facet_grid(locisigma.cat~.) +
+  geom_col(position = position_dodge(0.9)) +
+  geom_errorbar(aes(
+    ymin = dist_mean - (1.96*dist_se), 
+    ymax = dist_mean + (1.96*dist_se)), 
+    width = 0.25,
+    position = position_dodge(0.9)) +
+  scale_color_npg() +
+  theme_classic() +
+  labs(x = r_lab, y = "Euclidean distance from optimum", fill = d_lab) +
+  theme(strip.text.x = element_text(size = 12),
+        strip.text.y = element_text(size = 12),
+        axis.text.x = element_text(size = 10, face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold"),
+        axis.title.x = element_text(margin = margin(t = 10), face = "bold"),
+        text = element_text(size = 12))
+
+# Thanks to: https://stackoverflow.com/a/37292665/13586824
+# Add delmu label
+# Labels 
+library(grid)
+library(gtable)
+labelR = ls_lab
+
+# Get the ggplot grob
+plot_gtab <- ggplotGrob(plot_eucdist_d.r.ls)
+
+# Get the positions of the strips in the gtable: t = top, l = left, ...
+posR <- subset(plot_gtab$layout, grepl("strip-r", name), select = t:r)
+
+# Add a new column to the right of current right strips, 
+# and a new row on top of current top strips
+width <- plot_gtab$widths[max(posR$r)]    # width of current right strips
+
+plot_gtab <- gtable_add_cols(plot_gtab, width, max(posR$r))  
+
+# Construct the new strip grobs
+stripR <- gTree(name = "Strip_right", children = gList(
+  rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
+  textGrob(labelR, rot = -90, gp = gpar(fontsize = 12, col = "black", fontface = "bold"))))
+
+# Position the grobs in the gtable
+plot_gtab <- gtable_add_grob(plot_gtab, stripR, t = min(posR$t), l = max(posR$r) + 1, b = max(posR$b), name = "strip-right")
+
+# Add small gaps between strips
+plot_gtab_eucdist.d.r.ls <- gtable_add_cols(plot_gtab, unit(1/5, "line"), max(posR$r))
+
+# Draw it
+grid.newpage()
+grid.draw(plot_gtab_eucdist.d.r.ls)
+
+
+############################################################################################################
+############################################################################################################
+############################################################################################################
+
 
 
 # Plot euclidean distance from optimum: separate figure for each parameter, coloured lines for tau bin
