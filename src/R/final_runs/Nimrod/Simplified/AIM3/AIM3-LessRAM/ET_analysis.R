@@ -21,7 +21,7 @@ ls_lab <- "Additive effect size"
 t_lab <- "Selection strength (\u03C4)"
 
 
-
+d_raw_mat <- readRDS("d_raw_mat.RDS")
 
 # Eigentensor analysis
 
@@ -75,10 +75,15 @@ d_ETG_d.r$rwide <- factor(d_ETG_d.r$rwide, levels = c("Low", "Medium", "High"))
 
 write.csv(d_ETG_d.r, "d_ET_d.r.csv", row.names = F)
 
+d_ETGeig_d.r$delmu <- factor(d_ETGeig_d.r$delmu, levels = c("Low", "Medium", "High"))
+d_ETGeig_d.r$rwide <- factor(d_ETGeig_d.r$rwide, levels = c("Low", "Medium", "High"))
+
+
 write.csv(d_ETGeig_d.r, "d_ETeig_d.r.csv", row.names = F)
 
 
 d_ETG_d.r <- read.csv("d_ET_d.r.csv")
+d_ETGeig_d.r <- read.csv("d_ETeig_d.r.csv")
 
 # pivot_longer the projected values into factors to plot against their given values
 
@@ -166,12 +171,20 @@ grid.draw(plot_gtab.d.r)
 library(estimatr)
 library(emmeans)
 
-lm_ETeig_Gmax <- lm_robust(Gmax.val ~ delmu * rwide,
-                           data = d_ETGeig)
+lm_ETC_d.r <- lm_robust(Proj_val ~ delmu * rwide * Projection,
+                    data = d_ETG_d.r)
 
-summary(lm_ETeig_Gmax)
+summary(lm_ETC_d.r)
+emm_ETC_d.r.t <- emmeans(lm_ETC_d.r, pairwise ~ delmu * rwide | Projection)
 
-emm_ETeigGmax_d.r <- emmeans(lm_ETeig_Gmax, pairwise ~ delmu | rwide)
+
+
+lm_ETeig_d.r <- lm_robust(Gmax.val ~ delmu * rwide,
+                           data = d_ETGeig_d.r)
+
+summary(lm_ETeig_d.r)
+
+emm_ETeig_d.r <- emmeans(lm_ETeig_d.r, pairwise ~ delmu * rwide)
 
 ############################################################################################
 # Repeat for other comparisons

@@ -92,13 +92,15 @@ d_eucdist$rwide.cat <- cut(d_eucdist$rwide, breaks = 3, labels = c("Low", "Mediu
 d_eucdist$pleiocov.cat <- cut(d_eucdist$pleiocov, breaks = 3, labels = c("Low", "Medium", "High"))
 d_eucdist$pleiorate.cat <- cut(d_eucdist$pleiorate, breaks = 3, labels = c("Low", "Medium", "High"))
 d_eucdist$locisigma.cat <- cut(d_eucdist$locisigma, breaks = 3, labels = c("Low", "Medium", "High"))
-d_eucdist$tau.cat <- cut(d_eucdist$tau, breaks = 3, labels = c("Low", "Medium", "High"))
+d_eucdist$tau.cat <- cut(d_eucdist$tau, breaks = 3, labels = c("High", "Medium", "Low"))
 
 # Reorder so predictors are first
 
 d_eucdist <- d_eucdist[,c(1:3, 5:16, 4)]
 
-write.csv(d_eucdist, "d_eucdist.csv")
+write.csv(d_eucdist, "d_eucdist.csv", row.names = F)
+
+d_eucdist <- read.csv("d_eucdist.csv")
 
 # Order factors
 
@@ -107,7 +109,7 @@ d_eucdist$rwide.cat <- factor(d_eucdist$rwide.cat, levels = c("Low", "Medium", "
 d_eucdist$pleiocov.cat <- factor(d_eucdist$pleiocov.cat, levels = c("Low", "Medium", "High"))
 d_eucdist$pleiorate.cat <- factor(d_eucdist$pleiorate.cat, levels = c("Low", "Medium", "High"))
 d_eucdist$locisigma.cat <- factor(d_eucdist$locisigma.cat, levels = c("Low", "Medium", "High"))
-d_eucdist$tau.cat <- factor(d_eucdist$tau.cat, levels = c("Low", "Medium", "High"))
+d_eucdist$tau.cat <- factor(d_eucdist$tau.cat, levels = c("High", "Medium", "Low"))
 
 
 # Type III lm/ANOVA followed by least squares means contrasts as post hoc
@@ -127,14 +129,48 @@ par(mfrow = c(2,2))
 plot(lm_eucdist)
 # Lots of heteroskedasticity: will have to adjust for that using Eicker-Huber-White
 
+emm_dist_contr_d.r.t <- pairs(pairs(emmeans(lm_eucdist, ~ delmu.cat * rwide.cat | tau.cat,
+                                      at = list(delmu.cat = c("Low", "High"),
+                                                rwide.cat = c("Low", "High"),
+                                                tau.cat = c("Low")))), by = NULL)
+
 emm_dist_d.r.t <- emmeans(lm_eucdist, pairwise ~ delmu.cat * rwide.cat | tau.cat)
+emm_dist_d.t <- emmeans(lm_eucdist, pairwise ~ delmu.cat | tau.cat)
+
+
+pairs(pairs(emmeans(m, ~ f2|f1)), by = NULL)
+
 emm_dist_pr.pc.t <- emmeans(lm_eucdist, pairwise ~ pleiorate.cat * pleiocov.cat | tau.cat)
 emm_dist_pr.r.t <- emmeans(lm_eucdist, pairwise ~ pleiorate.cat * rwide.cat | tau.cat)
-emm_dist_pc.r.t <- emmeans(lm_eucdist, pairwise ~ pleiocov.cat * rwide.cat | tau.cat)
+
+emm_dist_contr_pr.r.t <- pairs(pairs(emmeans(lm_eucdist, ~ pleiorate.cat * rwide.cat | tau.cat,
+                                            at = list(pleiorate.cat = c("Low", "High"),
+                                                      rwide.cat = c("Low", "High"),
+                                                      tau.cat = c("High")))), by = NULL)
+
+
 emm_dist_pr.d.t <- emmeans(lm_eucdist, pairwise ~ pleiorate.cat * delmu.cat | tau.cat)
+
+
+emm_dist_contr_pr.d.t <- pairs(pairs(emmeans(lm_eucdist, ~ pleiorate.cat * delmu.cat | tau.cat,
+                                             at = list(pleiorate.cat = c("Low", "High"),
+                                                       delmu.cat = c("Low", "High"),
+                                                       tau.cat = c("Low", "High")))), by = NULL)
+
+
+
 emm_dist_pc.d.t <- emmeans(lm_eucdist, pairwise ~ pleiocov.cat * delmu.cat | tau.cat)
 emm_dist_pr.ls.t <- emmeans(lm_eucdist, pairwise ~ pleiorate.cat * locisigma.cat | tau.cat)
+
+emm_dist_contr_pr.ls.t <- pairs(pairs(emmeans(lm_eucdist, ~ pleiorate.cat * locisigma.cat | tau.cat,
+                                             at = list(pleiorate.cat = c("Low", "High"),
+                                                       locisigma.cat = c("Low", "High"),
+                                                       tau.cat = c("High")))), by = NULL)
+
+
+
 emm_dist_pc.ls.t <- emmeans(lm_eucdist, pairwise ~ pleiocov.cat * locisigma.cat | tau.cat)
+emm_dist_pc.r.t <- emmeans(lm_eucdist, pairwise ~ pleiocov.cat * rwide.cat | tau.cat)
 
 
 # Plot euclidean distance from optimum: separate figure for each parameter, coloured lines for tau bin
