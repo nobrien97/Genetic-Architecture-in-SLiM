@@ -182,7 +182,7 @@ plot_eucdist_d.r.ls <- ggplot(dplot_eucdist_d.r.ls, aes(x = rwide.cat, y = dist_
     ymax = dist_mean + (1.96*dist_se)), 
     width = 0.25,
     position = position_dodge(0.9)) +
-  scale_color_npg() +
+  scale_fill_npg() +
   theme_classic() +
   labs(x = r_lab, y = "Euclidean distance from optimum", fill = d_lab) +
   theme(strip.text.x = element_text(size = 12),
