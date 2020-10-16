@@ -803,3 +803,109 @@ grid.arrange(plot_gtab_eucdist.d.r, plot_gtab_eucdist.pr.pc, newpage = T)
 
 
 ########################################################################################
+# Over time: need to get pop means, mean var and mean cov so file shouldn't be too big
+# Will need to do with selection model
+
+# For null, will have to calculate the optimum after the fact
+# phenomeans at generation 50,000
+# optimum = phenomeans+(phenomeans*(3.1746) # mu*nloci*50,000 = 6.3e-6*100*50,000 = 31.5
+# 
+
+# Test here first with a small section, do big null file on supercomputer
+
+d_null_256 <- data.table::fread("/mnt/f/Uni/AIM1/OUTPUT/out_8T_null_means_256.csv", header = F, integer64="character")
+
+
+names(d_null_256)[1:6] <- c("gen", "seed", "modelindex", "rsd", "rwide", "delmu")
+# d_null_256$seed <- as.factor(d_null_256$seed)
+
+names(d_null_256)[7:34] <-  c(paste0("pleiocov_0", 1:7), paste0("pleiocov_1", 2:7), paste0("pleiocov_2", 3:7), paste0("pleiocov_3", 4:7), paste0("pleiocov_4", 5:7), paste0("pleiocov_5", 6:7), paste0("pleiocov_6", 7))
+
+names(d_null_256)[35:42] <- paste0("mean", 0:7)
+
+names(d_null_256)[43:50] <- paste0("var", 0:7)
+
+names(d_null_256)[51:78] <- c(paste0("phenocov_0", 1:7), paste0("phenocov_1", 2:7), paste0("phenocov_2", 3:7), paste0("phenocov_3", 4:7), paste0("phenocov_4", 5:7), paste0("phenocov_5", 6:7), paste0("phenocov_6", 7))
+
+names(d_null_256)[79:106] <- c(paste0("phenocor_0", 1:7), paste0("phenocor_1", 2:7), paste0("phenocor_2", 3:7), paste0("phenocor_3", 4:7), paste0("phenocor_4", 5:7), paste0("phenocor_5", 6:7), paste0("phenocor_6", 7))
+
+names(d_null_256)[107] <- "H"
+
+d_null_opt <- d_null_256[d_null_256$gen == 50000]
+d_null_opt <- cbind(d_null_opt[, c(2:3)], d_null_opt[, c(35:42)] + (d_null_opt[, c(35:42)]*(100/31.5)))
+names(d_null_opt) <- c("seed", "modelindex", paste0("opt", 0:7))
+
+
+d_null$varmean <- rowMeans(d_null[, c(43:50)])
+d_null$covmean <- rowMeans(d_null[, c(51:78)])
+
+d_null <- d_null[, -c(43:107)]
+write.csv(d_null_opt, "d_null_opt.csv")
+write.csv(d_null, "d_null_time.csv")
+
+
+# Linux version
+
+d_sel <- data.table::fread("/mnt/f/Uni/AIM3/OUTPUT/out_8T_stabsel_means_c2.csv", header = F, integer64="character", fill = T, select = c(1:107))
+
+
+# Remove duplicate rows
+library(tidyverse)
+d_sel <- d_sel %>% distinct()
+
+
+names(d_sel)[1:7] <- c("gen", "seed", "modelindex", "rsd", "rwide", "delmu", "tau")
+# d_null$seed <- as.factor(d_null$seed)
+
+names(d_sel)[8:35] <-  c(paste0("pleiocov_0", 1:7), paste0("pleiocov_1", 2:7), paste0("pleiocov_2", 3:7), paste0("pleiocov_3", 4:7), paste0("pleiocov_4", 5:7), paste0("pleiocov_5", 6:7), paste0("pleiocov_6", 7))
+
+names(d_sel)[36:43] <- paste0("mean", 0:7)
+
+names(d_sel)[44:51] <- paste0("var", 0:7)
+
+names(d_sel)[52:79] <- c(paste0("phenocov_0", 1:7), paste0("phenocov_1", 2:7), paste0("phenocov_2", 3:7), paste0("phenocov_3", 4:7), paste0("phenocov_4", 5:7), paste0("phenocov_5", 6:7), paste0("phenocov_6", 7))
+
+names(d_sel)[80:107] <- c(paste0("phenocor_0", 1:7), paste0("phenocor_1", 2:7), paste0("phenocor_2", 3:7), paste0("phenocor_3", 4:7), paste0("phenocor_4", 5:7), paste0("phenocor_5", 6:7), paste0("phenocor_6", 7))
+
+d_sel$seed <- as.numeric(d_sel$seed)
+
+d_sel$varmean <- rowMeans(d_sel[, c(44:51)])
+d_sel$covmean <- rowMeans(d_sel[, c(52:79)])
+
+d_sel <- d_sel[, -c(8:35, 44:107)]
+
+d_sel <- d_sel[order(d_sel$modelindex),]
+
+# Add actual pleiocov line (value from the latin hypercube)
+#ls_combos <- read.csv("Z:/Documents/GitHub/Genetic-Architecture-in-SLiM/src/R/pilot_runs/Pilot_Project/lscombos_sel.csv")
+
+# Linux version
+ls_combos_sel <- read.csv("/mnt/z/Documents/GitHub/Genetic-Architecture-in-SLiM/src/Cluster_jobs/final_runs/Nimrod/Simplified/AIM3/lscombos_sel.csv")
+
+d_sel$locisigma <- rep(ls_combos_sel$locisigma, each = 20100)
+
+
+write.csv(d_sel, "d_sel_time.csv", row.names = F)
+
+
+# sel distances
+d_sel_opt <- data.table::fread("/mnt/f/Uni/AIM3/OUTPUT/out_8T_stabsel_opt_c.csv", header = F, integer64="character")
+names(d_sel_opt) <- c("seed", "modelindex", paste0("opt", 0:7))
+d_sel_opt$seed <- as.numeric(d_sel_opt$seed)
+
+# Run on supercomputer: extract means, and optima, do distance
+
+ls_sel_means <- MCmean_gen_new(d_sel, 4)
+
+
+d_sel$opt0 <- rep(d_sel_opt$opt0, each = 201)
+d_sel$opt1 <- rep(d_sel_opt$opt1, each = 201)
+d_sel$opt2 <- rep(d_sel_opt$opt2, each = 201)
+d_sel$opt3 <- rep(d_sel_opt$opt3, each = 201)
+d_sel$opt4 <- rep(d_sel_opt$opt4, each = 201)
+d_sel$opt5 <- rep(d_sel_opt$opt5, each = 201)
+d_sel$opt6 <- rep(d_sel_opt$opt6, each = 201)
+d_sel$opt7 <- rep(d_sel_opt$opt7, each = 201)
+
+d_sel$dist <- dist(d_sel_opt)
+

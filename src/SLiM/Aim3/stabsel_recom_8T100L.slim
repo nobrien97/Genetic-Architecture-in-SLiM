@@ -536,10 +536,11 @@ mutation(m2) {
 	print(phenomeans);
 	// Calculate optima as 100 steps from the mean - first find total steps/mutations in burn-in: mu*nloci*50000 generations
 	
-	// steps = 31.5; //mu*(nloci)*50000; nloci fixed at 100
+	// steps = 40.225; //mu*(nloci)*50000; nloci fixed at 100
 	
 	// Optima are 100 steps from mean, that's 100/steps * phenomeans
-	defineConstant("optima", (phenomeans+(phenomeans*(3.1746)))); // 100/31.5 = 3.1746
+	steps = mu*nloci*50000;
+	defineConstant("optima", (phenomeans+(phenomeans*(100/steps)))); // 100/40.225 = 2.486
 	catn("\nTrait optima: ");
 	print(optima);
 	
@@ -698,7 +699,7 @@ mutation(m2) {
 
 	
 	// Stick those values in the output, along with predictors - there are a lot of predictors now... do we replace them all with modelindex aside from seed?
-	meanline = paste(c(sim.generation, ",", asString(seed), ",", modelindex, ",", rsd, ",", rwide, ",", delmu, ",", tau, ",", paste(pleio_covs, ","), ",",  paste(phenomeans, ","), ",", paste(phenovars, ","), ",", phenocov, ",", phenocor, ",", meanH ""), "");
+	meanline = paste(c(sim.generation, ",", asString(seed), ",", modelindex, ",", rsd, ",", rwide, ",", delmu, ",", tau, ",", paste(pleio_covs, ","), ",",  paste(phenomeans, ","), ",", paste(phenovars, ","), ",", phenocov, ",", phenocor, ",", meanH, ""), "");
 	file = paste(meanline, "");
 	
 	// Write the file

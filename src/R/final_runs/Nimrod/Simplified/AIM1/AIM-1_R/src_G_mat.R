@@ -858,3 +858,88 @@ ListToDF_ET <- function(Glist, responses) {
 }
 
 
+# New Euclidean distance functions
+
+
+# Euclidean distances: functions for transforming trait means and optima into appropriate lists for analysis
+
+# Function to convert a single line from dataframe to just the mean values
+dat_to_mean_new <- function(dat) {
+  dat <- as.vector(t(dat))
+  means <- dat[8:15]
+  means
+}
+
+
+# Multithread get mean values from populations, store in list as usual
+MCmean_gen_new <- function(dat, cores) {
+  require(parallel)
+  require(dplyr)
+  dat <- dplyr::arrange(dat, gen, modelindex, seed)
+  dat <- dplyr::group_split(dat, gen) %>% setNames(unique(dat$gen)) # split data frame by generation
+  dat <- parallel::mclapply(dat, function(x) { dplyr::group_split(x, seed) %>% setNames(unique(x$seed))}, mc.cores = cores) # split by seed
+  dat <- parallel::mclapply(dat, function(x) { lapply(x, function(y) {
+    split(as.matrix(y), row(y)) %>% setNames(unique(dat$modelindex)) # split the dataframe of seed values by their row (models), treat as a matrix instead of dataframe for dat_to_mat
+  })
+  }, mc.cores = cores)
+  dat
+  dat <- parallel::mclapply(dat, function(x) { 
+    lapply(x, function(y) { 
+      lapply(y, function(z) { 
+        dat_to_mean_new(z) # Convert each line (model/seed/generation combination) into a G matrix
+      })
+    }) 
+  }, mc.cores = cores)
+  
+  dat
+}
+
+# Convert optimums into a list for easier comparison
+MCopt_gen <- function(opt, cores) {
+  require(parallel)
+  opt <- dplyr::arrange(opt, modelindex, seed) # should be modelindex instead of tau in final function
+  opt <- dplyr::group_split(opt, seed)  %>% setNames(sort(unique(opt$seed)))
+  opt <- parallel::mclapply(opt, function (x) {
+    x <- x[,3:10]
+    split(as.matrix(x), row(x)) %>% setNames(sort(unique(v)))
+  }, mc.cores = cores)
+  opt
+}
+
+mean_gen_new <- function(dat) {
+  dat <- dplyr::arrange(dat, gen, modelindex, seed) # should be modelindex instead of tau in final function
+  dat <- dplyr::group_split(dat, gen) %>% setNames(unique(dat$gen))
+  dat <- lapply(dat, function(x) { dplyr::group_split(x, seed)  %>% setNames(unique(x$seed))}) # Don't need names of seeds
+  dat <- lapply(dat, function(x) { lapply(x, function(y) {
+    split(as.matrix(y), row(y)) %>% setNames(unique(dat$modelindex))
+  })
+  })
+  dat <- lapply(dat, function(x) { 
+    lapply(x, function(y) { 
+      lapply(y, function(z) { 
+        dat_to_mean_new(z) 
+      })
+    }) 
+  })
+  dat
+}
+
+
+MCeuc_dist_new <- function(dat, opt, cores) {
+  require(parallel)
+  dat <- MCmean_gen_new(dat, cores)
+  opt <- MCopt_gen(opt, cores)
+  dists <- parallel::mclapply(seq_along(dat), function(x) {
+    lapply(seq_along(dat[[x]]), function(y) {
+      lapply(seq_along(dat[[x]][[y]]), function(z) {
+        opt_x <- as.numeric(opt[[y]][[z]]) # Get the index of the second and third levels of the list (seed, modelindex); for use in getting the right opt
+        dist_x <- as.numeric(dat[[x]][[y]][[z]]) # Choose the right sampled vector of means (gen, seed, modelindex)
+        dist(rbind(dist_x, opt_x)) # Euclidean distance calculation between given vector of means and associated optimum vector
+      })
+    })
+  }, mc.cores = cores)
+  dists
+}
+
+
+
