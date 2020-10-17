@@ -8,9 +8,9 @@
 # 
 
 # Test here first with a small section, do big null file on supercomputer, and selection model
-
+set.seed(873662137)
 setwd("/90days/s4395747")
-source("/90days/src_G_mat.R")
+source("src_G_mat.R")
 library(plyr)
 library(tidyverse)
 
@@ -21,42 +21,43 @@ library(tidyverse)
 
 # Linux version
 
-d_sel <- data.table::fread("/90days/d_sel_time.csv", header = F, integer64="character")
+d_sel <- data.table::fread("/90days/s4395747/d_sel_time.csv", header = T, integer64="character")
 d_sel <- d_sel[, -1]
 d_sel$seed <- as.numeric(d_sel$seed)
 
 
 
 # sel distances
-d_sel_opt <- data.table::fread("/90days/out_8T_stabsel_opt_c.csv", header = F, integer64="character")
+d_sel_opt <- data.table::fread("/90days/s4395747/out_8T_stabsel_opt_c.csv", header = F, integer64="character")
 names(d_sel_opt) <- c("seed", "modelindex", paste0("opt", 0:7))
 d_sel_opt$seed <- as.numeric(d_sel_opt$seed)
 
 # Run on supercomputer: extract means, and optima, do distance
 
-ls_sel_means <- MCeuc_dist_new(d_sel, d_sel_opt, 24)
+ls_sel_dist <- MCeuc_dist_new(d_sel, d_sel_opt, 24)
 
 d_sel_eucdist <- data.frame(
   gen = rep(unique(d_sel$gen), each = length(unique(d_sel$seed))*length(unique(d_sel$modelindex))),
   seed = sort(rep(unique(d_sel$seed), each = length(unique(d_sel$modelindex)))),
   modelindex = sort(unique(d_sel$modelindex)),
-  distance = unlist(ls_sel_means)
+  distance = unlist(ls_sel_dist)
 )
 
-saveRDS(d_sel_eucdist, "d_sel_eucdist.RDS")
 
 # Add parameters
 
-ls_combos_sel <- read.csv("/90days/lscombos_sel.csv")
+ls_combos_sel <- read.csv("/90days/s4395747/lscombos_sel.csv")
 
 d_sel_eucdist$delmu <- rep(ls_combos_sel$delmu, times = 20100)
 d_sel_eucdist$rwide <- rep(ls_combos_sel$rwide, times = 20100)
 d_sel_eucdist$locisigma <- rep(ls_combos_sel$locisigma, times = 20100)
 d_sel_eucdist$tau <- rep(ls_combos_sel$tau, times = 20100)
 
+saveRDS(d_sel_eucdist, "d_sel_eucdist.RDS")
 
 
-d_null <- data.table::fread("/90days/s4395747/out_8T_null_means_c2.csv", header = F, integer64="character")
+
+d_null <- data.table::fread("/90days/s4395747/out_8T_null_means_c_2.csv", header = F, integer64="character")
 
 
 names(d_null)[1:6] <- c("gen", "seed", "modelindex", "rsd", "rwide", "delmu")
@@ -78,44 +79,252 @@ d_null$seed <- as.numeric(d_null$seed)
 
 
 d_null_opt <- d_null[d_null$gen == 50000]
-d_null_opt <- cbind(d_null_opt[, c(2:3)], d_null_opt[, c(35:42)] + (d_null_opt[, c(35:42)]*(100/31.5)))
+d_null_opt <- cbind(d_null_opt[, c(2:3)], (d_null_opt[, c(35:42)] + (d_null_opt[, c(35:42)]*(100/31.5))))
 names(d_null_opt) <- c("seed", "modelindex", paste0("opt", 0:7))
 
 d_null$varmean <- rowMeans(d_null[, c(43:50)])
 d_null$covmean <- rowMeans(d_null[, c(51:78)])
 
-d_null <- d_null[, -c(43:107)]
+d_null <- d_null[, -c(7:34, 43:107)]
 write.csv(d_null_opt, "d_null_opt.csv", row.names = F)
 write.csv(d_null, "d_null_time.csv", row.names = F)
 
+d_null <- data.table::fread("/90days/s4395747/d_null_time.csv", header = T, integer64="character")
+d_null_opt <- data.table::fread("/90days/s4395747/d_null_opt.csv", header = T, integer64="character")
 
-ls_null_means <- MCeuc_dist_new(d_null, d_null_opt, 24)
+# Add an extra variable now so the function takes the correct values (the means)
 
-d_null_eucdist <- data.frame(
-  gen = rep(unique(d_null$gen), each = length(unique(d_null$seed))*length(unique(d_null$modelindex))),
-  seed = sort(rep(unique(d_null$seed), each = length(unique(d_null$modelindex)))),
-  modelindex = sort(unique(d_null$modelindex)),
-  distance = unlist(ls_null_means)
+d_null$tau <- 0.0
+d_null <- d_null[,c(1:6, 17, 7:16)]
+
+nrow(d_null) 
+# Split the file up to calculate distances separately - otherwise too much RAM used
+# 20582601 rows total
+# Could arrange by modelindex and seed etc. then create two lists of 512 models
+# Then do the same for opt, keeping 512 models
+
+
+d_null$seed <- as.numeric(d_null$seed)
+d_null_opt$seed <- as.numeric(d_null_opt$seed)
+
+d_null <- arrange(d_null, gen, modelindex, seed)
+d_null_opt <- arrange(d_null_opt, modelindex, seed)
+
+d_null_pt1 <- d_null[d_null$modelindex < 129,]
+
+d_null_pt8 <- d_null[d_null$modelindex > 128 & d_null$modelindex < 257,]
+
+d_null_pt2 <- d_null[d_null$modelindex > 256 & d_null$modelindex < 385,]
+
+d_null_pt3 <- d_null[d_null$modelindex > 384 & d_null$modelindex < 513,]
+
+d_null_pt4 <- d_null[d_null$modelindex > 512 & d_null$modelindex < 641,]
+
+d_null_pt5 <- d_null[d_null$modelindex > 640 & d_null$modelindex < 769,]
+
+d_null_pt6 <- d_null[d_null$modelindex > 768 & d_null$modelindex < 897,]
+
+d_null_pt7 <- d_null[d_null$modelindex > 896 & d_null$modelindex < 1025,]
+
+
+
+d_null_opt_pt1 <- d_null_opt[d_null_opt$modelindex < 129,]
+
+d_null_opt_pt8 <- d_null_opt[d_null_opt$modelindex > 128 & d_null_opt$modelindex < 257,]
+
+d_null_opt_pt2 <- d_null_opt[d_null_opt$modelindex > 256 & d_null_opt$modelindex < 385,]
+
+d_null_opt_pt3 <- d_null_opt[d_null_opt$modelindex > 384 & d_null_opt$modelindex < 513,]
+
+d_null_opt_pt4 <- d_null_opt[d_null_opt$modelindex > 512 & d_null_opt$modelindex < 641,]
+
+d_null_opt_pt5 <- d_null_opt[d_null_opt$modelindex > 640 & d_null_opt$modelindex < 769,]
+
+d_null_opt_pt6 <- d_null_opt[d_null_opt$modelindex > 768 & d_null_opt$modelindex < 897,]
+
+d_null_opt_pt7 <- d_null_opt[d_null_opt$modelindex > 896 & d_null_opt$modelindex < 1025,]
+
+
+write.csv(d_null_pt1, "d_null_pt1.csv", row.names = F)
+write.csv(d_null_pt8, "d_null_pt8.csv", row.names = F)
+write.csv(d_null_pt2, "d_null_pt2.csv", row.names = F)
+write.csv(d_null_pt3, "d_null_pt3.csv", row.names = F)
+write.csv(d_null_pt4, "d_null_pt4.csv", row.names = F)
+write.csv(d_null_pt5, "d_null_pt5.csv", row.names = F)
+write.csv(d_null_pt6, "d_null_pt6.csv", row.names = F)
+write.csv(d_null_pt7, "d_null_pt7.csv", row.names = F)
+
+write.csv(d_null_opt_pt1, "d_null_opt_pt1.csv", row.names = F)
+write.csv(d_null_opt_pt8, "d_null_opt_pt8.csv", row.names = F)
+write.csv(d_null_opt_pt2, "d_null_opt_pt2.csv", row.names = F)
+write.csv(d_null_opt_pt3, "d_null_opt_pt3.csv", row.names = F)
+write.csv(d_null_opt_pt4, "d_null_opt_pt4.csv", row.names = F)
+write.csv(d_null_opt_pt5, "d_null_opt_pt5.csv", row.names = F)
+write.csv(d_null_opt_pt6, "d_null_opt_pt6.csv", row.names = F)
+write.csv(d_null_opt_pt7, "d_null_opt_pt7.csv", row.names = F)
+
+rm(list=ls())
+source("src_G_mat.R")
+
+
+d_null_pt1 <- data.table::fread("/90days/s4395747/d_null_pt1.csv", header = T, integer64="character")
+d_null_opt_pt1 <- data.table::fread("/90days/s4395747/d_null_opt_pt1.csv", header = T, integer64="character")
+d_null_pt1$seed <- as.numeric(d_null_pt1$seed)
+d_null_opt_pt1$seed <- as.numeric(d_null_opt_pt1$seed)
+
+ls_null_dist_1 <- MCeuc_dist_new(d_null_pt1, d_null_opt_pt1, 24)
+d_null_eucdist_pt1 <- data.frame(
+  gen = rep(unique(d_null_pt1$gen), each = length(unique(d_null_pt1$seed))*length(unique(d_null_pt1$modelindex))),
+  seed = rep(unique(d_null_pt1$seed), each = length(unique(d_null_pt1$modelindex))),
+  modelindex = sort(unique(d_null_pt1$modelindex)),
+  distance = unlist(ls_null_dist_1)
 )
+saveRDS(d_null_eucdist_pt1, "d_null_eucdist_pt1.RDS")
 
-saveRDS(d_null_eucdist, "d_null_eucdist.RDS")
+
+d_null_pt8 <- data.table::fread("/90days/s4395747/d_null_pt8.csv", header = T, integer64="character")
+d_null_opt_pt8 <- data.table::fread("/90days/s4395747/d_null_opt_pt8.csv", header = T, integer64="character")
+d_null_pt8$seed <- as.numeric(d_null_pt8$seed)
+d_null_opt_pt8$seed <- as.numeric(d_null_opt_pt8$seed)
+
+ls_null_dist_8 <- MCeuc_dist_new(d_null_pt8, d_null_opt_pt8, 24)
+d_null_eucdist_pt8 <- data.frame(
+  gen = rep(unique(d_null_pt8$gen), each = length(unique(d_null_pt8$seed))*length(unique(d_null_pt8$modelindex))),
+  seed = rep(unique(d_null_pt8$seed), each = length(unique(d_null_pt8$modelindex))),
+  modelindex = sort(unique(d_null_pt8$modelindex)),
+  distance = unlist(ls_null_dist_8)
+)
+saveRDS(d_null_eucdist_pt8, "d_null_eucdist_pt8.RDS")
+
+
+
+d_null_pt2 <- data.table::fread("/90days/s4395747/d_null_pt2.csv", header = T, integer64="character")
+d_null_opt_pt2 <- data.table::fread("/90days/s4395747/d_null_opt_pt2.csv", header = T, integer64="character")
+d_null_pt2$seed <- as.numeric(d_null_pt2$seed)
+d_null_opt_pt2$seed <- as.numeric(d_null_opt_pt2$seed)
+
+ls_null_dist_2 <- MCeuc_dist_new(d_null_pt2, d_null_opt_pt2, 24)
+d_null_eucdist_pt2 <- data.frame(
+  gen = rep(unique(d_null_pt2$gen), each = length(unique(d_null_pt2$seed))*length(unique(d_null_pt2$modelindex))),
+  seed = rep(unique(d_null_pt2$seed), each = length(unique(d_null_pt2$modelindex))),
+  modelindex = sort(unique(d_null_pt2$modelindex)),
+  distance = unlist(ls_null_dist_2)
+)
+saveRDS(d_null_eucdist_pt2, "d_null_eucdist_pt2.RDS")
+
+
+d_null_pt3 <- data.table::fread("/90days/s4395747/d_null_pt3.csv", header = T, integer64="character")
+d_null_dist_3 <- d_null_dist_3 %>% distinct()
+d_null_opt_pt3 <- data.table::fread("/90days/s4395747/d_null_opt_pt3.csv", header = T, integer64="character")
+d_null_pt3$seed <- as.numeric(d_null_pt3$seed)
+d_null_opt_pt3$seed <- as.numeric(d_null_opt_pt3$seed)
+
+ls_null_dist_3 <- MCeuc_dist_new(d_null_pt3, d_null_opt_pt3, 24)
+d_null_eucdist_pt3 <- data.frame(
+  gen = rep(unique(d_null_pt3$gen), each = length(unique(d_null_pt3$seed))*length(unique(d_null_pt3$modelindex))),
+  seed = rep(unique(d_null_pt3$seed), each = length(unique(d_null_pt3$modelindex))),
+  modelindex = sort(unique(d_null_pt3$modelindex)),
+  distance = unlist(ls_null_dist_3)
+)
+saveRDS(d_null_eucdist_pt3, "d_null_eucdist_pt3.RDS")
+
+
+d_null_pt4 <- data.table::fread("/90days/s4395747/d_null_pt4.csv", header = T, integer64="character")
+d_null_opt_pt4 <- data.table::fread("/90days/s4395747/d_null_opt_pt4.csv", header = T, integer64="character")
+d_null_pt4$seed <- as.numeric(d_null_pt4$seed)
+d_null_opt_pt4$seed <- as.numeric(d_null_opt_pt4$seed)
+
+ls_null_dist_4 <- MCeuc_dist_new(d_null_pt4, d_null_opt_pt4, 24)
+d_null_eucdist_pt4 <- data.frame(
+  gen = rep(unique(d_null_pt4$gen), each = length(unique(d_null_pt4$seed))*length(unique(d_null_pt4$modelindex))),
+  seed = rep(unique(d_null_pt4$seed), each = length(unique(d_null_pt4$modelindex))),
+  modelindex = sort(unique(d_null_pt4$modelindex)),
+  distance = unlist(ls_null_dist_4)
+)
+saveRDS(d_null_eucdist_pt4, "d_null_eucdist_pt4.RDS")
+
+
+d_null_pt5 <- data.table::fread("/90days/s4395747/d_null_pt5.csv", header = T, integer64="character")
+d_null_opt_pt5 <- data.table::fread("/90days/s4395747/d_null_opt_pt5.csv", header = T, integer64="character")
+d_null_pt5$seed <- as.numeric(d_null_pt5$seed)
+d_null_opt_pt5$seed <- as.numeric(d_null_opt_pt5$seed)
+
+ls_null_dist_5 <- MCeuc_dist_new(d_null_pt5, d_null_opt_pt5, 24)
+d_null_eucdist_pt5 <- data.frame(
+  gen = rep(unique(d_null_pt5$gen), each = length(unique(d_null_pt5$seed))*length(unique(d_null_pt5$modelindex))),
+  seed = rep(unique(d_null_pt5$seed), each = length(unique(d_null_pt5$modelindex))),
+  modelindex = sort(unique(d_null_pt5$modelindex)),
+  distance = unlist(ls_null_dist_5)
+)
+saveRDS(d_null_eucdist_pt5, "d_null_eucdist_pt5.RDS")
+
+
+d_null_pt6 <- data.table::fread("/90days/s4395747/d_null_pt6.csv", header = T, integer64="character")
+d_null_opt_pt6 <- data.table::fread("/90days/s4395747/d_null_opt_pt6.csv", header = T, integer64="character")
+d_null_pt6$seed <- as.numeric(d_null_pt6$seed)
+d_null_opt_pt6$seed <- as.numeric(d_null_opt_pt6$seed)
+
+ls_null_dist_6 <- MCeuc_dist_new(d_null_pt6, d_null_opt_pt6, 24)
+d_null_eucdist_pt6 <- data.frame(
+  gen = rep(unique(d_null_pt6$gen), each = length(unique(d_null_pt6$seed))*length(unique(d_null_pt6$modelindex))),
+  seed = rep(unique(d_null_pt6$seed), each = length(unique(d_null_pt6$modelindex))),
+  modelindex = sort(unique(d_null_pt6$modelindex)),
+  distance = unlist(ls_null_dist_6)
+)
+saveRDS(d_null_eucdist_pt6, "d_null_eucdist_pt6.RDS")
+
+
+
+d_null_pt7 <- data.table::fread("/90days/s4395747/d_null_pt7.csv", header = T, integer64="character")
+d_null_opt_pt7 <- data.table::fread("/90days/s4395747/d_null_opt_pt7.csv", header = T, integer64="character")
+d_null_pt7$seed <- as.numeric(d_null_pt7$seed)
+d_null_opt_pt7$seed <- as.numeric(d_null_opt_pt7$seed)
+
+ls_null_dist_7 <- MCeuc_dist_new(d_null_pt7, d_null_opt_pt7, 24)
+d_null_eucdist_pt7 <- data.frame(
+  gen = rep(unique(d_null_pt7$gen), each = length(unique(d_null_pt7$seed))*length(unique(d_null_pt7$modelindex))),
+  seed = rep(unique(d_null_pt7$seed), each = length(unique(d_null_pt7$modelindex))),
+  modelindex = sort(unique(d_null_pt7$modelindex)),
+  distance = unlist(ls_null_dist_7)
+)
+saveRDS(d_null_eucdist_pt7, "d_null_eucdist_pt7.RDS")
+
+
+d_null_eucdist_pt1 <- readRDS("d_null_eucdist_pt1.RDS")
+d_null_eucdist_pt2 <- readRDS("d_null_eucdist_pt8.RDS") # number 8 is actually number 2, due to RAM problems and needing to split stuff up even more
+d_null_eucdist_pt3 <- readRDS("d_null_eucdist_pt2.RDS")
+d_null_eucdist_pt4 <- readRDS("d_null_eucdist_pt3.RDS")
+d_null_eucdist_pt5 <- readRDS("d_null_eucdist_pt4.RDS")
+d_null_eucdist_pt6 <- readRDS("d_null_eucdist_pt5.RDS")
+d_null_eucdist_pt7 <- readRDS("d_null_eucdist_pt6.RDS")
+d_null_eucdist_pt8 <- readRDS("d_null_eucdist_pt7.RDS")
+
+
+d_null_eucdist <- data.table::rbindlist(list(d_null_eucdist_pt1, d_null_eucdist_pt2, d_null_eucdist_pt3, d_null_eucdist_pt4, d_null_eucdist_pt5, d_null_eucdist_pt6, d_null_eucdist_pt7, d_null_eucdist_pt8))
 
 # Add parameters 
 
-ls_combos_null <- read.csv("/90days/lscombos_sel.csv")
+d_null_eucdist <- arrange(d_null_eucdist, gen, modelindex, seed)
+
+ls_combos_null <- read.csv("/90days/s4395747/lscombos_null.csv")
 
 d_null_eucdist$delmu <- rep(ls_combos_null$delmu, times = 20100)
 d_null_eucdist$rwide <- rep(ls_combos_null$rwide, times = 20100)
 d_null_eucdist$locisigma <- rep(ls_combos_null$locisigma, times = 20100)
 d_null_eucdist$tau <- 0.0
 
+saveRDS(d_null_eucdist, "d_null_eucdist.RDS")
 
 # Combine the two
 
+d_sel_eucdist <- readRDS("d_sel_eucdist.RDS")
 
-d_sel_eucdist$modelindex <- d_sel$modelindex + 1024
+d_sel_eucdist <- arrange(d_sel_eucdist, gen, modelindex, seed)
 
-d_eucdist_c <- bind_rows(d_nul_eucdist, d_sel_eucdist)
+d_sel_eucdist$modelindex <- d_sel_eucdist$modelindex + 1024
+
+d_eucdist_c <- data.table::rbindlist(list(d_null_eucdist, d_sel_eucdist))
+d_eucdist_c <- arrange(d_eucdist_c, gen, modelindex, seed)
 d_eucdist_c$delmu.cat <- cut(d_eucdist_c$delmu, breaks = 3, labels = c("Low", "Medium", "High"))
 d_eucdist_c$locisigma.cat <- cut(d_eucdist_c$locisigma, breaks = 3, labels = c("Low", "Medium", "High")) 
 d_eucdist_c$rwide.cat <- cut(d_eucdist_c$rwide, breaks = 3, labels = c("Low", "Medium", "High")) 
@@ -129,6 +338,6 @@ saveRDS(d_eucdist_c, "d_eucdist_c.RDS")
 
 
 # Delmu * rwide * ls
-d_meaneucdist <- d_raw_mat[, -c(2:3)] %>%
+d_mean_eucdist <- d_eucdist_c[, -c(2:3)] %>%
   group_by(gen, delmu.cat, rwide.cat, locisigma.cat, tau.cat) %>%
   summarise_all(list(dist_mean = mean, dist_se = std.error, dist_var = var))

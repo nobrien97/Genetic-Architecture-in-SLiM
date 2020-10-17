@@ -897,11 +897,12 @@ MCmean_gen_new <- function(dat, cores) {
 # Convert optimums into a list for easier comparison
 MCopt_gen <- function(opt, cores) {
   require(parallel)
+  require(tidyverse)
   opt <- dplyr::arrange(opt, modelindex, seed) # should be modelindex instead of tau in final function
   opt <- dplyr::group_split(opt, seed)  %>% setNames(sort(unique(opt$seed)))
   opt <- parallel::mclapply(opt, function (x) {
     x <- x[,3:10]
-    split(as.matrix(x), row(x)) %>% setNames(sort(unique(v)))
+    split(as.matrix(x), row(x)) #%>% setNames(sort(unique(opt$modelindex)))
   }, mc.cores = cores)
   opt
 }

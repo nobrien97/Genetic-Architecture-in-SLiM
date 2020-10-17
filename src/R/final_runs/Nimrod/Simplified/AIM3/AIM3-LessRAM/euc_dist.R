@@ -887,6 +887,16 @@ d_sel$locisigma <- rep(ls_combos_sel$locisigma, each = 20100)
 
 write.csv(d_sel, "d_sel_time.csv", row.names = F)
 
+d_sel <- read.csv("d_sel_time.csv")
+d_sel <- d_sel[, -1]
+
+d_sel_test <- arrange(d_sel, gen, modelindex, seed)
+d_opt_test <- arrange(d_opt, modelindex, seed)
+
+d_sel_test <- as.numeric(d_sel_test[1, c(8:15)])
+d_opt_test <- as.numeric(d_opt_test[1, c(3:10)])
+dist(rbind(d_sel_test, d_opt_test))
+
 
 # sel distances
 d_sel_opt <- data.table::fread("/mnt/f/Uni/AIM3/OUTPUT/out_8T_stabsel_opt_c.csv", header = F, integer64="character")
@@ -895,17 +905,4 @@ d_sel_opt$seed <- as.numeric(d_sel_opt$seed)
 
 # Run on supercomputer: extract means, and optima, do distance
 
-ls_sel_means <- MCmean_gen_new(d_sel, 4)
-
-
-d_sel$opt0 <- rep(d_sel_opt$opt0, each = 201)
-d_sel$opt1 <- rep(d_sel_opt$opt1, each = 201)
-d_sel$opt2 <- rep(d_sel_opt$opt2, each = 201)
-d_sel$opt3 <- rep(d_sel_opt$opt3, each = 201)
-d_sel$opt4 <- rep(d_sel_opt$opt4, each = 201)
-d_sel$opt5 <- rep(d_sel_opt$opt5, each = 201)
-d_sel$opt6 <- rep(d_sel_opt$opt6, each = 201)
-d_sel$opt7 <- rep(d_sel_opt$opt7, each = 201)
-
-d_sel$dist <- dist(d_sel_opt)
-
+d_eucdist_c <- readRDS("d_eucdist_c.RDS")
