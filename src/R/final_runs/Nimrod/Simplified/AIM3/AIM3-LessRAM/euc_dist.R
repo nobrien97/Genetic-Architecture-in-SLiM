@@ -903,6 +903,626 @@ d_sel_opt <- data.table::fread("/mnt/f/Uni/AIM3/OUTPUT/out_8T_stabsel_opt_c.csv"
 names(d_sel_opt) <- c("seed", "modelindex", paste0("opt", 0:7))
 d_sel_opt$seed <- as.numeric(d_sel_opt$seed)
 
+
+##########################################################################################
 # Run on supercomputer: extract means, and optima, do distance
 
 d_eucdist_c <- readRDS("d_eucdist_c.RDS")
+d_mean_eucdist <- readRDS("d_mean_eucdist.RDS")
+d_mean_eucdist_notau_null <- readRDS("d_mean_eucdist_notau_null.RDS")
+d_mean_eucdist_notau_sel <- readRDS("d_mean_eucdist_notau_sel.RDS")
+
+
+# Plot euclidean distance from optimum: separate figure for each parameter, coloured lines for tau bin
+# Bars at final timepoint, then a line graph of distance over time
+
+########################################
+# Colour scale for graph points
+cs <- scales::seq_gradient_pal("blue", "#ff8c00", "Lab")(seq(0,1, length.out = 100))
+cs <- cs[c(1, 15, 45, 100)]
+
+d_eucdist_nullbar <- d_mean_eucdist_notau_null[d_mean_eucdist_notau_null$gen == 150000,]
+d_eucdist_selbar <- d_mean_eucdist_notau_sel[d_mean_eucdist_notau_sel$gen == 150000,]
+
+
+# Or use npg
+library(ggsci)
+
+
+# Null models and sel models: null models should have little difference in distance between treatments
+# Maybe smaller effects mean they don't go as far, but delmu shouldn't impact it nor should recom
+
+# Sel models decrease distance with increasing delmu, recombination reverses this effect somewhat
+# Under low delmu, recombination can slightly reduce distance to optimum
+
+plot_eucdist_r.d.ls.n <- ggplot(d_eucdist_nullbar, aes(x = delmu.cat, y = dist_mean, fill = rwide.cat)) +
+  facet_grid(locisigma.cat~.) +
+  geom_col(position = position_dodge(0.9)) +
+  geom_errorbar(aes(
+    ymin = dist_mean - (1.96*dist_se), 
+    ymax = dist_mean + (1.96*dist_se)), 
+    width = 0.25,
+    position = position_dodge(0.9)) +
+  scale_fill_npg() +
+  theme_classic() +
+  labs(x = d_lab, y = "Euclidean distance from optimum", fill = r_lab) +
+  theme(strip.text.x = element_text(size = 12),
+        strip.text.y = element_text(size = 12),
+        axis.text.x = element_text(size = 10, face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold"),
+        axis.title.x = element_text(margin = margin(t = 10), face = "bold"),
+        text = element_text(size = 12))
+
+# Thanks to: https://stackoverflow.com/a/37292665/13586824
+# Add delmu label
+# Labels 
+library(grid)
+library(gtable)
+labelR = ls_lab
+
+# Get the ggplot grob
+plot_gtab <- ggplotGrob(plot_eucdist_r.d.ls.n)
+
+# Get the positions of the strips in the gtable: t = top, l = left, ...
+posR <- subset(plot_gtab$layout, grepl("strip-r", name), select = t:r)
+
+# Add a new column to the right of current right strips, 
+# and a new row on top of current top strips
+width <- plot_gtab$widths[max(posR$r)]    # width of current right strips
+
+plot_gtab <- gtable_add_cols(plot_gtab, width, max(posR$r))  
+
+# Construct the new strip grobs
+stripR <- gTree(name = "Strip_right", children = gList(
+  rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
+  textGrob(labelR, rot = -90, gp = gpar(fontsize = 12, col = "black", fontface = "bold"))))
+
+# Position the grobs in the gtable
+plot_gtab <- gtable_add_grob(plot_gtab, stripR, t = min(posR$t), l = max(posR$r) + 1, b = max(posR$b), name = "strip-right")
+
+# Add small gaps between strips
+plot_gtab_eucdist.r.d.ls.n <- gtable_add_cols(plot_gtab, unit(1/5, "line"), max(posR$r))
+
+# Draw it
+grid.newpage()
+grid.draw(plot_gtab_eucdist.r.d.ls.n)
+
+
+
+plot_eucdist_r.d.ls.s <- ggplot(d_eucdist_selbar, aes(x = delmu.cat, y = dist_mean, fill = rwide.cat)) +
+  facet_grid(locisigma.cat~.) +
+  geom_col(position = position_dodge(0.9)) +
+  geom_errorbar(aes(
+    ymin = dist_mean - (1.96*dist_se), 
+    ymax = dist_mean + (1.96*dist_se)), 
+    width = 0.25,
+    position = position_dodge(0.9)) +
+  scale_fill_npg() +
+  theme_classic() +
+  labs(x = d_lab, y = "Euclidean distance from optimum", fill = r_lab) +
+  theme(strip.text.x = element_text(size = 12),
+        strip.text.y = element_text(size = 12),
+        axis.text.x = element_text(size = 10, face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold"),
+        axis.title.x = element_text(margin = margin(t = 10), face = "bold"),
+        text = element_text(size = 12))
+
+# Thanks to: https://stackoverflow.com/a/37292665/13586824
+# Add delmu label
+# Labels 
+library(grid)
+library(gtable)
+labelR = ls_lab
+
+# Get the ggplot grob
+plot_gtab <- ggplotGrob(plot_eucdist_r.d.ls.s)
+
+# Get the positions of the strips in the gtable: t = top, l = left, ...
+posR <- subset(plot_gtab$layout, grepl("strip-r", name), select = t:r)
+
+# Add a new column to the right of current right strips, 
+# and a new row on top of current top strips
+width <- plot_gtab$widths[max(posR$r)]    # width of current right strips
+
+plot_gtab <- gtable_add_cols(plot_gtab, width, max(posR$r))  
+
+# Construct the new strip grobs
+stripR <- gTree(name = "Strip_right", children = gList(
+  rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
+  textGrob(labelR, rot = -90, gp = gpar(fontsize = 12, col = "black", fontface = "bold"))))
+
+# Position the grobs in the gtable
+plot_gtab <- gtable_add_grob(plot_gtab, stripR, t = min(posR$t), l = max(posR$r) + 1, b = max(posR$b), name = "strip-right")
+
+# Add small gaps between strips
+plot_gtab_eucdist.r.d.ls.n <- gtable_add_cols(plot_gtab, unit(1/5, "line"), max(posR$r))
+
+# Draw it
+grid.newpage()
+grid.draw(plot_gtab_eucdist.r.d.ls.s)
+
+
+
+plot_eucdist_d.r.ls.n <- ggplot(d_eucdist_nullbar, aes(x = rwide.cat, y = dist_mean, fill = delmu.cat)) +
+  facet_grid(locisigma.cat~.) +
+  geom_col(position = position_dodge(0.9)) +
+  geom_errorbar(aes(
+    ymin = dist_mean - (1.96*dist_se), 
+    ymax = dist_mean + (1.96*dist_se)), 
+    width = 0.25,
+    position = position_dodge(0.9)) +
+  scale_fill_npg() +
+  theme_classic() +
+  labs(x = r_lab, y = "Euclidean distance from optimum", fill = d_lab) +
+  theme(strip.text.x = element_text(size = 12),
+        strip.text.y = element_text(size = 12),
+        axis.text.x = element_text(size = 10, face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold"),
+        axis.title.x = element_text(margin = margin(t = 10), face = "bold"),
+        text = element_text(size = 12))
+
+# Thanks to: https://stackoverflow.com/a/37292665/13586824
+# Add delmu label
+# Labels 
+library(grid)
+library(gtable)
+labelR = ls_lab
+
+# Get the ggplot grob
+plot_gtab <- ggplotGrob(plot_eucdist_d.r.ls.n)
+
+# Get the positions of the strips in the gtable: t = top, l = left, ...
+posR <- subset(plot_gtab$layout, grepl("strip-r", name), select = t:r)
+
+# Add a new column to the right of current right strips, 
+# and a new row on top of current top strips
+width <- plot_gtab$widths[max(posR$r)]    # width of current right strips
+
+plot_gtab <- gtable_add_cols(plot_gtab, width, max(posR$r))  
+
+# Construct the new strip grobs
+stripR <- gTree(name = "Strip_right", children = gList(
+  rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
+  textGrob(labelR, rot = -90, gp = gpar(fontsize = 12, col = "black", fontface = "bold"))))
+
+# Position the grobs in the gtable
+plot_gtab <- gtable_add_grob(plot_gtab, stripR, t = min(posR$t), l = max(posR$r) + 1, b = max(posR$b), name = "strip-right")
+
+# Add small gaps between strips
+plot_gtab_eucdist.d.r.ls.n <- gtable_add_cols(plot_gtab, unit(1/5, "line"), max(posR$r))
+
+# Draw it
+grid.newpage()
+grid.draw(plot_gtab_eucdist.d.r.ls.n)
+
+
+
+
+plot_eucdist_d.r.ls.s <- ggplot(d_eucdist_selbar, aes(x = rwide.cat, y = dist_mean, fill = delmu.cat)) +
+  facet_grid(locisigma.cat~.) +
+  geom_col(position = position_dodge(0.9)) +
+  geom_errorbar(aes(
+    ymin = dist_mean - (1.96*dist_se), 
+    ymax = dist_mean + (1.96*dist_se)), 
+    width = 0.25,
+    position = position_dodge(0.9)) +
+  scale_fill_npg() +
+  theme_classic() +
+  labs(x = r_lab, y = "Euclidean distance from optimum", fill = d_lab) +
+  theme(strip.text.x = element_text(size = 12),
+        strip.text.y = element_text(size = 12),
+        axis.text.x = element_text(size = 10, face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold"),
+        axis.title.x = element_text(margin = margin(t = 10), face = "bold"),
+        text = element_text(size = 12))
+
+# Thanks to: https://stackoverflow.com/a/37292665/13586824
+# Add delmu label
+# Labels 
+library(grid)
+library(gtable)
+labelR = ls_lab
+
+# Get the ggplot grob
+plot_gtab <- ggplotGrob(plot_eucdist_d.r.ls.s)
+
+# Get the positions of the strips in the gtable: t = top, l = left, ...
+posR <- subset(plot_gtab$layout, grepl("strip-r", name), select = t:r)
+
+# Add a new column to the right of current right strips, 
+# and a new row on top of current top strips
+width <- plot_gtab$widths[max(posR$r)]    # width of current right strips
+
+plot_gtab <- gtable_add_cols(plot_gtab, width, max(posR$r))  
+
+# Construct the new strip grobs
+stripR <- gTree(name = "Strip_right", children = gList(
+  rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
+  textGrob(labelR, rot = -90, gp = gpar(fontsize = 12, col = "black", fontface = "bold"))))
+
+# Position the grobs in the gtable
+plot_gtab <- gtable_add_grob(plot_gtab, stripR, t = min(posR$t), l = max(posR$r) + 1, b = max(posR$b), name = "strip-right")
+
+# Add small gaps between strips
+plot_gtab_eucdist.d.r.ls.s <- gtable_add_cols(plot_gtab, unit(1/5, "line"), max(posR$r))
+
+# Draw it
+grid.newpage()
+grid.draw(plot_gtab_eucdist.d.r.ls.s)
+
+
+# Distance over time
+
+d_mean_eucdist_notau_null <- readRDS("d_mean_eucdist_notau_null.RDS")
+d_mean_eucdist_notau_sel <- readRDS("d_mean_eucdist_notau_sel.RDS")
+
+plot_disttime_d.ls.n <- ggplot(d_mean_eucdist_notau_null, aes(x = gen, y = dist_mean, col = delmu.cat)) +
+  facet_grid(locisigma.cat~.) +
+  geom_line(position = position_dodge(0.9)) +
+  scale_color_npg() +
+  theme_classic() +
+  scale_x_continuous(breaks = c(seq(50000, 150000, 10000)), labels = c(as.character(seq(50, 150, 10)))) +
+  labs(x = expression(Generation~(x10^{"3"})), y = "Euclidean distance from optimum", col = d_lab) +
+  theme(strip.text.x = element_text(size = 12),
+        strip.text.y = element_text(size = 12),
+        axis.text.x = element_text(size = 10, face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold"),
+        axis.title.x = element_text(margin = margin(t = 10), face = "bold"),
+        text = element_text(size = 12))
+
+
+# Thanks to: https://stackoverflow.com/a/37292665/13586824
+# Add delmu label
+# Labels 
+library(grid)
+library(gtable)
+labelR = ls_lab
+
+# Get the ggplot grob
+plot_gtab <- ggplotGrob(plot_disttime_d.ls.n)
+
+# Get the positions of the strips in the gtable: t = top, l = left, ...
+posR <- subset(plot_gtab$layout, grepl("strip-r", name), select = t:r)
+
+# Add a new column to the right of current right strips, 
+# and a new row on top of current top strips
+width <- plot_gtab$widths[max(posR$r)]    # width of current right strips
+
+plot_gtab <- gtable_add_cols(plot_gtab, width, max(posR$r))  
+
+# Construct the new strip grobs
+stripR <- gTree(name = "Strip_right", children = gList(
+  rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
+  textGrob(labelR, rot = -90, gp = gpar(fontsize = 12, col = "black", fontface = "bold"))))
+
+# Position the grobs in the gtable
+plot_gtab <- gtable_add_grob(plot_gtab, stripR, t = min(posR$t), l = max(posR$r) + 1, b = max(posR$b), name = "strip-right")
+
+# Add small gaps between strips
+plot_gtab_disttime.d.ls.n <- gtable_add_cols(plot_gtab, unit(1/5, "line"), max(posR$r))
+
+# Draw it
+grid.newpage()
+grid.draw(plot_gtab_disttime.d.ls.n)
+
+
+# Average across all selection strengths
+plot_disttime_d.ls.s <- ggplot(d_mean_eucdist_notau_sel, aes(x = gen, y = dist_mean, col = delmu.cat)) +
+  facet_grid(locisigma.cat~.) +
+  geom_line(position = position_dodge(0.9)) +
+  scale_color_npg() +
+  theme_classic() +
+  scale_x_continuous(breaks = c(seq(50000, 150000, 10000)), labels = c(as.character(seq(50, 150, 10)))) +
+  labs(x = expression(Generation~(x10^{"3"})), y = "Euclidean distance from optimum", col = d_lab) +
+  theme(strip.text.x = element_text(size = 12),
+        strip.text.y = element_text(size = 12),
+        axis.text.x = element_text(size = 10, face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold"),
+        axis.title.x = element_text(margin = margin(t = 10), face = "bold"),
+        text = element_text(size = 12))
+
+
+# Thanks to: https://stackoverflow.com/a/37292665/13586824
+# Add delmu label
+# Labels 
+library(grid)
+library(gtable)
+labelR = ls_lab
+
+# Get the ggplot grob
+plot_gtab <- ggplotGrob(plot_disttime_d.ls.s)
+
+# Get the positions of the strips in the gtable: t = top, l = left, ...
+posR <- subset(plot_gtab$layout, grepl("strip-r", name), select = t:r)
+
+# Add a new column to the right of current right strips, 
+# and a new row on top of current top strips
+width <- plot_gtab$widths[max(posR$r)]    # width of current right strips
+
+plot_gtab <- gtable_add_cols(plot_gtab, width, max(posR$r))  
+
+# Construct the new strip grobs
+stripR <- gTree(name = "Strip_right", children = gList(
+  rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
+  textGrob(labelR, rot = -90, gp = gpar(fontsize = 12, col = "black", fontface = "bold"))))
+
+# Position the grobs in the gtable
+plot_gtab <- gtable_add_grob(plot_gtab, stripR, t = min(posR$t), l = max(posR$r) + 1, b = max(posR$b), name = "strip-right")
+
+# Add small gaps between strips
+plot_gtab_disttime.d.ls.s <- gtable_add_cols(plot_gtab, unit(1/5, "line"), max(posR$r))
+
+# Draw it
+grid.newpage()
+grid.draw(plot_gtab_disttime.d.ls.s)
+
+ggsave(filename = "disttime_d.ls.av_sel.png", plot = plot_gtab_disttime.d.ls.s, width = 12, height = 8, dpi = 800)
+
+
+
+
+
+# Check if tau matters
+
+d_mean_eucdist_lowmed <- d_mean_eucdist[d_mean_eucdist$tau.cat == "Low" | d_mean_eucdist$tau.cat == "Medium",]
+d_mean_eucdist_lowhigh <- d_mean_eucdist[d_mean_eucdist$tau.cat == "Low" | d_mean_eucdist$tau.cat == "High",]
+d_mean_eucdist_medhigh <- d_mean_eucdist[d_mean_eucdist$tau.cat == "Medium" | d_mean_eucdist$tau.cat == "High",]
+
+
+
+plot_disttime_d.ls.lh <- ggplot(d_mean_eucdist_lowhigh, aes(x = gen, y = dist_mean, col = delmu.cat)) +
+  facet_grid(locisigma.cat~tau.cat) +
+  geom_line(position = position_dodge(0.9)) +
+  scale_color_npg() +
+  theme_classic() +
+  scale_x_continuous(breaks = c(seq(50000, 150000, 10000)), labels = c(as.character(seq(50, 150, 10)))) +
+  labs(x = expression(Generation~(x10^{"3"})), y = "Euclidean distance from optimum", col = d_lab) +
+  theme(strip.text.x = element_text(size = 12),
+        strip.text.y = element_text(size = 12),
+        axis.text.x = element_text(size = 10, face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold"),
+        axis.title.x = element_text(margin = margin(t = 10), face = "bold"),
+        text = element_text(size = 12))
+
+
+# Thanks to: https://stackoverflow.com/a/37292665/13586824
+# Add rwide label
+# Labels 
+labelT = t_lab
+labelR = ls_lab
+
+# Get the ggplot grob
+plot_gtab <- ggplotGrob(plot_disttime_d.ls.lh)
+
+# Get the positions of the strips in the gtable: t = top, l = left, ...
+posR <- subset(plot_gtab$layout, grepl("strip-r", name), select = t:r)
+posT <- subset(plot_gtab$layout, grepl("strip-t", name), select = t:r)
+
+# Add a new column to the right of current right strips, 
+# and a new row on top of current top strips
+width <- plot_gtab$widths[max(posR$r)]    # width of current right strips
+height <- plot_gtab$heights[min(posT$t)]  # height of current top strips
+
+plot_gtab <- gtable_add_cols(plot_gtab, width, max(posR$r))  
+plot_gtab <- gtable_add_rows(plot_gtab, height, min(posT$t)-1)
+
+# Construct the new strip grobs
+stripR <- gTree(name = "Strip_right", children = gList(
+  rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
+  textGrob(labelR, rot = -90, gp = gpar(fontsize = 12, col = "black", fontface = "bold"))))
+
+stripT <- gTree(name = "Strip_top", children = gList(
+  rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
+  textGrob(labelT, gp = gpar(fontsize = 12, col = "black", fontface = "bold"))))
+
+# Position the grobs in the gtable
+plot_gtab <- gtable_add_grob(plot_gtab, stripR, t = min(posR$t) + 1, l = max(posR$r) + 1, b = max(posR$b) + 1, name = "strip-right")
+plot_gtab <- gtable_add_grob(plot_gtab, stripT, t = min(posT$t), l = min(posT$l), r = max(posT$r), name = "strip-top")
+
+# Add small gaps between strips
+plot_gtab <- gtable_add_cols(plot_gtab, unit(1/5, "line"), max(posR$r))
+plot_gtab_disttime_d.ls.lh <- gtable_add_rows(plot_gtab, unit(1/5, "line"), min(posT$t))
+
+# Draw it
+grid.newpage()
+grid.draw(plot_gtab_disttime_d.ls.lh)
+
+
+
+
+plot_disttime_d.ls.mh <- ggplot(d_mean_eucdist_medhigh, aes(x = gen, y = dist_mean, col = delmu.cat)) +
+  facet_grid(locisigma.cat~tau.cat) +
+  geom_line(position = position_dodge(0.9)) +
+  scale_color_npg() +
+  theme_classic() +
+  scale_x_continuous(breaks = c(seq(50000, 150000, 10000)), labels = c(as.character(seq(50, 150, 10)))) +
+  labs(x = expression(Generation~(x10^{"3"})), y = "Euclidean distance from optimum", col = d_lab) +
+  theme(strip.text.x = element_text(size = 12),
+        strip.text.y = element_text(size = 12),
+        axis.text.x = element_text(size = 10, face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold"),
+        axis.title.x = element_text(margin = margin(t = 10), face = "bold"),
+        text = element_text(size = 12))
+
+
+# Thanks to: https://stackoverflow.com/a/37292665/13586824
+# Add rwide label
+# Labels 
+labelT = t_lab
+labelR = ls_lab
+
+# Get the ggplot grob
+plot_gtab <- ggplotGrob(plot_disttime_d.ls.mh)
+
+# Get the positions of the strips in the gtable: t = top, l = left, ...
+posR <- subset(plot_gtab$layout, grepl("strip-r", name), select = t:r)
+posT <- subset(plot_gtab$layout, grepl("strip-t", name), select = t:r)
+
+# Add a new column to the right of current right strips, 
+# and a new row on top of current top strips
+width <- plot_gtab$widths[max(posR$r)]    # width of current right strips
+height <- plot_gtab$heights[min(posT$t)]  # height of current top strips
+
+plot_gtab <- gtable_add_cols(plot_gtab, width, max(posR$r))  
+plot_gtab <- gtable_add_rows(plot_gtab, height, min(posT$t)-1)
+
+# Construct the new strip grobs
+stripR <- gTree(name = "Strip_right", children = gList(
+  rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
+  textGrob(labelR, rot = -90, gp = gpar(fontsize = 12, col = "black", fontface = "bold"))))
+
+stripT <- gTree(name = "Strip_top", children = gList(
+  rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
+  textGrob(labelT, gp = gpar(fontsize = 12, col = "black", fontface = "bold"))))
+
+# Position the grobs in the gtable
+plot_gtab <- gtable_add_grob(plot_gtab, stripR, t = min(posR$t) + 1, l = max(posR$r) + 1, b = max(posR$b) + 1, name = "strip-right")
+plot_gtab <- gtable_add_grob(plot_gtab, stripT, t = min(posT$t), l = min(posT$l), r = max(posT$r), name = "strip-top")
+
+# Add small gaps between strips
+plot_gtab <- gtable_add_cols(plot_gtab, unit(1/5, "line"), max(posR$r))
+plot_gtab_disttime_d.ls.mh <- gtable_add_rows(plot_gtab, unit(1/5, "line"), min(posT$t))
+
+# Draw it
+grid.newpage()
+grid.draw(plot_gtab_disttime_d.ls.mh)
+
+
+
+
+plot_disttime_d.ls.lm <- ggplot(d_mean_eucdist_lowmed, aes(x = gen, y = dist_mean, col = delmu.cat)) +
+  facet_grid(locisigma.cat~tau.cat) +
+  geom_line(position = position_dodge(0.9)) +
+  scale_color_npg() +
+  theme_classic() +
+  scale_x_continuous(breaks = c(seq(50000, 150000, 10000)), labels = c(as.character(seq(50, 150, 10)))) +
+  labs(x = expression(Generation~(x10^{"3"})), y = "Euclidean distance from optimum", col = d_lab) +
+  theme(strip.text.x = element_text(size = 12),
+        strip.text.y = element_text(size = 12),
+        axis.text.x = element_text(size = 10, face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold"),
+        axis.title.x = element_text(margin = margin(t = 10), face = "bold"),
+        text = element_text(size = 12))
+
+
+# Thanks to: https://stackoverflow.com/a/37292665/13586824
+# Add rwide label
+# Labels 
+labelT = t_lab
+labelR = ls_lab
+
+# Get the ggplot grob
+plot_gtab <- ggplotGrob(plot_disttime_d.ls.lm)
+
+# Get the positions of the strips in the gtable: t = top, l = left, ...
+posR <- subset(plot_gtab$layout, grepl("strip-r", name), select = t:r)
+posT <- subset(plot_gtab$layout, grepl("strip-t", name), select = t:r)
+
+# Add a new column to the right of current right strips, 
+# and a new row on top of current top strips
+width <- plot_gtab$widths[max(posR$r)]    # width of current right strips
+height <- plot_gtab$heights[min(posT$t)]  # height of current top strips
+
+plot_gtab <- gtable_add_cols(plot_gtab, width, max(posR$r))  
+plot_gtab <- gtable_add_rows(plot_gtab, height, min(posT$t)-1)
+
+# Construct the new strip grobs
+stripR <- gTree(name = "Strip_right", children = gList(
+  rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
+  textGrob(labelR, rot = -90, gp = gpar(fontsize = 12, col = "black", fontface = "bold"))))
+
+stripT <- gTree(name = "Strip_top", children = gList(
+  rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
+  textGrob(labelT, gp = gpar(fontsize = 12, col = "black", fontface = "bold"))))
+
+# Position the grobs in the gtable
+plot_gtab <- gtable_add_grob(plot_gtab, stripR, t = min(posR$t) + 1, l = max(posR$r) + 1, b = max(posR$b) + 1, name = "strip-right")
+plot_gtab <- gtable_add_grob(plot_gtab, stripT, t = min(posT$t), l = min(posT$l), r = max(posT$r), name = "strip-top")
+
+# Add small gaps between strips
+plot_gtab <- gtable_add_cols(plot_gtab, unit(1/5, "line"), max(posR$r))
+plot_gtab_disttime_d.ls.lm <- gtable_add_rows(plot_gtab, unit(1/5, "line"), min(posT$t))
+
+# Draw it
+grid.newpage()
+grid.draw(plot_gtab_disttime_d.ls.lm)
+
+###########################################################
+# Plot them together
+
+library(gridExtra)
+
+
+grid.arrange(plot_gtab_disttime.d.ls.n, plot_gtab_disttime_d.ls.lh, plot_gtab_disttime_d.ls.mh, plot_gtab_disttime_d.ls.lm, newpage = T)
+
+
+
+# Altogether, much the same to read
+
+
+
+plot_disttime_d.ls.s <- ggplot(d_mean_eucdist, aes(x = gen, y = dist_mean, col = delmu.cat)) +
+  facet_grid(locisigma.cat~tau.cat) +
+  geom_line(position = position_dodge(0.9), size = 0.1) +
+  scale_color_npg() +
+  theme_classic() +
+  scale_x_continuous(breaks = c(seq(50000, 150000, 10000)), labels = c(as.character(seq(50, 150, 10)))) +
+  labs(x = expression(Generation~(x10^{"3"})), y = "Euclidean distance from optimum", col = d_lab) +
+  theme(strip.text.x = element_text(size = 12),
+        strip.text.y = element_text(size = 12),
+        axis.text.x = element_text(size = 10, face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold"),
+        axis.title.x = element_text(margin = margin(t = 10), face = "bold"),
+        text = element_text(size = 12))
+
+
+# Thanks to: https://stackoverflow.com/a/37292665/13586824
+# Add rwide label
+# Labels 
+labelT = t_lab
+labelR = ls_lab
+
+# Get the ggplot grob
+plot_gtab <- ggplotGrob(plot_disttime_d.ls.s)
+
+# Get the positions of the strips in the gtable: t = top, l = left, ...
+posR <- subset(plot_gtab$layout, grepl("strip-r", name), select = t:r)
+posT <- subset(plot_gtab$layout, grepl("strip-t", name), select = t:r)
+
+# Add a new column to the right of current right strips, 
+# and a new row on top of current top strips
+width <- plot_gtab$widths[max(posR$r)]    # width of current right strips
+height <- plot_gtab$heights[min(posT$t)]  # height of current top strips
+
+plot_gtab <- gtable_add_cols(plot_gtab, width, max(posR$r))  
+plot_gtab <- gtable_add_rows(plot_gtab, height, min(posT$t)-1)
+
+# Construct the new strip grobs
+stripR <- gTree(name = "Strip_right", children = gList(
+  rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
+  textGrob(labelR, rot = -90, gp = gpar(fontsize = 12, col = "black", fontface = "bold"))))
+
+stripT <- gTree(name = "Strip_top", children = gList(
+  rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
+  textGrob(labelT, gp = gpar(fontsize = 12, col = "black", fontface = "bold"))))
+
+# Position the grobs in the gtable
+plot_gtab <- gtable_add_grob(plot_gtab, stripR, t = min(posR$t) + 1, l = max(posR$r) + 1, b = max(posR$b) + 1, name = "strip-right")
+plot_gtab <- gtable_add_grob(plot_gtab, stripT, t = min(posT$t), l = min(posT$l), r = max(posT$r), name = "strip-top")
+
+# Add small gaps between strips
+plot_gtab <- gtable_add_cols(plot_gtab, unit(1/5, "line"), max(posR$r))
+plot_gtab_disttime_d.ls.s <- gtable_add_rows(plot_gtab, unit(1/5, "line"), min(posT$t))
+
+# Draw it
+grid.newpage()
+grid.draw(plot_gtab_disttime_d.ls.s)
+
+ggsave(filename = "disttime_d.ls.s.png", plot = plot_gtab_disttime_d.ls.s, width = 12, height = 8, dpi = 800)
+
+
+
+
+
+
+

@@ -105,3 +105,4 @@ Thesis/Document/~WRL1807.tmp
 src/R/final_runs/Nimrod/Simplified/AIM3/AIM3-LessRAM/src_eucdist_backup.R
 src/R/final_runs/Nimrod/Simplified/AIM3/AIM3-LessRAM/d_eucdist_c.RDS
 src/R/final_runs/Nimrod/Simplified/AIM3/AIM3-LessRAM/d_sel_eucdist.RDS
+*.RDS

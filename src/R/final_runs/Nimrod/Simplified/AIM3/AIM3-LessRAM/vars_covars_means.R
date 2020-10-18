@@ -301,5 +301,127 @@ grid.draw(plot_gtab_cov.d.r.ls)
 
 
 
+###########################################################################################
+#vars/covs over time
 
+d_mean_var <- readRDS("d_mean_var.RDS")
+
+
+plot_vartime_d.ls.s <- ggplot(d_mean_var, aes(x = gen, y = varmean_groupmean, col = delmu.cat)) +
+  facet_grid(locisigma.cat~tau.cat) +
+  geom_line(position = position_dodge(0.9), size = 0.1) +
+  scale_color_npg() +
+  theme_classic() +
+  scale_x_continuous(breaks = c(seq(50000, 150000, 10000)), labels = c(as.character(seq(50, 150, 10)))) +
+  labs(x = expression(Generation~(x10^{"3"})), y = "Average variance across traits", col = d_lab) +
+  theme(strip.text.x = element_text(size = 12),
+        strip.text.y = element_text(size = 12),
+        axis.text.x = element_text(size = 10, face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold"),
+        axis.title.x = element_text(margin = margin(t = 10), face = "bold"),
+        text = element_text(size = 12))
+
+
+# Thanks to: https://stackoverflow.com/a/37292665/13586824
+# Add rwide label
+# Labels 
+labelT = t_lab
+labelR = ls_lab
+
+# Get the ggplot grob
+plot_gtab <- ggplotGrob(plot_vartime_d.ls.s)
+
+# Get the positions of the strips in the gtable: t = top, l = left, ...
+posR <- subset(plot_gtab$layout, grepl("strip-r", name), select = t:r)
+posT <- subset(plot_gtab$layout, grepl("strip-t", name), select = t:r)
+
+# Add a new column to the right of current right strips, 
+# and a new row on top of current top strips
+width <- plot_gtab$widths[max(posR$r)]    # width of current right strips
+height <- plot_gtab$heights[min(posT$t)]  # height of current top strips
+
+plot_gtab <- gtable_add_cols(plot_gtab, width, max(posR$r))  
+plot_gtab <- gtable_add_rows(plot_gtab, height, min(posT$t)-1)
+
+# Construct the new strip grobs
+stripR <- gTree(name = "Strip_right", children = gList(
+  rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
+  textGrob(labelR, rot = -90, gp = gpar(fontsize = 12, col = "black", fontface = "bold"))))
+
+stripT <- gTree(name = "Strip_top", children = gList(
+  rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
+  textGrob(labelT, gp = gpar(fontsize = 12, col = "black", fontface = "bold"))))
+
+# Position the grobs in the gtable
+plot_gtab <- gtable_add_grob(plot_gtab, stripR, t = min(posR$t) + 1, l = max(posR$r) + 1, b = max(posR$b) + 1, name = "strip-right")
+plot_gtab <- gtable_add_grob(plot_gtab, stripT, t = min(posT$t), l = min(posT$l), r = max(posT$r), name = "strip-top")
+
+# Add small gaps between strips
+plot_gtab <- gtable_add_cols(plot_gtab, unit(1/5, "line"), max(posR$r))
+plot_gtab_vartime_d.ls.s <- gtable_add_rows(plot_gtab, unit(1/5, "line"), min(posT$t))
+
+# Draw it
+grid.newpage()
+grid.draw(plot_gtab_vartime_d.ls.s)
+
+ggsave(filename = "vartime_d.ls.s.png", plot = plot_gtab_vartime_d.ls.s, width = 12, height = 8, dpi = 800)
+
+
+
+# Averaged across selection pressures
+
+d_mean_var_sel <- d_mean_var[d_mean_var$tau.cat != "Null",]
+
+plot_vartime_d.ls.av_sel <- ggplot(d_mean_var_sel, aes(x = gen, y = varmean_groupmean, col = delmu.cat)) +
+  facet_grid(locisigma.cat~.) +
+  geom_line(position = position_dodge(0.9)) +
+  scale_color_npg() +
+  theme_classic() +
+  scale_x_continuous(breaks = c(seq(50000, 150000, 10000)), labels = c(as.character(seq(50, 150, 10)))) +
+  labs(x = expression(Generation~(x10^{"3"})), y = "Average variance across traits", col = d_lab) +
+  theme(strip.text.x = element_text(size = 12),
+        strip.text.y = element_text(size = 12),
+        axis.text.x = element_text(size = 10, face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold"),
+        axis.title.x = element_text(margin = margin(t = 10), face = "bold"),
+        text = element_text(size = 12))
+
+
+library(grid)
+library(gtable)
+labelR = ls_lab
+
+# Get the ggplot grob
+plot_gtab <- ggplotGrob(plot_vartime_d.ls.av_sel)
+
+# Get the positions of the strips in the gtable: t = top, l = left, ...
+posR <- subset(plot_gtab$layout, grepl("strip-r", name), select = t:r)
+
+# Add a new column to the right of current right strips, 
+# and a new row on top of current top strips
+width <- plot_gtab$widths[max(posR$r)]    # width of current right strips
+
+plot_gtab <- gtable_add_cols(plot_gtab, width, max(posR$r))  
+
+# Construct the new strip grobs
+stripR <- gTree(name = "Strip_right", children = gList(
+  rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
+  textGrob(labelR, rot = -90, gp = gpar(fontsize = 12, col = "black", fontface = "bold"))))
+
+# Position the grobs in the gtable
+plot_gtab <- gtable_add_grob(plot_gtab, stripR, t = min(posR$t), l = max(posR$r) + 1, b = max(posR$b), name = "strip-right")
+
+# Add small gaps between strips
+plot_gtab_vartime_d.ls_avsel <- gtable_add_cols(plot_gtab, unit(1/5, "line"), max(posR$r))
+
+# Draw it
+grid.newpage()
+grid.draw(plot_gtab_vartime_d.ls_avsel)
+
+
+ggsave(filename = "vartime_d.ls_avsel.png", plot = plot_gtab_vartime_d.ls_avsel, width = 12, height = 8, dpi = 800)
+
+
+
+d_raw_c <- readRDS("d_raw_c.RDS")
 
