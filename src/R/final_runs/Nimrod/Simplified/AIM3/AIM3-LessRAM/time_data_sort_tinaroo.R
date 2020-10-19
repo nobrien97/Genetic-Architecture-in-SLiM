@@ -25,12 +25,15 @@ d_sel <- data.table::fread("/90days/s4395747/d_sel_time.csv", header = T, intege
 d_sel <- d_sel[, -1]
 d_sel$seed <- as.numeric(d_sel$seed)
 
+d_sel <- arrange(d_sel, gen, modelindex, seed)
+
 
 
 # sel distances
 d_sel_opt <- data.table::fread("/90days/s4395747/out_8T_stabsel_opt_c.csv", header = F, integer64="character")
 names(d_sel_opt) <- c("seed", "modelindex", paste0("opt", 0:7))
 d_sel_opt$seed <- as.numeric(d_sel_opt$seed)
+d_sel_opt <- arrange(d_sel_opt, modelindex, seed)
 
 # Run on supercomputer: extract means, and optima, do distance
 
@@ -51,6 +54,8 @@ ls_combos_sel <- read.csv("/90days/s4395747/lscombos_sel.csv")
 d_sel_eucdist$delmu <- rep(ls_combos_sel$delmu, times = 20100)
 d_sel_eucdist$rwide <- rep(ls_combos_sel$rwide, times = 20100)
 d_sel_eucdist$locisigma <- rep(ls_combos_sel$locisigma, times = 20100)
+d_sel_eucdist$pleiorate <- rep(ls_combos_sel$pleiorate, times = 20100)
+d_sel_eucdist$pleiocov <- rep(ls_combos_sel$pleiocov, times = 20100)
 d_sel_eucdist$tau <- rep(ls_combos_sel$tau, times = 20100)
 
 saveRDS(d_sel_eucdist, "d_sel_eucdist.RDS")
@@ -314,9 +319,11 @@ d_null_eucdist <- arrange(d_null_eucdist, gen, modelindex, seed)
 
 ls_combos_null <- read.csv("/90days/s4395747/lscombos_null.csv")
 
-d_null_eucdist$delmu <- rep(ls_combos_null$delmu, times = 20100)
-d_null_eucdist$rwide <- rep(ls_combos_null$rwide, times = 20100)
-d_null_eucdist$locisigma <- rep(ls_combos_null$locisigma, times = 20100)
+d_null_eucdist$delmu <- rep(ls_combos_null$delmu, each = 100, times = 201)
+d_null_eucdist$rwide <- rep(ls_combos_null$rwide, each = 100, times = 201)
+d_null_eucdist$pleiorate <- rep(ls_combos_null$pleiorate, each = 100, times = 201)
+d_null_eucdist$pleiocov <- rep(ls_combos_null$pleiocov, each = 100, times = 201)
+d_null_eucdist$locisigma <- rep(ls_combos_null$locisigma, each = 100, times = 201)
 d_null_eucdist$tau <- 0.0
 
 saveRDS(d_null_eucdist, "d_null_eucdist.RDS")
@@ -329,10 +336,12 @@ d_sel_eucdist <- arrange(d_sel_eucdist, gen, modelindex, seed)
 
 d_sel_eucdist$modelindex <- d_sel_eucdist$modelindex + 1024
 
-d_eucdist_c <- data.table::rbindlist(list(d_null_eucdist, d_sel_eucdist))
+d_eucdist_c <- data.table::rbindlist(list(d_null_eucdist, d_sel_eucdist), use.names=T)
 d_eucdist_c <- arrange(d_eucdist_c, gen, modelindex, seed)
 d_eucdist_c$delmu.cat <- cut(d_eucdist_c$delmu, breaks = 3, labels = c("Low", "Medium", "High"))
 d_eucdist_c$locisigma.cat <- cut(d_eucdist_c$locisigma, breaks = 3, labels = c("Low", "Medium", "High")) 
+d_eucdist_c$pleiorate.cat <- cut(d_eucdist_c$pleiorate, breaks = 3, labels = c("Low", "Medium", "High")) 
+d_eucdist_c$pleiocov.cat <- cut(d_eucdist_c$pleiocov, breaks = 3, labels = c("Low", "Medium", "High")) 
 d_eucdist_c$rwide.cat <- cut(d_eucdist_c$rwide, breaks = 3, labels = c("Low", "Medium", "High")) 
 
 # Custom breaks for Tau so we can differentiate from null models and selection models
@@ -345,8 +354,12 @@ saveRDS(d_eucdist_c, "d_eucdist_c.RDS")
 d_eucdist_c <- readRDS("d_eucdist_c.RDS")
 
 # Delmu * rwide * ls * tau
-d_mean_eucdist <- d_eucdist_c[, -c(2:3, 5:8)] %>%
-  group_by(gen, delmu.cat, rwide.cat, locisigma.cat, tau.cat) %>%
+d_mean_eucdist <- d_eucdist_c[, -c(2:3, 5:10)] %>%
+  group_by(gen, delmu.cat, rwide.cat, locisigma.cat, pleiorate.cat, pleiocov.cat, tau.cat) %>%
+  summarise_all(list(dist_mean = mean, dist_se = std.error, dist_var = var))
+
+d_mean_eucdist_var <- d_eucdist_c[, -c(1:3, 5:10)] %>%
+  group_by(delmu.cat, rwide.cat, locisigma.cat, pleiorate.cat, pleiocov.cat, tau.cat) %>%
   summarise_all(list(dist_mean = mean, dist_se = std.error, dist_var = var))
 
 
@@ -355,12 +368,20 @@ d_eucdist_c_null <- d_eucdist_c[d_eucdist_c$tau.cat == "Null",]
 d_eucdist_c_sel <- d_eucdist_c[d_eucdist_c$tau.cat != "Null",]
 
 # Delmu * rwide * ls
-d_mean_eucdist_notau_null <- d_eucdist_c_null[, -c(2:3, 5:8, 12)] %>%
-  group_by(gen, delmu.cat, rwide.cat, locisigma.cat) %>%
+d_mean_eucdist_notau_null <- d_eucdist_c_null[, -c(2:3, 5:10, 13)] %>%
+  group_by(gen, delmu.cat, rwide.cat, locisigma.cat, pleiorate.cat, pleiocov.cat) %>%
   summarise_all(list(dist_mean = mean, dist_se = std.error, dist_var = var))
 
-d_mean_eucdist_notau_sel <- d_eucdist_c_sel[, -c(2:3, 5:8, 12)] %>%
-  group_by(gen, delmu.cat, rwide.cat, locisigma.cat) %>%
+d_mean_eucdist_notau_sel <- d_eucdist_c_sel[, -c(2:3, 5:10, 13)] %>%
+  group_by(gen, delmu.cat, rwide.cat, locisigma.cat, pleiorate.cat, pleiocov.cat) %>%
+  summarise_all(list(dist_mean = mean, dist_se = std.error, dist_var = var))
+
+d_mean_eucdist_null_var <- d_eucdist_c_null[, -c(1:3, 5:10, 13)] %>%
+  group_by(delmu.cat, rwide.cat, locisigma.cat, pleiorate.cat, pleiocov.cat) %>%
+  summarise_all(list(dist_mean = mean, dist_se = std.error, dist_var = var))
+
+d_mean_eucdist_sel_var <- d_eucdist_c_sel[, -c(1:3, 5:10, 13)] %>%
+  group_by(delmu.cat, rwide.cat, locisigma.cat, pleiorate.cat, pleiocov.cat) %>%
   summarise_all(list(dist_mean = mean, dist_se = std.error, dist_var = var))
 
 
@@ -369,9 +390,26 @@ saveRDS(d_mean_eucdist, "d_mean_eucdist.RDS")
 saveRDS(d_mean_eucdist_notau_null, "d_mean_eucdist_notau_null.RDS")
 saveRDS(d_mean_eucdist_notau_sel, "d_mean_eucdist_notau_sel.RDS")
 
+saveRDS(d_mean_eucdist_var, "d_mean_eucdist_var.RDS")
+saveRDS(d_mean_eucdist_null_var, "d_mean_eucdist_null_var.RDS")
+saveRDS(d_mean_eucdist_sel_var, "d_mean_eucdist_sel_var.RDS")
 
-# Variance/covariance: import the null_time thing from before, combine with sel and export RDS
 
+
+################################################################################################
+################################################################################################
+# Variance/covariance: import the null_time thing from before, combine with sel and export RDS #
+################################################################################################
+################################################################################################
+
+# Remove previous stuff
+rm(list = ls())
+
+set.seed(873662137)
+setwd("/90days/s4395747")
+source("src_G_mat.R")
+library(plyr)
+library(tidyverse)
 
 
 d_sel <- data.table::fread("/90days/s4395747/d_sel_time.csv", header = T, integer64="character")
@@ -386,26 +424,30 @@ d_sel$modelindex <- d_sel$modelindex + 1024
 d_null <- data.table::fread("/90days/s4395747/d_null_time.csv", header = T, integer64="character")
 d_null <- d_null %>% distinct() # Get rid of any duplicate rows
 d_null$seed <- as.numeric(d_null$seed)
-d_null$tau <- 0.0
 d_null <- arrange(d_null, gen, modelindex, seed)
 
+d_null[d_null$gen == 50000 & d_null$modelindex == 2 & d_null$seed == 829606697,]
 
 
 ls_combos_null <- read.csv("/90days/s4395747/lscombos_null.csv")
 
-d_null$delmu <- rep(ls_combos_null$delmu, times = 20100)
-d_null$rwide <- rep(ls_combos_null$rwide, times = 20100)
-d_null$locisigma <- rep(ls_combos_null$locisigma, times = 20100)
+d_null$delmu <- rep(ls_combos_null$delmu, each = 100, times = 201)
+d_null$rwide <- rep(ls_combos_null$rwide, each = 100, times = 201)
+d_null$pleiorate <- rep(ls_combos_null$pleiorate, each = 100, times = 201)
+d_null$pleiocov <- rep(ls_combos_null$pleiocov, each = 100, times = 201)
+d_null$locisigma <- rep(ls_combos_null$locisigma, each = 100, times = 201)
 d_null$tau <- 0.0
 
 
 
 ls_combos_sel <- read.csv("/90days/s4395747/lscombos_sel.csv")
 
-d_sel$delmu <- rep(ls_combos_sel$delmu, times = 20100)
-d_sel$rwide <- rep(ls_combos_sel$rwide, times = 20100)
-d_sel$locisigma <- rep(ls_combos_sel$locisigma, times = 20100)
-d_sel$tau <- rep(ls_combos_sel$tau, times = 20100)
+d_sel$delmu <- rep(ls_combos_sel$delmu, each = 100, times = 201)
+d_sel$rwide <- rep(ls_combos_sel$rwide, each = 100, times = 201)
+d_sel$locisigma <- rep(ls_combos_sel$locisigma, each = 100, times = 201)
+d_sel$pleiorate <- rep(ls_combos_sel$pleiorate, each = 100, times = 201)
+d_sel$pleiocov <- rep(ls_combos_sel$pleiocov, each = 100, times = 201)
+d_sel$tau <- rep(ls_combos_sel$tau, each = 100, times = 201)
 
 
 # Combine
@@ -417,6 +459,8 @@ d_raw_c <- data.table::rbindlist(list(d_null, d_sel), use.names=T)
 d_raw_c <- arrange(d_raw_c, gen, modelindex, seed)
 d_raw_c$delmu.cat <- cut(d_raw_c$delmu, breaks = 3, labels = c("Low", "Medium", "High"))
 d_raw_c$locisigma.cat <- cut(d_raw_c$locisigma, breaks = 3, labels = c("Low", "Medium", "High")) 
+d_raw_c$pleiorate.cat <- cut(d_raw_c$pleiorate, breaks = 3, labels = c("Low", "Medium", "High")) 
+d_raw_c$pleiocov.cat <- cut(d_raw_c$pleiocov, breaks = 3, labels = c("Low", "Medium", "High")) 
 d_raw_c$rwide.cat <- cut(d_raw_c$rwide, breaks = 3, labels = c("Low", "Medium", "High")) 
 
 # Custom breaks for Tau so we can differentiate from null models and selection models
@@ -426,11 +470,63 @@ d_raw_c$tau.cat <- cut(d_raw_c$tau, breaks = tau_bp, labels = c("Null", "High", 
 
 saveRDS(d_raw_c, "d_raw_c.RDS")
 
+write.csv(d_raw_c, "d_raw_c.csv")
+
+library(estimatr)
+library(emmeans)
+
+d_raw_c_fingen <- subset(d_raw_c, gen == 150000)
+
+d_raw_c_fingen <- d_raw_c[d_raw_c$gen == 150000,]
+
+var_fingen_lm <- lm_robust(varmean ~ delmu.cat * rwide.cat * locisigma.cat + 
+			tau.cat * delmu.cat + tau.cat * locisigma.cat + tau.cat * rwide.cat, data = d_raw_c_fingen)
+
+summary(var_fingen_lm)
+
+
 
 # Delmu * rwide * ls * tau
-d_mean_var <- d_raw_c[, c(1, 15:16, 19:22)] %>%
-  group_by(gen, delmu.cat, rwide.cat, locisigma.cat, tau.cat) %>%
+d_mean_var <- d_raw_c[, c(1, 15:16, 21:26)] %>%
+  group_by(gen, delmu.cat, rwide.cat, pleiorate.cat, pleiocov.cat, locisigma.cat, tau.cat) %>%
+  summarise_all(list(groupmean = mean, se = std.error, var = var))
+
+d_var_null <- d_raw_c[d_raw_c$tau.cat == "Null"]
+d_var_sel <- d_raw_c[d_raw_c$tau.cat != "Null"]
+
+d_mean_var_null <- d_var_null[, c(1, 15:16, 21:25)] %>%
+  group_by(gen, delmu.cat, rwide.cat, pleiorate.cat, pleiocov.cat, locisigma.cat) %>%
+  summarise_all(list(groupmean = mean, se = std.error, var = var))
+
+d_mean_var_sel <- d_var_sel[, c(1, 15:16, 21:25)] %>%
+  group_by(gen, delmu.cat, rwide.cat, pleiorate.cat, pleiocov.cat, locisigma.cat) %>%
   summarise_all(list(groupmean = mean, se = std.error, var = var))
 
 saveRDS(d_mean_var, "d_mean_var.RDS")
+saveRDS(d_mean_var_null, "d_mean_var_null.RDS")
+saveRDS(d_mean_var_sel, "d_mean_var_sel.RDS")
+
+d_raw_end <- d_raw_c[d_raw_c$gen == 150000,]
+
+saveRDS(d_raw_end, "d_raw_end.RDS")
+
+# Variance of variance and covariance over time: cycling around the optimum
+
+d_mean_var_var <- d_raw_c[, c(15:16, 21:26)] %>%
+  group_by(delmu.cat, rwide.cat, pleiorate.cat, pleiocov.cat, locisigma.cat, tau.cat) %>%
+  summarise_all(list(groupmean = mean, se = std.error, var = var))
+
+d_mean_var_var_null <- d_var_null[, c(15:16, 21:25)] %>%
+  group_by(delmu.cat, rwide.cat, pleiorate.cat, pleiocov.cat, locisigma.cat) %>%
+  summarise_all(list(groupmean = mean, se = std.error, var = var))
+
+d_mean_var_var_sel <- d_var_sel[, c(15:16, 21:25)] %>%
+  group_by(delmu.cat, rwide.cat, pleiorate.cat, pleiocov.cat, locisigma.cat) %>%
+  summarise_all(list(groupmean = mean, se = std.error, var = var))
+
+saveRDS(d_mean_var_var, "d_mean_var_var.RDS")
+saveRDS(d_mean_var_var_null, "d_mean_var_var_null.RDS")
+saveRDS(d_mean_var_var_sel, "d_mean_var_var_sel.RDS")
+
+
 

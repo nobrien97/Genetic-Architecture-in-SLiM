@@ -15,7 +15,7 @@ set.seed(873662137) # sampled using sample(1:2147483647, 1)
 pr_lab <- "Rate of pleiotropy"
 pc_lab <- "Mutational pleiotropic correlation"
 r_lab <- "Recombination rate"
-d_lab <- "Rate of deleterious mutation"
+d_lab <- "Deleterious mutation rate"
 ls_lab <- "Additive effect size"
 t_lab <- "Selection strength (\u03C4)"
 
@@ -32,9 +32,6 @@ d_opt <- data.table::fread("/mnt/f/Uni/AIM3/OUTPUT/out_8T_stabsel_opt_c.csv", he
 
 names(d_opt) <- c("seed", "modelindex", paste0("opt", 0:7))
 d_opt$seed <- as.numeric(d_opt$seed) # For sorting
-
-# Create nested list of euclidean distances between models: we have 192 models, which is 18336 comparisons per seed, so 1,833,600 total
-# May be possible on Tinaroo? But probably better to randomly sample as with the relative PCA
 
 ls_popmeans <- MCmean_gen(d_sel, d_sel$modelindex, 4)
 ls_opt <- opt_gen(d_opt, d_opt$modelindex)
@@ -913,6 +910,27 @@ d_mean_eucdist_notau_null <- readRDS("d_mean_eucdist_notau_null.RDS")
 d_mean_eucdist_notau_sel <- readRDS("d_mean_eucdist_notau_sel.RDS")
 
 
+# Linear model: euclidean distance vs parameters at final time point
+d_eucdist_fingen <- d_eucdist_c[d_eucdist_c$gen == 150000,]
+
+library(emmeans)
+library(estimatr)
+
+eucdist_fingen_lm <- lm_robust(distance ~ delmu.cat * rwide.cat * locisigma.cat + 
+                                 tau.cat * delmu.cat + tau.cat * rwide.cat + tau.cat * locisigma.cat,
+data = d_eucdist_fingen)
+
+summary(eucdist_fingen_lm)
+
+emm_dist_contr_d.r.t <- pairs(pairs(emmeans(lm_eucdist, ~ delmu.cat * rwide.cat | tau.cat,
+                                            at = list(delmu.cat = c("Low", "High"),
+                                                      rwide.cat = c("Low", "High"),
+                                                      tau.cat = c("Low")))), by = NULL)
+
+emm_dist_d.r.ls <- emmeans(lm_eucdist, pairwise ~ delmu.cat * rwide.cat * locisigma.cat)
+emm_dist_d.t <- emmeans(lm_eucdist, pairwise ~ delmu.cat | tau.cat)
+
+
 # Plot euclidean distance from optimum: separate figure for each parameter, coloured lines for tau bin
 # Bars at final timepoint, then a line graph of distance over time
 
@@ -923,6 +941,9 @@ cs <- cs[c(1, 15, 45, 100)]
 
 d_eucdist_nullbar <- d_mean_eucdist_notau_null[d_mean_eucdist_notau_null$gen == 150000,]
 d_eucdist_selbar <- d_mean_eucdist_notau_sel[d_mean_eucdist_notau_sel$gen == 150000,]
+
+# Everything together
+d_mean_eucdist_end <- d_mean_eucdist[d_mean_eucdist$gen == 150000,]
 
 
 # Or use npg
@@ -1520,9 +1541,156 @@ grid.draw(plot_gtab_disttime_d.ls.s)
 
 ggsave(filename = "disttime_d.ls.s.png", plot = plot_gtab_disttime_d.ls.s, width = 12, height = 8, dpi = 800)
 
+###########################################################################
+###########################################################################
+# Simple figures: main effects of each parameter
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+# Delmu
+
+dplot_eucdist_d <- d_eucdist_fingen[,c(4, 14)] %>%
+  group_by(delmu.cat) %>% # Need bins for the other predictors as well
+  summarise_all(list(dist_mean = mean, dist_se = std.error))
 
 
+plot_eucdist_d <- ggplot(dplot_eucdist_d, aes(x = delmu.cat, y = dist_mean, group = 1)) +
+  geom_line() +
+  geom_errorbar(aes(
+    ymin = dist_mean - (1.96*dist_se), 
+    ymax = dist_mean + (1.96*dist_se)), 
+    width = 0.25) +
+  scale_y_continuous(limits = c(0, 500)) +
+  theme_classic() +
+  ggtitle(d_lab) +
+  labs(x = d_lab, y = "\u03B4\u0305") +
+  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_blank(),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        text = element_text(size = 22))
+
+plot_eucdist_d
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+# rwide
+
+dplot_eucdist_r <- d_eucdist_fingen[,c(4, 16)] %>%
+  group_by(rwide.cat) %>% # Need bins for the other predictors as well
+  summarise_all(list(dist_mean = mean, dist_se = std.error))
 
 
+plot_eucdist_r <- ggplot(dplot_eucdist_r, aes(x = rwide.cat, y = dist_mean, group = 1)) +
+  geom_line() +
+  geom_errorbar(aes(
+    ymin = dist_mean - (1.96*dist_se), 
+    ymax = dist_mean + (1.96*dist_se)), 
+    width = 0.25) +
+  scale_y_continuous(limits = c(0, 500)) +
+  theme_classic() +
+  ggtitle(r_lab) +
+  labs(x = r_lab, y = "\u03B4\u0305") +
+  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_blank(),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        text = element_text(size = 22))
+
+plot_eucdist_r
 
 
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+# pleiorate
+
+dplot_eucdist_pr <- d_eucdist_fingen[,c(4, 11)] %>%
+  group_by(pleiorate.cat) %>% # Need bins for the other predictors as well
+  summarise_all(list(dist_mean = mean, dist_se = std.error))
+
+
+plot_eucdist_pr <- ggplot(dplot_eucdist_pr, aes(x = pleiorate.cat, y = dist_mean, group = 1)) +
+  geom_line() +
+  geom_errorbar(aes(
+    ymin = dist_mean - (1.96*dist_se), 
+    ymax = dist_mean + (1.96*dist_se)), 
+    width = 0.25) +
+  scale_y_continuous(limits = c(0, 500)) +
+  theme_classic() +
+  ggtitle(pr_lab) +
+  labs(x = pr_lab, y = "\u03B4\u0305") +
+  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_blank(),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        text = element_text(size = 22))
+
+plot_eucdist_pr
+
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+# locisigma
+
+dplot_eucdist_ls <- d_eucdist_fingen[,c(4, 15)] %>%
+  group_by(locisigma.cat) %>% # Need bins for the other predictors as well
+  summarise_all(list(dist_mean = mean, dist_se = std.error))
+
+
+plot_eucdist_ls <- ggplot(dplot_eucdist_ls, aes(x = locisigma.cat, y = dist_mean, group = 1)) +
+  geom_line() +
+  geom_errorbar(aes(
+    ymin = dist_mean - (1.96*dist_se), 
+    ymax = dist_mean + (1.96*dist_se)), 
+    width = 0.25) +
+  scale_y_continuous(limits = c(0, 500)) +
+  theme_classic() +
+  ggtitle(ls_lab) +
+  labs(x = ls_lab, y = "\u03B4\u0305") +
+  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_blank(),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        text = element_text(size = 22))
+
+plot_eucdist_ls
+
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+# tau
+
+dplot_eucdist_t <- d_eucdist_fingen[,c(4, 13)] %>%
+  group_by(tau.cat) %>% # Need bins for the other predictors as well
+  summarise_all(list(dist_mean = mean, dist_se = std.error))
+
+
+plot_eucdist_t <- ggplot(dplot_eucdist_t, aes(x = tau.cat, y = dist_mean, group = 1)) +
+  geom_line() +
+  geom_errorbar(aes(
+    ymin = dist_mean - (1.96*dist_se), 
+    ymax = dist_mean + (1.96*dist_se)), 
+    width = 0.25) +
+  scale_y_continuous(limits = c(0, 500)) +
+  theme_classic() +
+  ggtitle(t_lab) +
+  labs(x = t_lab, y = "\u03B4\u0305") +
+  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_blank(),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        text = element_text(size = 22),
+        )
+
+plot_eucdist_t
+
+#############################################################################################################
+# Graphs together
+library(patchwork)
+
+plot_dist_mainfx <- (plot_eucdist_d | plot_eucdist_r) / (plot_eucdist_ls | plot_eucdist_pr)
+ggsave("plot_dist_mainfx.png", plot_dist_mainfx, height = )
+
+plot_eucdist_t
+
+# less ink: Title rather than axis 

@@ -422,6 +422,165 @@ grid.draw(plot_gtab_vartime_d.ls_avsel)
 ggsave(filename = "vartime_d.ls_avsel.png", plot = plot_gtab_vartime_d.ls_avsel, width = 12, height = 8, dpi = 800)
 
 
+# Analysis: end time point linear model
 
-d_raw_c <- readRDS("d_raw_c.RDS")
+d_raw_end <- readRDS("d_raw_end.RDS")
 
+lm_var_end <- lm_robust(varmean ~ delmu.cat*rwide.cat*locisigma.cat +
+                      tau.cat*delmu.cat + tau.cat*rwide.cat + tau.cat*locisigma.cat,
+                    data = d_raw_end)
+
+summary(lm_var_end)
+
+
+
+###########################################################################
+###########################################################################
+# Simple figures: main effects of each parameter
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+# Delmu
+
+dplot_var_d <- d_raw_end[,c(15:16, 21)] %>%
+  group_by(delmu.cat) %>% # Need bins for the other predictors as well
+  summarise_all(list(mean = mean, se = std.error))
+
+
+plot_var_d <- ggplot(dplot_var_d, aes(x = delmu.cat, y = varmean_mean, group = 1)) +
+  geom_line() +
+  geom_errorbar(aes(
+    ymin = varmean_mean - (1.96*varmean_se), 
+    ymax = varmean_mean + (1.96*varmean_se)), 
+    width = 0.25) +
+  scale_y_continuous(limits = c(0, 800)) +
+  theme_classic() +
+  ggtitle(d_lab) +
+  labs(x = d_lab, y = "\u03C3\u0305") +
+  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_blank(),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        text = element_text(size = 22))
+
+plot_var_d
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+# rwide
+
+dplot_var_r <- d_raw_end[,c(15:16, 25)] %>%
+  group_by(rwide.cat) %>% # Need bins for the other predictors as well
+  summarise_all(list(mean = mean, se = std.error))
+
+
+plot_var_r <- ggplot(dplot_var_r, aes(x = rwide.cat, y = varmean_mean, group = 1)) +
+  geom_line() +
+  geom_errorbar(aes(
+    ymin = varmean_mean - (1.96*varmean_se), 
+    ymax = varmean_mean + (1.96*varmean_se)), 
+    width = 0.25) +
+  scale_y_continuous(limits = c(0, 800)) +
+  theme_classic() +
+  ggtitle(r_lab) +
+  labs(x = d_lab, y = "\u03C3\u0305") +
+  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_blank(),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        text = element_text(size = 22))
+
+plot_var_r
+
+
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+# locisigma
+
+dplot_var_ls <- d_raw_end[,c(15:16, 22)] %>%
+  group_by(locisigma.cat) %>% # Need bins for the other predictors as well
+  summarise_all(list(mean = mean, se = std.error))
+
+
+plot_var_ls <- ggplot(dplot_var_ls, aes(x = locisigma.cat, y = varmean_mean, group = 1)) +
+  geom_line() +
+  geom_errorbar(aes(
+    ymin = varmean_mean - (1.96*varmean_se), 
+    ymax = varmean_mean + (1.96*varmean_se)), 
+    width = 0.25) +
+  scale_y_continuous(limits = c(0, 800)) +
+  theme_classic() +
+  ggtitle(ls_lab) +
+  labs(x = d_lab, y = "\u03C3\u0305") +
+  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_blank(),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        text = element_text(size = 22))
+
+plot_var_ls
+
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+# pleiorate
+
+dplot_var_pr <- d_raw_end[,c(15:16, 23)] %>%
+  group_by(pleiorate.cat) %>% # Need bins for the other predictors as well
+  summarise_all(list(mean = mean, se = std.error))
+
+
+plot_var_pr <- ggplot(dplot_var_pr, aes(x = pleiorate.cat, y = varmean_mean, group = 1)) +
+  geom_line() +
+  geom_errorbar(aes(
+    ymin = varmean_mean - (1.96*varmean_se), 
+    ymax = varmean_mean + (1.96*varmean_se)), 
+    width = 0.25) +
+  scale_y_continuous(limits = c(0, 800)) +
+  theme_classic() +
+  ggtitle(pr_lab) +
+  labs(x = d_lab, y = "\u03C3\u0305") +
+  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_blank(),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        text = element_text(size = 22))
+
+plot_var_pr
+
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+# tau
+
+dplot_var_t <- d_raw_end[,c(15:16, 26)] %>%
+  group_by(tau.cat) %>% # Need bins for the other predictors as well
+  summarise_all(list(mean = mean, se = std.error))
+
+
+plot_var_t <- ggplot(dplot_var_t, aes(x = tau.cat, y = varmean_mean, group = 1)) +
+  geom_line() +
+  geom_errorbar(aes(
+    ymin = varmean_mean - (1.96*varmean_se), 
+    ymax = varmean_mean + (1.96*varmean_se)), 
+    width = 0.25) +
+  scale_y_continuous(limits = c(0, 800)) +
+  theme_classic() +
+  ggtitle(t_lab) +
+  labs(x = d_lab, y = "\u03C3\u0305") +
+  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_blank(),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        text = element_text(size = 22))
+
+plot_var_t
+
+
+
+#############################################################################################################
+# Graphs together
+library(patchwork)
+
+plot_var_mainfx <- (plot_var_d | plot_var_r) / (plot_var_ls | plot_var_pr)
