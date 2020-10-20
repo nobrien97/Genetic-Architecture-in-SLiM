@@ -1,0 +1,358 @@
+// set up a simple neutral simulation
+initialize() {
+	if (!exists("slimgui")) {
+		setCfgParam("seed", getSeed());	// random seed
+	}
+	else {
+		setSeed(asInteger(round(runif(1, 1, 2^62 - 1))));			// sets the seed from either a command line input, -s, or from the above CfgParam
+		setCfgParam("seed", getSeed());
+		catn("Actual seed: " + asInteger(seed));
+	}
+	setCfgParam("mu", 8.045e-6); // Mutation rate averaged across five species from Table 1 Aston et al. 2017 
+	setCfgParam("Ne", 1000); // Population size: Fixed at 8000
+	setCfgParam("pleiorate", 0.44); // Proportion of QTL mutations that should be pleiotropic - given by Chesmore et al. 2017, based on human disease GWAS studies!
+	setCfgParam("del_mean", -0.03); // Mean used for the gamma distribution that deleterious mutations are pulled function
+	setCfgParam("del_shape", 0.2); // Shape parameter for gamma distribution used for deleterious mutations
+	setCfgParam("delmu", 1.0); // Proportion of deleterious mutations compared to others (relative to others, 0.1 compared to 1 of neutral)
+	setCfgParam("rwide", 1.241e-4); // Recombination rate across the whole genome (used as mean in rnorm)
+	setCfgParam("rsd", rwide*0.1); // Recombination rate standard deviation (used in rnorm)
+	setCfgParam("nloci", 100); // Number of QTL positions along the chromosome - where QTL mutations can appear, sampled from sample(): Fixed at 100
+	setCfgParam("genomelength", 800); // 800 QTLs, no neutral non-trait loci
+	setCfgParam("locisigma", 1.0); // Variance used for normal disttribution pulls - effectively the additive effect size
+	setCfgParam("tau", 10.0); // scalar for shape of fitness curve: smaller = narrower curve, greater selection pressure: need to be careful with values, they need to be relative to the mean phenotype after burn-in, and the initial distance from the optimum.
+
+	setCfgParam("outnamemuts", 'out_8T_dummy_muts.csv'); //Output filename/path for the mutation information
+
+
+
+	setCfgParam("modelindex", 1); // Identifier for the combination of predictors used in latin square: this is the row number in the lscombos.csv file
+	
+	initializeMutationRate(mu);
+	
+	initializeMutationType("m1", 0.5, "f", 0.0); // Neutral, non-trait-affecting mutations
+	
+	//m2 mutation type: deleterious/background selection
+	initializeMutationType("m2", 0.5, "g", del_mean, del_shape);  // del_mean and del_shape are defined in the batch run script, or the cfg parameters
+	m2.color = "red";
+	
+	//m3 mutation type: pleiotropic QTL for both traits, fixed, we pull effects from rmvnorm
+	initializeMutationType("m3", 0.5, "f", 0.0);
+	//	m3.convertToSubstitution = F;
+	m3.color = "green";
+	
+	//m4 mutation type: QTL for phenotype 0 only
+	initializeMutationType("m4", 0.5, "n", 0.0, locisigma);
+	//	m4.convertToSubstitution = F;
+	m4.color = "blue";
+	
+	//m5 mutation type: QTL for phenotype 1 only
+	initializeMutationType("m5", 0.5, "n", 0.0, locisigma);
+	//	m5.convertToSubstitution = F;
+	m5.color = "gray";
+	
+	//m6 mutation type: QTL for phenotype 2 only
+	initializeMutationType("m6", 0.5, "n", 0.0, locisigma);	
+	m6.color = "pink";
+	
+	//m7 mutation type: QTL for phenotype 3 only
+	initializeMutationType("m7", 0.5, "n", 0.0, locisigma);
+	m7.color = "cyan";
+	
+	//m8 mutation type: QTL for phenotype 4 only
+	initializeMutationType("m8", 0.5, "n", 0.0, locisigma);
+	//	m8.convertToSubstitution = F;
+	m8.color = "purple";
+	
+	//m9 mutation type: QTL for phenotype 5 only
+	initializeMutationType("m9", 0.5, "n", 0.0, locisigma);
+	//	m9.convertToSubstitution = F;
+	m9.color = "aquamarine";
+	
+	//m10 mutation type: QTL for phenotype 6 only
+	initializeMutationType("m10", 0.5, "n", 0.0, locisigma);	
+	m10.color = "chartreuse";
+	
+	//m11 mutation type: QTL for phenotype 7 only
+	initializeMutationType("m11", 0.5, "n", 0.0, locisigma);
+	m11.color = "orangered";
+	
+	
+	// g1 genomic element type: uses m1 and m2 for all mutations - get other effects only if determined for m1 
+	initializeGenomicElementType("g1", c(m1, m2), c(1, delmu));
+	
+	
+// Single chromosome modelled for simplicity
+	
+	initializeGenomicElement(g1, 0, genomelength - 1);
+
+	// recombination rate
+	initializeRecombinationRate(rwide); 
+
+	
+	// QTL constants - UNIVERSAL PLEIOTROPY assumed!
+	
+	setCfgParam("pleio_mu", float(8)); // mean distribution value for multivariate normal we are pulling effects of all 8 traits from
+	setCfgParam("pleio_cov", 0.5); // Default covariance term for use in pleio_covs - 0 is our null: pleiotropy, but with no direction
+	if (pleio_cov != 0.0) {
+		
+		defineConstant("pleio_covs", rnorm(28, pleio_cov, abs(pleio_cov/5)));		// If we set our pleio_cov to something other than 0.0 (some directionality to the covariance), use a norm distribution to randomise effects around that value, so we aren't assuming every covariance value is identical
+	}
+	else {
+		defineConstant("pleio_covs", rep(pleio_cov, 28)); // If pleio_cov is 0, expand that to a full vector of all covariance terms
+	}
+		
+									
+	sigma = matrix(c(			1.0, pleio_covs[0], pleio_covs[1], pleio_covs[2], pleio_covs[3], pleio_covs[4], pleio_covs[5], pleio_covs[6],
+									pleio_covs[0], 1.0, pleio_covs[7], pleio_covs[8], pleio_covs[9], pleio_covs[10], pleio_covs[11], pleio_covs[12],
+									pleio_covs[1], pleio_covs[7], 1.0, pleio_covs[13], pleio_covs[14], pleio_covs[15], pleio_covs[16], pleio_covs[17],
+									pleio_covs[2], pleio_covs[8], pleio_covs[13], 1.0, pleio_covs[18], pleio_covs[19], pleio_covs[20], pleio_covs[21],
+									pleio_covs[3], pleio_covs[9], pleio_covs[14], pleio_covs[18], 1.0, pleio_covs[22], pleio_covs[23], pleio_covs[24],
+									pleio_covs[4], pleio_covs[10], pleio_covs[15], pleio_covs[19], pleio_covs[22], 1.0, pleio_covs[25], pleio_covs[26],
+									pleio_covs[5], pleio_covs[11], pleio_covs[16], pleio_covs[20], pleio_covs[23], pleio_covs[25], 1.0, pleio_covs[27],
+									pleio_covs[6], pleio_covs[12], pleio_covs[17], pleio_covs[21], pleio_covs[24], pleio_covs[26], pleio_covs[27], 1.0), nrow=8); // sigma used in multivariate normal pull - this is a correlation matrix, we scale by locisigma to convert to variance-covariance
+
+	sigma = sigma * t(sigma); // A * A^t ensures matrices are positive definite
+	sigma = locisigma * sigma;
+
+	
+	defineConstant("pleio_sigma", sigma);	
+	catn("\nPleiotropic QTL DFE means: ");
+	print(pleio_mu);
+	catn("\nPleiotropic QTL DFE variance-covariance matrix (M matrix): ");
+	print(pleio_sigma);
+}
+
+
+
+function (void) setCfgParam (s$ name, ifls value) // setup function for automating constant definitions between gui and command line
+{
+	if (!exists(name))
+		defineConstant(name, value);
+}
+
+
+
+// create a population of 500 individuals
+1 {
+	sim.addSubpop("p1", Ne);
+	chr_QTL = sample(0:799, 800); // Set the positions of our loci, from position 1 to the length of the chromosome;
+
+	sim.setValue("chr_QTL", chr_QTL); //store these positions in a sim value
+			
+}
+
+// Set fitness of m4 and m5 to be neutral
+fitness(m4) {
+	return 1.0;
+}
+
+fitness(m5) {
+	return 1.0;
+}
+
+fitness(m6) {
+	return 1.0;
+}
+
+fitness(m7) {
+	return 1.0;
+}
+
+fitness(m8) {
+	return 1.0;
+}
+
+fitness(m9) {
+	return 1.0;
+}
+
+fitness(m10) {
+	return 1.0;
+}
+
+fitness(m11) {
+	return 1.0;
+}
+
+// Check if the m1 mutation's position is at a chr_QTL position, if it is than redraw the mutationType
+			// From McGuigan et al. 2014: "...multivariate modeling indicated that 21% (1 in every 4.8) of five-trait matrices displayed significant mutational 							pleiotropy." But only found pleiotropy in 0.52% of bivariate covariances - so most pleiotropic mutations affect > 2 traits
+			// Decide how many traits to affect: pull a number from a gamma (? CHECK LITERATURE ?) distribution with some mean and shape parameter, then choose traits uniformly based on the number we want.
+			// Or we could leave the model assuming universal pleiotropy, rather than restricted modularity		
+
+mutation(m1) {
+	if (any(mut.position == sim.getValue("chr_QTL") )) { // If the mutation falls in any of our defined QTL loci within a region 
+		
+		pleio = rbinom(1, 1, pleiorate); // Redraw the mutation type, determining whether the nonsyn mutation should be pleiotropic or not 
+		if (pleio == 1 & all(sim.mutations.position != mut.position) & all(sim.substitutions.position != mut.position)) { // If a prior mutation has occurred there, don't change mutation type!
+			mut.setMutationType(m3);
+		}
+		else {
+			if (any(sim.substitutions.position == mut.position)) { // If a substitution has occurred, set the mutation type to that: subsetting by 0 in case there are more than 1 subsitution, they will all have the same mut type anyway, only need 1
+				mut.setMutationType(sim.substitutions[sim.substitutions.position == mut.position][0].mutationType); 
+			}	
+				else if (any(sim.mutations.position == mut.position)) { // Otherwise check if there are any mutations segregating with that type, and set it to that
+					mut.setMutationType(sim.mutations[sim.mutations.position == mut.position][0].mutationType);
+			}
+			
+			else { // I know it's ugly, I don't have time to make it better :( SLiM has no switch() function
+				if (any(sim.getValue("chr_QTL")[0:(nloci-1)] == mut.position)) // Check if our mut.position is in the right subset of chr_QTL associated with the trait
+					type = m4; // If it isn't pleiotropic, set the mutation type according to the values defined in chr_QTL
+				if (any(sim.getValue("chr_QTL")[nloci:(2*nloci - 1)] == mut.position))
+					type = m5;				
+				if (any(sim.getValue("chr_QTL")[(2*nloci):(3*nloci - 1)] == mut.position))
+					type = m6;
+				if (any(sim.getValue("chr_QTL")[(3*nloci):(4*nloci - 1)] == mut.position))
+					type = m7;
+				if (any(sim.getValue("chr_QTL")[(4*nloci):(5*nloci - 1)] == mut.position))
+					type = m8;
+				if (any(sim.getValue("chr_QTL")[(5*nloci):(6*nloci - 1)] == mut.position))
+					type = m9;
+				if (any(sim.getValue("chr_QTL")[(6*nloci):(7*nloci - 1)] == mut.position))
+					type = m10;
+				if (any(sim.getValue("chr_QTL")[(7*nloci):(8*nloci - 1)] == mut.position))
+					type = m11;
+				mut.setMutationType(type);
+			}
+			
+			if (mut.mutationType != m3) {
+				mut.setSelectionCoeff(mut.mutationType.drawSelectionCoefficient(1)); // Draw the selection coefficient for the given mutation type
+			}
+			
+				mut.setValue("e0", 0.0);				// Initialise effects for all the traits
+				mut.setValue("e1", 0.0);
+				mut.setValue("e2", 0.0);
+				mut.setValue("e3", 0.0);
+				mut.setValue("e4", 0.0);
+				mut.setValue("e5", 0.0);
+				mut.setValue("e6", 0.0);
+				mut.setValue("e7", 0.0);
+				mut.setValue("fe", 0.0); //fitness effect
+				
+			if (mut.mutationType == m4)	{
+				mut.setValue("e0", mut.selectionCoeff);				// Calculate effects for the appropriate phenotype, since it isn't pleiotropic
+			}
+			
+			if (mut.mutationType == m5) {
+				mut.setValue("e1", mut.selectionCoeff);
+			}
+			if (mut.mutationType == m6) {
+				mut.setValue("e2", mut.selectionCoeff);
+			}
+			if (mut.mutationType == m7) {
+				mut.setValue("e3", mut.selectionCoeff);
+			}
+			if (mut.mutationType == m8) {
+				mut.setValue("e4", mut.selectionCoeff);
+			}
+			if (mut.mutationType == m9) {
+				mut.setValue("e5", mut.selectionCoeff);	
+			}
+			if (mut.mutationType == m10) {
+				mut.setValue("e6", mut.selectionCoeff);
+			}
+			if (mut.mutationType == m11) {
+				mut.setValue("e7", mut.selectionCoeff);
+			}
+		}
+		if (mut.mutationType == m3) {
+			effects = rmvnorm(1, pleio_mu, pleio_sigma);		// Calculate effects for m3 here since a mutation callback won't be called since it isn't autogenerated
+			mut.setValue("e0", effects[0]);
+			mut.setValue("e1", effects[1]);
+			mut.setValue("e2", effects[2]);
+			mut.setValue("e3", effects[3]);
+			mut.setValue("e4", effects[4]);
+			mut.setValue("e5", effects[5]);
+			mut.setValue("e6", effects[6]);
+			mut.setValue("e7", effects[7]);
+			mut.setValue("fe", 0.0); //fitness effect
+		}
+		
+		return T;
+	}
+	else
+		return F; // If the mutation is outside of the range of QTL values, something has gone wrong (since the genome is made of entirely QTLs now), so kill the mutation
+}
+
+
+
+// For non-pleiotropic mutations, set their e0 and e1 values so we can have standardised output in that format
+
+mutation(m2) {
+	mut.setValue("e0", 0.0);
+	mut.setValue("e1", 0.0);
+	mut.setValue("e2", 0.0);
+	mut.setValue("e3", 0.0);
+	mut.setValue("e4", 0.0);
+	mut.setValue("e5", 0.0);
+	mut.setValue("e6", 0.0);
+	mut.setValue("e7", 0.0);
+	mut.setValue("fe", mut.selectionCoeff); // fitness effect
+	
+	return T;
+
+}
+
+// output samples of 10 genomes periodically, all fixed mutations at end
+1000 late() { 
+	// Output for mutations
+	
+	// Store vectors of unique mutations, sorted by the generation in which they originated
+	muts = sortBy(c(sim.mutations[sim.mutations.mutationType != m1]), "originGeneration");
+	
+	// same for substitutions
+	subs = sortBy(c(sim.substitutions[sim.substitutions.mutationType != m1]), "originGeneration");
+	
+	// Set up an empty output to store all our mutations' information for this generation
+	mutsLines = NULL;
+	revmuts = rev(muts); // Reverse of the vector: the first value in this is the last mutation in the original list
+	revsubs = rev(subs); // could instead call muts.size() and use if mut == muts[muts.size() - 1] to check, maybe uses less memory, probably same speed
+	
+	// Put information on these unique mutations into a separate mutations file	
+	
+	// Check if there are any substitutions, if not we need to fix the output lines	by not including the \n character at the end of the last mutation line
+	
+	if (size(subs))
+		for (mut in muts) {
+			mutFreq = mean(sim.subpopulations.genomes.containsMutations(mut));
+			mutType = mut.mutationType.id;
+			mutValues = paste(c(mut.getValue("e0"), mut.getValue("e1"), mut.getValue("e2"), mut.getValue("e3"), mut.getValue("e4"), mut.getValue("e5"), mut.getValue("e6"), mut.getValue("e7")), ",");
+			mutsLine = paste(c(sim.generation, ",", asString(seed), ",", modelindex, ",", rsd, ",", rwide, ",", delmu, ",", tau, ",", paste(pleio_covs, ","), ",",  mutType, ",", mut.id, ",", mut.position, ",", mut.originGeneration, ",", mutValues, ",", mutFreq, ",", "N/A", "\n"), "");
+			
+			mutsLines = c(mutsLines, mutsLine);
+		}
+	else
+		for (mut in muts) {
+			mutFreq = mean(sim.subpopulations.genomes.containsMutations(mut));
+			mutType = mut.mutationType.id;
+			mutValues = paste(c(mut.getValue("e0"), mut.getValue("e1"), mut.getValue("e2"), mut.getValue("e3"), mut.getValue("e4"), mut.getValue("e5"), mut.getValue("e6"), mut.getValue("e7")), ",");
+			if (mut != revmuts[0]) // Quality hack
+				mutsLine = paste(c(sim.generation, ",", asString(seed), ",", modelindex, ",", rsd, ",", rwide, ",", delmu, ",", tau, ",", paste(pleio_covs, ","), ",",  mutType, ",", mut.id, ",", mut.position, ",", mut.originGeneration, ",", mutValues, ",", mut.getValue("fe"), ",", mutFreq, ",", "N/A", "\n"), "");
+			else
+				mutsLine = paste(c(sim.generation, ",", asString(seed), ",", modelindex, ",", rsd, ",", rwide, ",", delmu, ",", tau, ",", paste(pleio_covs, ","), ",",  mutType, ",", mut.id, ",", mut.position, ",", mut.originGeneration, ",", mutValues, ",", mut.getValue("fe"), ",", mutFreq, ",", "N/A", ""), "");
+			mutsLines = c(mutsLines, mutsLine);
+		}
+	
+	
+	
+	for (sub in subs) {
+		subFreq = 1.0;
+		subType = sub.mutationType.id;
+		subValues = paste(c(sub.getValue("e0"), sub.getValue("e1"), sub.getValue("e2"), sub.getValue("e3"), sub.getValue("e4"), sub.getValue("e5"), sub.getValue("e6"), sub.getValue("e7")), ",");
+
+		
+		if (sub != revsubs[0]) // THIS IS THE HACK THAT I MUST RESORT TO THANKS TO NO \b OR REPLACE() 	GOSH BLESS EIDOS
+			subLine = paste(c(sim.generation, ",", asString(seed), ",", modelindex, ",", rsd, ",", rwide, ",", delmu, ",", tau, ",", paste(pleio_covs, ","), ",",  subType, ",", sub.id, ",", sub.position, ",", sub.originGeneration, ",", subValues, ",", sub.getValue("fe"), ",", subFreq, ",", sub.fixationGeneration, "\n"), "");
+		else
+			subLine = paste(c(sim.generation, ",", asString(seed), ",", modelindex, ",", rsd, ",", rwide, ",", delmu, ",", tau, ",", paste(pleio_covs, ","), ",",  subType, ",", sub.id, ",", sub.position, ",", sub.originGeneration, ",", subValues, ",", sub.getValue("fe"), ",", subFreq, ",", sub.fixationGeneration, ""), "");
+		
+		mutsLines = c(mutsLines, subLine); // Add substitutions to mutation output
+	
+	}
+	
+	mutsFile = paste(mutsLines, ""); // n.b. does \b exist in eidos? Would make it easier
+	
+	// Write the mutations file
+	// Fail safe in case there are no mutations at some point and the for loop doesn't run
+	if (exists('mutsLine'))
+		writeFile(outnamemuts, mutsFile, append = T);	
+}

@@ -909,6 +909,9 @@ d_mean_eucdist <- readRDS("d_mean_eucdist.RDS")
 d_mean_eucdist_notau_null <- readRDS("d_mean_eucdist_notau_null.RDS")
 d_mean_eucdist_notau_sel <- readRDS("d_mean_eucdist_notau_sel.RDS")
 
+###########################################################################
+###########################################################################
+
 
 # Linear model: euclidean distance vs parameters at final time point
 d_eucdist_fingen <- d_eucdist_c[d_eucdist_c$gen == 150000,]
@@ -916,20 +919,15 @@ d_eucdist_fingen <- d_eucdist_c[d_eucdist_c$gen == 150000,]
 library(emmeans)
 library(estimatr)
 
-eucdist_fingen_lm <- lm_robust(distance ~ delmu.cat * rwide.cat * locisigma.cat + 
-                                 tau.cat * delmu.cat + tau.cat * rwide.cat + tau.cat * locisigma.cat,
+eucdist_fingen_lm <- lm_robust(distance ~ delmu * rwide * locisigma + 
+                                 tau * delmu + tau * rwide + tau * locisigma,
 data = d_eucdist_fingen)
 
 summary(eucdist_fingen_lm)
 
-emm_dist_contr_d.r.t <- pairs(pairs(emmeans(lm_eucdist, ~ delmu.cat * rwide.cat | tau.cat,
-                                            at = list(delmu.cat = c("Low", "High"),
-                                                      rwide.cat = c("Low", "High"),
-                                                      tau.cat = c("Low")))), by = NULL)
 
-emm_dist_d.r.ls <- emmeans(lm_eucdist, pairwise ~ delmu.cat * rwide.cat * locisigma.cat)
-emm_dist_d.t <- emmeans(lm_eucdist, pairwise ~ delmu.cat | tau.cat)
-
+###########################################################################
+###########################################################################
 
 # Plot euclidean distance from optimum: separate figure for each parameter, coloured lines for tau bin
 # Bars at final timepoint, then a line graph of distance over time
@@ -1171,6 +1169,9 @@ plot_gtab_eucdist.d.r.ls.s <- gtable_add_cols(plot_gtab, unit(1/5, "line"), max(
 grid.newpage()
 grid.draw(plot_gtab_eucdist.d.r.ls.s)
 
+#########################################################################
+#########################################################################
+#########################################################################
 
 # Distance over time
 
@@ -1689,8 +1690,324 @@ plot_eucdist_t
 library(patchwork)
 
 plot_dist_mainfx <- (plot_eucdist_d | plot_eucdist_r) / (plot_eucdist_ls | plot_eucdist_pr)
-ggsave("plot_dist_mainfx.png", plot_dist_mainfx, height = )
-
+plot_dist_mainfx
 plot_eucdist_t
 
-# less ink: Title rather than axis 
+
+
+###########################################################################
+###########################################################################
+# Simple figures: main effects of each parameter
+
+# Distance over time
+
+library(viridis)
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+# Delmu
+
+dplot_disttime_d <- d_eucdist_c[,c(1, 4, 14)] %>%
+  group_by(gen, delmu.cat) %>% # Need bins for the other predictors as well
+  summarise_all(list(dist_mean = mean, dist_se = std.error))
+
+
+plot_disttime_d <- ggplot(dplot_disttime_d, aes(x = gen, y = dist_mean, col = delmu.cat)) +
+  geom_line() +
+  scale_y_continuous(limits = c(0, 500)) +
+  scale_x_continuous(breaks = c(seq(50000, 150000, 10000)), labels = c(as.character(seq(0, 100, 10)))) +
+  theme_classic() +
+  ggtitle(d_lab) +
+  scale_color_igv() +
+  labs(x = expression(Generation~(x10^{"3"})), y = "\u03B4\u0305", col = d_lab) +
+  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        legend.title = element_blank(),
+        text = element_text(size = 22))
+plot_disttime_d
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+# rwide
+
+dplot_disttime_r <- d_eucdist_c[,c(1, 4, 16)] %>%
+  group_by(gen, rwide.cat) %>% # Need bins for the other predictors as well
+  summarise_all(list(dist_mean = mean, dist_se = std.error))
+
+
+plot_disttime_r <- ggplot(dplot_disttime_r, aes(x = gen, y = dist_mean, col = rwide.cat)) +
+  geom_line() +
+  scale_y_continuous(limits = c(0, 500)) +
+  scale_x_continuous(breaks = c(seq(50000, 150000, 10000)), labels = c(as.character(seq(0, 100, 10)))) +
+  theme_classic() +
+  ggtitle(r_lab) +
+  scale_color_igv() +
+  labs(x = expression(Generation~(x10^{"3"})), y = "\u03B4\u0305", col = r_lab) +
+  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        legend.title = element_blank(),
+        text = element_text(size = 22))
+plot_disttime_r
+
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+# pleiorate
+dplot_disttime_pr <- d_eucdist_c[,c(1, 4, 11)] %>%
+  group_by(gen, pleiorate.cat) %>% # Need bins for the other predictors as well
+  summarise_all(list(dist_mean = mean, dist_se = std.error))
+
+
+plot_disttime_pr <- ggplot(dplot_disttime_pr, aes(x = gen, y = dist_mean, col = pleiorate.cat)) +
+  geom_line() +
+  scale_y_continuous(limits = c(0, 500)) +
+  scale_x_continuous(breaks = c(seq(50000, 150000, 10000)), labels = c(as.character(seq(0, 100, 10)))) +
+  theme_classic() +
+  ggtitle(pr_lab) +
+  scale_color_igv() +
+  labs(x = expression(Generation~(x10^{"3"})), y = "\u03B4\u0305", col = pr_lab) +
+  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        legend.title = element_blank(),
+        text = element_text(size = 22))
+plot_disttime_pr
+
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+# locisigma
+dplot_disttime_ls <- d_eucdist_c[,c(1, 4, 15)] %>%
+  group_by(gen, locisigma.cat) %>% # Need bins for the other predictors as well
+  summarise_all(list(dist_mean = mean, dist_se = std.error))
+
+
+plot_disttime_ls <- ggplot(dplot_disttime_ls, aes(x = gen, y = dist_mean, col = locisigma.cat)) +
+  geom_line() +
+  scale_y_continuous(limits = c(0, 500)) +
+  scale_x_continuous(breaks = c(seq(50000, 150000, 10000)), labels = c(as.character(seq(0, 100, 10)))) +
+  theme_classic() +
+  ggtitle(ls_lab) +
+  scale_color_igv() +
+  labs(x = expression(Generation~(x10^{"3"})), y = "\u03B4\u0305", col = ls_lab) +
+  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        legend.title = element_blank(),
+        text = element_text(size = 22))
+plot_disttime_ls
+
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+# tau
+
+dplot_disttime_t <- d_eucdist_c[,c(1, 4, 13)] %>%
+  group_by(gen, tau.cat) %>% # Need bins for the other predictors as well
+  summarise_all(list(dist_mean = mean, dist_se = std.error))
+
+
+plot_disttime_t <- ggplot(dplot_disttime_t, aes(x = gen, y = dist_mean, col = tau.cat)) +
+  geom_line() +
+  scale_y_continuous(limits = c(0, 500)) +
+  scale_x_continuous(breaks = c(seq(50000, 150000, 10000)), labels = c(as.character(seq(0, 100, 10)))) +
+  theme_classic() +
+  ggtitle(t_lab) +
+  scale_color_igv() +
+  labs(x = expression(Generation~(x10^{"3"})), y = "\u03B4\u0305", col = t_lab) +
+  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        legend.title = element_blank(),
+        text = element_text(size = 22))
+plot_disttime_t
+
+
+library(patchwork)
+plot_disttime_mainfx <- (plot_disttime_d | plot_disttime_r) / (plot_disttime_ls | plot_disttime_pr)
+plot_disttime_mainfx
+plot_disttime_t
+
+
+
+
+
+
+
+#############################################################################################################
+#############################################################################################################
+
+# Graph delmu and locisigma as continuous: empty grey circles for data, then means per seed in dark, and different colour line
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+dplot_eucdist_fingen <- d_eucdist_fingen[, c(3:10)] %>%
+                          group_by(modelindex, delmu, rwide, pleiorate, pleiocov, locisigma, tau) %>%
+                          summarise_all(list(dist_mean = mean, dist_se = std.error))
+  
+
+# locisigma
+
+
+plot_eucdist_cont_ls <- ggplot(dplot_eucdist_fingen, aes(x = locisigma, y = dist_mean)) +
+  geom_point(data = d_eucdist_fingen, mapping = aes(x=locisigma, y = distance), shape = 1, size = 0.8, col = "grey") +
+  geom_point() +
+  geom_smooth(se = T, method = "lm", formula = y ~ poly(x, 2), col = "#03A9F4") +
+  theme_classic() +
+  ggtitle(ls_lab) +
+  labs(x = ls_lab, y = "\u03B4\u0305") +
+  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_blank(),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        text = element_text(size = 22))
+
+plot_eucdist_cont_ls
+
+
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+# delmu
+
+
+plot_eucdist_cont_d <- ggplot(dplot_eucdist_fingen, aes(x = delmu, y = dist_mean)) +
+  geom_point(data = d_eucdist_fingen, mapping = aes(x=delmu, y = distance), shape = 1, size = 0.8, col = "grey") +
+  geom_point() +
+  geom_smooth(se = T, method = "lm", formula = y ~ poly(x, 2), col = "#03A9F4") +
+  theme_classic() +
+  ggtitle(d_lab) +
+  labs(x = d_lab, y = "\u03B4\u0305") +
+  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_blank(),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        text = element_text(size = 22))
+
+plot_eucdist_cont_d
+
+# Combine with variance/covariance
+
+
+plot_distvar_cont_d.ls <- (plot_eucdist_cont_d | plot_eucdist_cont_ls)/(plot_var_cont_d | plot_var_cont_ls)
+plot_distvar_cont_d.ls
+
+
+#############################################################################################################
+#############################################################################################################
+
+
+# Variance of distance over time: gives an idea of the cycling of the data
+# Will take from generation 100,000 to 150,000
+
+# Compare between models
+
+vardist_lab <- expression(paste(sigma["\u03B4\u0305"]^{2}))
+
+d_eucdist_t <- d_eucdist_c[d_eucdist_c$gen >= 100000L,]
+
+dplot_dist_cont_vart <- d_eucdist_t[, c(3:16)] %>%
+  group_by(modelindex, delmu, rwide, pleiorate, pleiocov, locisigma, tau, delmu.cat, rwide.cat, pleiorate.cat, pleiocov.cat, locisigma.cat, tau.cat) %>%
+  summarise_all(list(dist_mean = mean, dist_se = std.error, dist_var = var))
+
+lm_vardist <- lm_robust(dist_var ~ delmu * rwide * pleiorate * locisigma +
+                          tau*delmu + tau*rwide + tau*pleiorate + tau*locisigma +
+                          tau*delmu*locisigma, data = dplot_dist_cont_vart)
+
+summary(lm_vardist)
+
+
+#############################################################################################################
+
+# Plot the above
+
+plot_dist_cont_vart.d <- ggplot(dplot_dist_cont_vart, aes(x = delmu, y = dist_var)) +
+  geom_point() +
+  geom_smooth(se = T, method = "lm", formula = y ~ poly(x, 2), col = "#03A9F4", fill = "#5FBBE6") +
+  theme_classic() +
+  ggtitle(d_lab) +
+  labs(x = d_lab, y = vardist_lab) + #"\u03C3(\u03B4\u0305)") +
+  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_blank(),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        text = element_text(size = 22))
+
+plot_dist_cont_vart.d
+
+
+
+plot_dist_cont_vart.ls <- ggplot(dplot_dist_cont_vart, aes(x = locisigma, y = dist_var)) +
+  geom_point() +
+  geom_smooth(se = T, method = "lm", formula = y ~ poly(x, 2), col = "#03A9F4", fill = "#5FBBE6") +
+  theme_classic() +
+  ggtitle(ls_lab) +
+  labs(x = ls_lab, y = vardist_lab) + #"\u03C3(\u03B4\u0305)") +
+  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_blank(),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        text = element_text(size = 22))
+
+plot_dist_cont_vart.ls
+
+
+plot_dist_cont_vart.d.ls <- ggplot(dplot_dist_cont_vart, aes(x = delmu, y = dist_var)) +
+  facet_grid(locisigma.cat~.) +
+  geom_point() +
+  geom_smooth(se = T, method = "lm", formula = y ~ poly(x, 2), col = "#03A9F4", fill = "#5FBBE6") +
+  theme_classic() +
+#  ggtitle(d_lab) +
+  labs(x = d_lab, y = vardist_lab) + #"\u03C3(\u03B4\u0305)") +
+  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        text = element_text(size = 22))
+
+plot_dist_cont_vart.d.ls
+
+
+# Thanks to: https://stackoverflow.com/a/37292665/13586824
+# Add delmu label
+# Labels 
+library(grid)
+library(gtable)
+labelR = ls_lab
+
+# Get the ggplot grob
+plot_gtab <- ggplotGrob(plot_dist_cont_vart.d.ls)
+
+# Get the positions of the strips in the gtable: t = top, l = left, ...
+posR <- subset(plot_gtab$layout, grepl("strip-r", name), select = t:r)
+
+# Add a new column to the right of current right strips, 
+# and a new row on top of current top strips
+width <- plot_gtab$widths[max(posR$r)]    # width of current right strips
+
+plot_gtab <- gtable_add_cols(plot_gtab, width, max(posR$r))  
+
+# Construct the new strip grobs
+stripR <- gTree(name = "Strip_right", children = gList(
+  rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
+  textGrob(labelR, rot = -90, gp = gpar(fontsize = 22, col = "black", fontface = "bold"))))
+
+# Position the grobs in the gtable
+plot_gtab <- gtable_add_grob(plot_gtab, stripR, t = min(posR$t), l = max(posR$r) + 1, b = max(posR$b), name = "strip-right")
+
+# Add small gaps between strips
+plot_gtab_dist_cont_vart.d.ls <- gtable_add_cols(plot_gtab, unit(1/5, "line"), max(posR$r))
+
+# Draw it
+grid.newpage()
+grid.draw(plot_gtab_dist_cont_vart.d.ls)
+
+
+

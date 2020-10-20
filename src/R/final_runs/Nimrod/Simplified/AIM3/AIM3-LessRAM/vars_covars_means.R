@@ -438,6 +438,10 @@ summary(lm_var_end)
 ###########################################################################
 # Simple figures: main effects of each parameter
 
+# Variance
+
+var_lab <- "\u03C3\u0305\u00B2"
+
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 
 # Delmu
@@ -456,7 +460,7 @@ plot_var_d <- ggplot(dplot_var_d, aes(x = delmu.cat, y = varmean_mean, group = 1
   scale_y_continuous(limits = c(0, 800)) +
   theme_classic() +
   ggtitle(d_lab) +
-  labs(x = d_lab, y = "\u03C3\u0305") +
+  labs(x = d_lab, y = var_lab) +
   theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
         axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
         axis.title.x = element_blank(),
@@ -483,7 +487,7 @@ plot_var_r <- ggplot(dplot_var_r, aes(x = rwide.cat, y = varmean_mean, group = 1
   scale_y_continuous(limits = c(0, 800)) +
   theme_classic() +
   ggtitle(r_lab) +
-  labs(x = d_lab, y = "\u03C3\u0305") +
+  labs(x = d_lab, y = var_lab) +
   theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
         axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
         axis.title.x = element_blank(),
@@ -512,7 +516,7 @@ plot_var_ls <- ggplot(dplot_var_ls, aes(x = locisigma.cat, y = varmean_mean, gro
   scale_y_continuous(limits = c(0, 800)) +
   theme_classic() +
   ggtitle(ls_lab) +
-  labs(x = d_lab, y = "\u03C3\u0305") +
+  labs(x = d_lab, y = var_lab) +
   theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
         axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
         axis.title.x = element_blank(),
@@ -540,7 +544,7 @@ plot_var_pr <- ggplot(dplot_var_pr, aes(x = pleiorate.cat, y = varmean_mean, gro
   scale_y_continuous(limits = c(0, 800)) +
   theme_classic() +
   ggtitle(pr_lab) +
-  labs(x = d_lab, y = "\u03C3\u0305") +
+  labs(x = d_lab, y = var_lab) +
   theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
         axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
         axis.title.x = element_blank(),
@@ -568,7 +572,7 @@ plot_var_t <- ggplot(dplot_var_t, aes(x = tau.cat, y = varmean_mean, group = 1))
   scale_y_continuous(limits = c(0, 800)) +
   theme_classic() +
   ggtitle(t_lab) +
-  labs(x = d_lab, y = "\u03C3\u0305") +
+  labs(x = d_lab, y = var_lab) +
   theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
         axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
         axis.title.x = element_blank(),
@@ -584,3 +588,311 @@ plot_var_t
 library(patchwork)
 
 plot_var_mainfx <- (plot_var_d | plot_var_r) / (plot_var_ls | plot_var_pr)
+
+plot_var_mainfx
+
+
+###########################################################################
+###########################################################################
+# Simple figures: main effects of each parameter
+
+# Covariance
+
+cov_lab <- "Cov(X, Y)"
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+# Delmu
+
+
+plot_cov_d <- ggplot(dplot_var_d, aes(x = delmu.cat, y = covmean_mean, group = 1)) +
+  geom_line() +
+  geom_errorbar(aes(
+    ymin = covmean_mean - (1.96*covmean_se), 
+    ymax = covmean_mean + (1.96*covmean_se)), 
+    width = 0.25) +
+  scale_y_continuous(limits = c(0, 20)) +
+  theme_classic() +
+  ggtitle(d_lab) +
+  labs(x = d_lab, y = cov_lab) +
+  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_blank(),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        text = element_text(size = 22))
+
+plot_cov_d
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+# rwide
+
+
+plot_cov_r <- ggplot(dplot_var_r, aes(x = rwide.cat, y = covmean_mean, group = 1)) +
+  geom_line() +
+  geom_errorbar(aes(
+    ymin = covmean_mean - (1.96*covmean_se), 
+    ymax = covmean_mean + (1.96*covmean_se)), 
+    width = 0.25) +
+  scale_y_continuous(limits = c(0, 20)) +
+  theme_classic() +
+  ggtitle(r_lab) +
+  labs(x = d_lab, y = cov_lab) +
+  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_blank(),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        text = element_text(size = 22))
+
+plot_cov_r
+
+
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+# locisigma
+
+
+plot_cov_ls <- ggplot(dplot_var_ls, aes(x = locisigma.cat, y = covmean_mean, group = 1)) +
+  geom_line() +
+  geom_errorbar(aes(
+    ymin = covmean_mean - (1.96*covmean_se), 
+    ymax = covmean_mean + (1.96*covmean_se)), 
+    width = 0.25) +
+  scale_y_continuous(limits = c(0, 20)) +
+  theme_classic() +
+  ggtitle(ls_lab) +
+  labs(x = d_lab, y = cov_lab) +
+  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_blank(),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        text = element_text(size = 22))
+
+plot_cov_ls
+
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+# pleiorate
+
+
+plot_cov_pr <- ggplot(dplot_var_pr, aes(x = pleiorate.cat, y = covmean_mean, group = 1)) +
+  geom_line() +
+  geom_errorbar(aes(
+    ymin = covmean_mean - (1.96*covmean_se), 
+    ymax = covmean_mean + (1.96*covmean_se)), 
+    width = 0.25) +
+  scale_y_continuous(limits = c(0, 20)) +
+  theme_classic() +
+  ggtitle(pr_lab) +
+  labs(x = d_lab, y = cov_lab) +
+  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_blank(),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        text = element_text(size = 22))
+
+plot_cov_pr
+
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+# tau
+
+plot_cov_t <- ggplot(dplot_var_t, aes(x = tau.cat, y = covmean_mean, group = 1)) +
+  geom_line() +
+  geom_errorbar(aes(
+    ymin = covmean_mean - (1.96*covmean_se), 
+    ymax = covmean_mean + (1.96*covmean_se)), 
+    width = 0.25) +
+  scale_y_continuous(limits = c(0, 20)) +
+  theme_classic() +
+  ggtitle(t_lab) +
+  labs(x = d_lab, y = cov_lab) +
+  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_blank(),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        text = element_text(size = 22))
+
+plot_cov_t
+
+
+
+#############################################################################################################
+# Graphs together
+library(patchwork)
+
+plot_cov_mainfx <- (plot_cov_d | plot_cov_r) / (plot_cov_ls | plot_cov_pr)
+
+plot_cov_mainfx
+
+
+
+#############################################################################################################
+#############################################################################################################
+
+# Graph delmu and locisigma as continuous
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+dplot_raw_end <- d_raw_end[, c(3, 5:6, 15:20)] %>%
+  group_by(modelindex, delmu, rwide, pleiorate, pleiocov, locisigma, tau) %>%
+  summarise_all(list(mean = mean, se = std.error))
+
+
+# locisigma
+
+plot_var_cont_ls <- ggplot(dplot_raw_end, aes(x = locisigma, y = varmean_mean)) +
+  geom_point(data = d_raw_end, mapping = aes(x=locisigma, y = varmean), shape = 1, size = 0.8, col = "grey") +
+  geom_point() +
+  geom_smooth(se = T, method = "lm", formula = y ~ poly(x, 2), col = "#03A9F4") +
+  theme_classic() +
+#  ggtitle(ls_lab) +
+  labs(x = ls_lab, y = var_lab) +
+  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_blank(),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        text = element_text(size = 22))
+
+plot_var_cont_ls
+
+
+
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+# delmu
+
+
+plot_var_cont_d <- ggplot(dplot_raw_end, aes(x = delmu, y = varmean_mean)) +
+  geom_point(data = d_raw_end, mapping = aes(x=delmu, y = varmean), shape = 1, size = 0.8, col = "grey") +
+  geom_point() +
+  geom_smooth(se = T, method = "lm", formula = y ~ poly(x, 2), col = "#03A9F4") +
+  theme_classic() +
+#  ggtitle(d_lab) +
+  labs(x = d_lab, y = var_lab) +
+  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_blank(),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        text = element_text(size = 22))
+
+plot_var_cont_d
+
+
+#############################################################################################################
+#############################################################################################################
+
+
+# Variance of variance over time: gives an idea of the cycling of the data
+# Will take from generation 100,000 to 150,000
+# Get the data on the supercomputer to reduce RAM usage here
+dplot_var_cont_vart <- readRDS("dplot_var_cont_vart.RDS")
+
+as.numeric(quantile(dplot_var_cont_vart$varmean_var)[4])
+
+# Linear model to describe this - potentially remove outliers
+lm_varvar <- lm_robust(varmean_var ~ delmu * rwide * pleiorate * locisigma +
+                          tau*delmu + tau*rwide + tau*pleiorate + tau*locisigma +
+                          tau*delmu*locisigma, data = dplot_var_cont_vart)
+
+summary(lm_varvar)
+
+#############################################################################################################
+
+# Plot the above
+varvar_lab <- expression(paste(sigma["\u03C3\u0305\u00B2"]^{2}))
+
+# Get those two outliers that are huge and remove them from the plot: may need to remove from stats?
+# There are two, so we can just filter for the second one and remove anything >= to it
+varvar_outlrs <- Rfast::nth(dplot_var_cont_vart$varmean_var, 2, descending = T)
+
+
+
+plot_var_cont_vart.d <- ggplot(dplot_var_cont_vart[!dplot_var_cont_vart$varmean_var >= varvar_outlrs,], aes(x = delmu, y = varmean_var)) +
+  geom_point() +
+  geom_smooth(se = T, method = "lm", formula = y ~ poly(x, 2), col = "#03A9F4", fill = "#5FBBE6") +
+  theme_classic() +
+  ggtitle(d_lab) +
+  
+  labs(x = d_lab, y = varvar_lab) +
+  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_blank(),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        text = element_text(size = 22))
+
+plot_var_cont_vart.d
+
+
+
+plot_var_cont_vart.ls <- ggplot(dplot_var_cont_vart[!dplot_var_cont_vart$varmean_var >= varvar_outlrs,], aes(x = locisigma, y = varmean_var)) +
+  geom_point() +
+  geom_smooth(se = T, method = "lm", formula = y ~ poly(x, 2), col = "#03A9F4", fill = "#5FBBE6") +
+  theme_classic() +
+  ggtitle(ls_lab) +
+  coord_cartesian(ylim = boxplot(dplot_var_cont_vart$varmean_var, plot = F)$stats[c(1,5)]*c(0.85, 1.15)) +
+  labs(x = ls_lab, y = varvar_lab) +
+  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_blank(),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        text = element_text(size = 22))
+
+plot_var_cont_vart.ls
+
+
+
+plot_var_cont_vart.d.ls <- ggplot(dplot_var_cont_vart[!dplot_var_cont_vart$varmean_var >= varvar_outlrs,], aes(x = delmu, y = varmean_var)) +
+  facet_grid(locisigma.cat~., scales = "free") +
+  geom_point() +
+  geom_smooth(se = T, method = "lm", formula = y ~ poly(x, 2), col = "#03A9F4", fill = "#5FBBE6") +
+  theme_classic() +
+  labs(x = d_lab, y = varvar_lab) +
+  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        text = element_text(size = 22))
+
+plot_var_cont_vart.d.ls
+
+
+
+# Thanks to: https://stackoverflow.com/a/37292665/13586824
+# Add delmu label
+# Labels 
+library(grid)
+library(gtable)
+labelR = ls_lab
+
+# Get the ggplot grob
+plot_gtab <- ggplotGrob(plot_var_cont_vart.d.ls)
+
+# Get the positions of the strips in the gtable: t = top, l = left, ...
+posR <- subset(plot_gtab$layout, grepl("strip-r", name), select = t:r)
+
+# Add a new column to the right of current right strips, 
+# and a new row on top of current top strips
+width <- plot_gtab$widths[max(posR$r)]    # width of current right strips
+
+plot_gtab <- gtable_add_cols(plot_gtab, width, max(posR$r))  
+
+# Construct the new strip grobs
+stripR <- gTree(name = "Strip_right", children = gList(
+  rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
+  textGrob(labelR, rot = -90, gp = gpar(fontsize = 22, col = "black", fontface = "bold"))))
+
+# Position the grobs in the gtable
+plot_gtab <- gtable_add_grob(plot_gtab, stripR, t = min(posR$t), l = max(posR$r) + 1, b = max(posR$b), name = "strip-right")
+
+# Add small gaps between strips
+plot_var_cont_vart.d.ls <- gtable_add_cols(plot_gtab, unit(1/5, "line"), max(posR$r))
+
+# Draw it
+grid.newpage()
+grid.draw(plot_var_cont_vart.d.ls)
+
