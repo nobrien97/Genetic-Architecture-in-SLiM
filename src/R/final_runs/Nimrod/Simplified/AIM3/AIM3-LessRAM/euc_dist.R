@@ -18,6 +18,7 @@ r_lab <- "Recombination rate"
 d_lab <- "Deleterious mutation rate"
 ls_lab <- "Additive effect size"
 t_lab <- "Selection strength (\u03C4)"
+dist_lab <- "\u03B4\u0305"
 
 # Import data - optima and means etc.
 
@@ -919,15 +920,103 @@ d_eucdist_fingen <- d_eucdist_c[d_eucdist_c$gen == 150000,]
 library(emmeans)
 library(estimatr)
 
-eucdist_fingen_lm <- lm_robust(distance ~ delmu * rwide * locisigma + 
-                                 tau * delmu + tau * rwide + tau * locisigma,
+eucdist_fingen_lm <- lm_robust(distance ~ (delmu + rwide + locisigma + pleiorate + tau)^2 +
+                                 delmu*rwide*locisigma,
 data = d_eucdist_fingen)
+
 
 summary(eucdist_fingen_lm)
 
 
 ###########################################################################
 ###########################################################################
+
+# Plot euc dist with continuous predictors
+
+dplot_eucdist_fingen <- d_eucdist_c[, c(3:16)] %>%
+  group_by(modelindex, delmu, rwide, pleiorate, pleiocov, locisigma, tau, delmu.cat, rwide.cat, pleiorate.cat, pleiocov.cat, locisigma.cat, tau.cat) %>%
+  summarise_all(list(dist_mean = mean, dist_se = std.error, dist_var = var))
+
+
+plot_dist_cont.d <- ggplot(dplot_eucdist_fingen, aes(x = delmu, y = dist_mean)) +
+  geom_point() +
+  geom_smooth(se = T, method = "lm", formula = y ~ x, col = "#03A9F4", fill = "#5FBBE6") +
+  theme_classic() +
+  ggtitle(d_lab) +
+  labs(x = d_lab, y = "\u03B4\u0305") + #"\u03C3(\u03B4\u0305)") +
+  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_blank(),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        text = element_text(size = 22))
+
+plot_dist_cont.d
+
+plot_dist_cont.r <- ggplot(dplot_eucdist_fingen, aes(x = rwide, y = dist_mean)) +
+  geom_point() +
+  geom_smooth(se = T, method = "lm", formula = y ~ x, col = "#03A9F4", fill = "#5FBBE6") +
+  theme_classic() +
+  ggtitle(r_lab) +
+  labs(x = r_lab, y = "\u03B4\u0305") + #"\u03C3(\u03B4\u0305)") +
+  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_blank(),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        text = element_text(size = 22))
+
+plot_dist_cont.r
+
+plot_dist_cont.pr <- ggplot(dplot_eucdist_fingen, aes(x = pleiorate, y = dist_mean)) +
+  geom_point() +
+  geom_smooth(se = T, method = "lm", formula = y ~ x, col = "#03A9F4", fill = "#5FBBE6") +
+  theme_classic() +
+  ggtitle(pr_lab) +
+  labs(x = d_lab, y = "\u03B4\u0305") + #"\u03C3(\u03B4\u0305)") +
+  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_blank(),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        text = element_text(size = 22))
+
+plot_dist_cont.pr
+
+plot_dist_cont.ls <- ggplot(dplot_eucdist_fingen, aes(x = locisigma, y = dist_mean)) +
+  geom_point() +
+  geom_smooth(se = T, method = "lm", formula = y ~ x, col = "#03A9F4", fill = "#5FBBE6") +
+  theme_classic() +
+  ggtitle(ls_lab) +
+  labs(x = d_lab, y = "\u03B4\u0305") + #"\u03C3(\u03B4\u0305)") +
+  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_blank(),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        text = element_text(size = 22))
+
+plot_dist_cont.ls
+
+
+plot_dist_cont.t <- ggplot(dplot_eucdist_fingen, aes(x = tau, y = dist_mean)) +
+  geom_point() +
+  geom_smooth(se = T, method = "lm", formula = y ~ x, col = "#03A9F4", fill = "#5FBBE6") +
+  theme_classic() +
+  ggtitle(t_lab) +
+  labs(x = t_lab, y = "\u03B4\u0305") + #"\u03C3(\u03B4\u0305)") +
+  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_blank(),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        text = element_text(size = 22))
+
+plot_dist_cont.t
+
+library(patchwork)
+
+(plot_dist_cont.d | plot_dist_cont.ls) / (plot_dist_cont.pr | plot_dist_cont.r)
+
+plot_dist_cont.t
+
+
+
 
 # Plot euclidean distance from optimum: separate figure for each parameter, coloured lines for tau bin
 # Bars at final timepoint, then a line graph of distance over time
@@ -1917,9 +2006,13 @@ dplot_dist_cont_vart <- d_eucdist_t[, c(3:16)] %>%
   group_by(modelindex, delmu, rwide, pleiorate, pleiocov, locisigma, tau, delmu.cat, rwide.cat, pleiorate.cat, pleiocov.cat, locisigma.cat, tau.cat) %>%
   summarise_all(list(dist_mean = mean, dist_se = std.error, dist_var = var))
 
-lm_vardist <- lm_robust(dist_var ~ delmu * rwide * pleiorate * locisigma +
+lm_vardist <- lm_robust(dist_var ~ (delmu + rwide + pleiorate + locisigma)^2 +
                           tau*delmu + tau*rwide + tau*pleiorate + tau*locisigma +
                           tau*delmu*locisigma, data = dplot_dist_cont_vart)
+
+lm_vardist_refit <- lm_robust(dist_var ~ delmu + rwide + pleiorate + locisigma + tau +
+                          delmu*locisigma + delmu*tau, data = dplot_dist_cont_vart)
+
 
 summary(lm_vardist)
 

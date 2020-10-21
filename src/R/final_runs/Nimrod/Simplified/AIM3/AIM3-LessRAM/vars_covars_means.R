@@ -795,9 +795,8 @@ dplot_var_cont_vart <- readRDS("dplot_var_cont_vart.RDS")
 as.numeric(quantile(dplot_var_cont_vart$varmean_var)[4])
 
 # Linear model to describe this - potentially remove outliers
-lm_varvar <- lm_robust(varmean_var ~ delmu * rwide * pleiorate * locisigma +
-                          tau*delmu + tau*rwide + tau*pleiorate + tau*locisigma +
-                          tau*delmu*locisigma, data = dplot_var_cont_vart)
+lm_varvar <- lm_robust(varmean_var ~ (delmu + rwide + pleiorate + locisigma + tau)^2 +
+                          delmu*rwide*locisigma, data = dplot_var_cont_vart[dplot_var_cont_vart$varmean_var < varvar_outlrs,])
 
 summary(lm_varvar)
 
@@ -812,7 +811,7 @@ varvar_outlrs <- Rfast::nth(dplot_var_cont_vart$varmean_var, 2, descending = T)
 
 
 
-plot_var_cont_vart.d <- ggplot(dplot_var_cont_vart[!dplot_var_cont_vart$varmean_var >= varvar_outlrs,], aes(x = delmu, y = varmean_var)) +
+plot_var_cont_vart.d <- ggplot(dplot_var_cont_vart[dplot_var_cont_vart$varmean_var < varvar_outlrs,], aes(x = delmu, y = varmean_var)) +
   geom_point() +
   geom_smooth(se = T, method = "lm", formula = y ~ poly(x, 2), col = "#03A9F4", fill = "#5FBBE6") +
   theme_classic() +

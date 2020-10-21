@@ -1,13 +1,77 @@
+Sel
 gen, seed, modelindex, rsd, rwide, delmu, tau, pleiocov_01, pleiocov_02, pleiocov_03, pleiocov_04, pleiocov_05, pleiocov_06, pleiocov_07, pleiocov_12, pleiocov_13, pleiocov_14, pleiocov_15, pleiocov_16, pleiocov_17, pleiocov_23, pleiocov_24, pleiocov_25, pleiocov_26, pleiocov_27, pleiocov_34, pleiocov_35, pleiocov_36, pleiocov_37, pleiocov_45, pleiocov_46, pleiocov_47, pleiocov_56, pleiocov_57, pleiocov_67, mutation_type, mutation_id, mutation_position, mutation_origingen, add_fx_t0, add_fx_t1, add_fx_t2, add_fx_t3, add_fx_t4, add_fx_t5, add_fx_t6, add_fx_t7, mutation_freq, mutation_fixgen
+
+Null
+gen, seed, modelindex, rsd, rwide, delmu, pleiocov_01, pleiocov_02, pleiocov_03, pleiocov_04, pleiocov_05, pleiocov_06, pleiocov_07, pleiocov_12, pleiocov_13, pleiocov_14, pleiocov_15, pleiocov_16, pleiocov_17, pleiocov_23, pleiocov_24, pleiocov_25, pleiocov_26, pleiocov_27, pleiocov_34, pleiocov_35, pleiocov_36, pleiocov_37, pleiocov_45, pleiocov_46, pleiocov_47, pleiocov_56, pleiocov_57, pleiocov_67, mutation_type, mutation_id, mutation_position, mutation_origingen, add_fx_t0, add_fx_t1, add_fx_t2, add_fx_t3, add_fx_t4, add_fx_t5, add_fx_t6, add_fx_t7, mutation_freq, mutation_fixgen
 
 
 gen = 150000
 remove rows with a single A character and nothing else
 replace N/ with NA
-seed, modelindex, mut_type, mut_pos, mut_origin, add_fx, mut_freq, mut_fixgen
+seed, modelindex, mut_type, mut_pos, add_fx, mut_freq
 
 grep -E 'fatal||critical|failure|warning|' *.log
 
 grep 150000 ./out_8T_null* > null_muts.csv
 
-cut -d, -f2,3,36,38,39,40,41,42,43,44,45,46,47,48,49 ./null_muts.csv > null_muts_short.csv
+
+
+Null 
+
+muts
+seed modelindex muttype mutpos t0 t1 t2 t3 t4 t5 t6 t7 mutfreq mutfixgen
+
+subs
+seed modelindex muttype mutpos t0 t1 t2 t3 t4 t5 t6 t7 fitnesseffect mutfreq
+
+
+
+cut -d, -f2,3,35,37,39,40,41,42,43,44,45,46,47,48 ./null_muts.csv > null_muts_short.csv
+
+need to split into muts and subs - muts are misaligned
+
+awk -F, '$14 != "N/A"' ./null_muts_short.csv > null_muts_subs.csv
+
+awk -F, '$14 == "N/A"' ./null_muts_short.csv > null_muts_muts.csv
+
+Now that we have the separate files, we need to take out the fitness effect from subs and the fixgen from muts
+
+cut -d, -f13 --complement ./null_muts_subs.csv > null_s_fix.csv
+
+cut -d, -f14 --complement ./null_muts_muts.csv > null_m_fix.csv
+
+And paste together
+
+cat null_m_fix.csv null_s_fix.csv > null_muts_fixed.csv
+
+
+Sel
+
+seed, modelindex, muttype, mutpos, t0, t1, t2, t3, t4, t5, t6, t7, mutfreq, mutfixgen
+
+subs
+seed modelindex muttype mutpos t0 t1 t2 t3 t4 t5 t6 t7 fitnesseffect mutfreq
+
+
+
+cut -d, -f2,3,36,38,40,41,42,43,44,45,46,47,48,49 ./sel_muts.csv > sel_muts_short.csv
+
+need to split into muts and subs - muts are misaligned
+
+awk -F, '$14 != "N/A"' ./sel_muts_short.csv > sel_muts_subs.csv
+
+awk -F, '$14 == "N/A"' ./sel_muts_short.csv > sel_muts_muts.csv
+
+Now that we have the separate files, we need to take out the fitness effect from subs and the fixgen from muts to align the columns - good thing we don't really need that!
+
+cut -d, -f13 --complement ./sel_muts_subs.csv > sel_s_fix.csv
+
+cut -d, -f14 --complement ./sel_muts_muts.csv > sel_m_fix.csv
+
+And paste together
+
+cat sel_m_fix.csv sel_s_fix.csv > sel_muts_fixed.csv
+
+
+
+

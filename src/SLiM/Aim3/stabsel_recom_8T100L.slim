@@ -733,7 +733,7 @@ mutation(m2) {
 			mutFreq = mean(sim.subpopulations.genomes.containsMutations(mut));
 			mutType = mut.mutationType.id;
 			mutValues = paste(c(mut.getValue("e0"), mut.getValue("e1"), mut.getValue("e2"), mut.getValue("e3"), mut.getValue("e4"), mut.getValue("e5"), mut.getValue("e6"), mut.getValue("e7")), ",");
-			mutsLine = paste(c(sim.generation, ",", asString(seed), ",", modelindex, ",", rsd, ",", rwide, ",", delmu, ",", tau, ",", paste(pleio_covs, ","), ",",  mutType, ",", mut.id, ",", mut.position, ",", mut.originGeneration, ",", mutValues, ",", mutFreq, ",", "N/A", "\n"), "");
+			mutsLine = paste(c(sim.generation, ",", asString(seed), ",", modelindex, ",", rsd, ",", rwide, ",", delmu, ",", tau, ",", paste(pleio_covs, ","), ",",  mutType, ",", mut.id, ",", mut.position, ",", mut.originGeneration, ",", mutValues, ",",  mutFreq, ",", "N/A", "\n"), "");
 			
 			mutsLines = c(mutsLines, mutsLine);
 		}
