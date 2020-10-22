@@ -895,3 +895,7 @@ plot_var_cont_vart.d.ls <- gtable_add_cols(plot_gtab, unit(1/5, "line"), max(pos
 grid.newpage()
 grid.draw(plot_var_cont_vart.d.ls)
 
+
+
+
+

@@ -6,8 +6,6 @@ gen, seed, modelindex, rsd, rwide, delmu, pleiocov_01, pleiocov_02, pleiocov_03,
 
 
 gen = 150000
-remove rows with a single A character and nothing else
-replace N/ with NA
 seed, modelindex, mut_type, mut_pos, add_fx, mut_freq
 
 grep -E 'fatal||critical|failure|warning|' *.log
