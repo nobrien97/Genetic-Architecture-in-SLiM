@@ -107,3 +107,4 @@ src/R/final_runs/Nimrod/Simplified/AIM3/AIM3-LessRAM/d_eucdist_c.RDS
 src/R/final_runs/Nimrod/Simplified/AIM3/AIM3-LessRAM/d_sel_eucdist.RDS
 *.RDS
 Thesis/Figures/~$figure2.pptx
+*.jmp

@@ -487,8 +487,8 @@ summary(var_fingen_lm)
 
 
 # Delmu * rwide * ls * tau
-d_mean_var <- d_raw_c[, c(1, 15:16, 21:26)] %>%
-  group_by(gen, delmu.cat, rwide.cat, pleiorate.cat, pleiocov.cat, locisigma.cat, tau.cat) %>%
+d_mean_var <- d_raw_c[, c(1, 3, 5:6, 1526)] %>%
+  group_by(gen, modelindex, delmu, rwide, pleiorate, pleiocov, locisigma, tau, delmu.cat, rwide.cat, pleiorate.cat, pleiocov.cat, locisigma.cat, tau.cat) %>%
   summarise_all(list(groupmean = mean, se = std.error, var = var))
 
 d_var_null <- d_raw_c[d_raw_c$tau.cat == "Null"]

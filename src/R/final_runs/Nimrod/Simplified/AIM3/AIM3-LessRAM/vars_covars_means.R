@@ -424,10 +424,13 @@ ggsave(filename = "vartime_d.ls_avsel.png", plot = plot_gtab_vartime_d.ls_avsel,
 
 # Analysis: end time point linear model
 
-d_raw_end <- readRDS("d_raw_end.RDS")
+d_raw_end <- d_raw_c[d_raw_c$gen == 150000,]
 
-lm_var_end <- lm_robust(varmean ~ delmu.cat*rwide.cat*locisigma.cat +
-                      tau.cat*delmu.cat + tau.cat*rwide.cat + tau.cat*locisigma.cat,
+
+lm_var_end <- lm_robust(varmean ~ delmu + locisigma + delmu*locisigma,
+                    data = d_raw_end)
+
+lm_var_end <-lm_robust(varmean ~ (delmu + rwide + locisigma + pleiorate + tau)^2,
                     data = d_raw_end)
 
 summary(lm_var_end)
@@ -783,6 +786,48 @@ plot_var_cont_d <- ggplot(dplot_raw_end, aes(x = delmu, y = varmean_mean)) +
 plot_var_cont_d
 
 
+plot_var_cont_ls <- ggplot(dplot_raw_end, aes(x = locisigma, y = varmean_mean)) +
+  geom_point(data = d_raw_end, mapping = aes(x=locisigma, y = varmean), shape = 1, size = 0.8, col = "grey") +
+  geom_point() +
+  geom_smooth(se = T, method = "lm", formula = y ~ poly(x, 2), col = "#03A9F4") +
+  theme_classic() +
+  #  ggtitle(ls_lab) +
+  labs(x = ls_lab, y = var_lab) +
+  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_blank(),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        text = element_text(size = 22))
+
+plot_var_cont_ls
+
+
+
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+# rwide
+
+
+plot_var_cont_r <- ggplot(dplot_raw_end, aes(x = rwide, y = varmean_mean)) +
+  geom_point(data = d_raw_end, mapping = aes(x=rwide, y = varmean), shape = 1, size = 0.8, col = "grey") +
+  geom_point() +
+  geom_smooth(se = T, method = "lm", formula = y ~ poly(x, 2), col = "#03A9F4") +
+  theme_classic() +
+  #  ggtitle(d_lab) +
+  labs(x = r_lab, y = var_lab) +
+  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_blank(),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        text = element_text(size = 22))
+
+plot_var_cont_d
+
+
+
+
+
 #############################################################################################################
 #############################################################################################################
 
@@ -897,5 +942,95 @@ grid.draw(plot_var_cont_vart.d.ls)
 
 
 
+########################################################################################
+
+# var continuous, mainfx
+
+
+
+plot_var_cont.d <- ggplot(dplot_var_cont, aes(x = delmu, y = varmean_mean)) +
+  geom_point(data = d_raw_end, mapping = aes(x=delmu, y = varmean), shape = 1, size = 0.8, col = "grey") +
+  geom_point() +
+  geom_smooth(se = T, method = "lm", formula = y ~ poly(x, 2), col = "#03A9F4", fill = "#5FBBE6") +
+  theme_classic() +
+  ggtitle(d_lab) +
+  labs(x = d_lab, y = var_lab) + #"\u03C3(\u03B4\u0305)") +
+  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_blank(),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        text = element_text(size = 22))
+
+plot_var_cont.d
+
+plot_var_cont.r <- ggplot(dplot_var_cont, aes(x = rwide, y = varmean_mean)) +
+  geom_point(data = d_raw_end, mapping = aes(x=rwide, y = varmean), shape = 1, size = 0.8, col = "grey") +
+  geom_point() +
+  geom_smooth(se = T, method = "lm", formula = y ~ x, col = "#03A9F4", fill = "#5FBBE6") +
+  scale_x_continuous(breaks = c(seq(0, 0.00012, 0.00004)), labels = c("0", "4", "8", "12")) +
+  theme_classic() +
+  ggtitle(expression(bold(Recombination~rate~(x*"10"^{"-5"})))) +
+  labs(x = r_lab, y = var_lab) + #"\u03C3(\u03B4\u0305)") +
+  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_blank(),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        text = element_text(size = 22))
+
+plot_var_cont.r
+
+plot_var_cont.pr <- ggplot(dplot_var_cont, aes(x = pleiorate, y = varmean_mean)) +
+  geom_point(data = d_raw_end, mapping = aes(x=pleiorate, y = varmean), shape = 1, size = 0.8, col = "grey") +
+  
+  geom_point() +
+  geom_smooth(se = T, method = "lm", formula = y ~ x, col = "#03A9F4", fill = "#5FBBE6") +
+  theme_classic() +
+  ggtitle(pr_lab) +
+  labs(x = d_lab, y = var_lab) + #"\u03C3(\u03B4\u0305)") +
+  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_blank(),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        text = element_text(size = 22))
+
+plot_var_cont.pr
+
+plot_var_cont.ls <- ggplot(dplot_var_cont, aes(x = locisigma, y = varmean_mean)) +
+  geom_point(data = d_raw_end, mapping = aes(x=locisigma, y = varmean), shape = 1, size = 0.8, col = "grey") +
+  
+  geom_point() +
+  geom_smooth(se = T, method = "lm", formula = y ~ poly(x, 2), col = "#03A9F4", fill = "#5FBBE6") +
+  theme_classic() +
+  ggtitle(ls_lab) +
+  labs(x = d_lab, y = var_lab) + #"\u03C3(\u03B4\u0305)") +
+  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_blank(),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        text = element_text(size = 22))
+
+plot_var_cont.ls
+
+
+plot_var_cont.t <- ggplot(dplot_var_cont, aes(x = tau, y = varmean_mean)) +
+  geom_point(data = d_raw_end, mapping = aes(x=tau, y = varmean), shape = 1, size = 0.8, col = "grey") +
+  geom_point() +
+  geom_smooth(se = T, method = "lm", formula = y ~ x, col = "#03A9F4", fill = "#5FBBE6") +
+  theme_classic() +
+  ggtitle(t_lab) +
+  labs(x = t_lab, y = var_lab) + #"\u03C3(\u03B4\u0305)") +
+  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_blank(),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        text = element_text(size = 22))
+
+plot_var_cont.t
+
+# Combine
+
+plot_var_mainfx <- (plot_var_cont.d | plot_var_cont.r)/(plot_var_cont.ls | plot_var_cont.pr)
+
+ggsave(filename = "var_mainfx.png", plot = plot_var_mainfx, width = 12, height = 12, dpi = 800)
 
 

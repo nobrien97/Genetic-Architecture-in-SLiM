@@ -924,6 +924,10 @@ eucdist_fingen_lm <- lm_robust(distance ~ (delmu + rwide + locisigma + pleiorate
                                  delmu*rwide*locisigma,
 data = d_eucdist_fingen)
 
+eucdist_fingen_lm <- lm_robust(distance ~ delmu*locisigma,
+                               data = d_eucdist_fingen)
+
+
 
 summary(eucdist_fingen_lm)
 
@@ -1323,8 +1327,8 @@ plot_disttime_d.ls.s <- ggplot(d_mean_eucdist_notau_sel, aes(x = gen, y = dist_m
   geom_line(position = position_dodge(0.9)) +
   scale_color_npg() +
   theme_classic() +
-  scale_x_continuous(breaks = c(seq(50000, 150000, 10000)), labels = c(as.character(seq(50, 150, 10)))) +
-  labs(x = expression(Generation~(x10^{"3"})), y = "Euclidean distance from optimum", col = d_lab) +
+  scale_x_continuous(breaks = c(seq(50000, 150000, 10000)), labels = c(as.character(seq(0, 10, 1)))) +
+  labs(x = expression(Generation~(x10^{"5"})), y = dist_lab, col = d_lab) +
   theme(strip.text.x = element_text(size = 12),
         strip.text.y = element_text(size = 12),
         axis.text.x = element_text(size = 10, face = "bold"),
