@@ -427,7 +427,7 @@ ggsave(filename = "vartime_d.ls_avsel.png", plot = plot_gtab_vartime_d.ls_avsel,
 d_raw_end <- d_raw_c[d_raw_c$gen == 150000,]
 
 
-lm_var_end <- lm_robust(varmean ~ delmu + locisigma + delmu*locisigma,
+lm_var_end <- lm_robust(varmean ~ delmu * locisigma,
                     data = d_raw_end)
 
 lm_var_end <-lm_robust(varmean ~ (delmu + rwide + locisigma + pleiorate + tau)^2,
@@ -435,7 +435,18 @@ lm_var_end <-lm_robust(varmean ~ (delmu + rwide + locisigma + pleiorate + tau)^2
 
 summary(lm_var_end)
 
+# Probability that variance is 0
 
+dplot_pv <- d_raw_end[d_raw_end$tau.cat != "Null" ,c(5:6, 15:16, 17:26)] %>%
+  group_by(delmu, locisigma, tau, pleiorate, pleiocov, rwide, delmu.cat, locisigma.cat, tau.cat, pleiorate.cat, pleiocov.cat, rwide.cat) %>%
+  summarise_all(list(pv = percent_dist), tol=1) 
+
+d_raw_end$pv <- percent_dist(d_raw_end$varmean, 1)
+
+
+lm_var_t <- lm_robust(pv ~ tau, data = d_raw_end)
+
+summary(lm_var_t)
 
 ###########################################################################
 ###########################################################################

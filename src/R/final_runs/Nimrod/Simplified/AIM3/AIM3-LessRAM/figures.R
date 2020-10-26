@@ -229,7 +229,7 @@ grid.newpage()
 grid.draw(plot_gtab_var_cont.d.ls)
 
 
-ggsave(filename = "var_d.ls.png", plot = plot_gtab_var_cont.d.ls, width = 12, height = 8, dpi = 800)
+ggsave(filename = "var_d.ls.png", plot = plot_gtab_var_cont.d.ls, width = 8, height = 8, dpi = 800)
 
 #############################################################
 # 3)B: Selection model
@@ -399,7 +399,7 @@ plot_gtab_dist_cont.d.ls <- gtable_add_cols(plot_gtab, unit(1/5, "line"), max(po
 grid.newpage()
 grid.draw(plot_gtab_dist_cont.d.ls)
 
-ggsave(filename = "dist_d.ls.png", plot = plot_gtab_dist_cont.d.ls, width = 12, height = 8, dpi = 800)
+ggsave(filename = "dist_d.ls.png", plot = plot_gtab_dist_cont.d.ls, width = 8, height = 8, dpi = 800)
 
 
 

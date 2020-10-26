@@ -945,6 +945,7 @@ MCeuc_dist_new <- function(dat, opt, cores) {
 
 # Function to calculate probability of reaching optimum
 # x is a vector of distances from optimum, tol is how close is considered to be 'at the optimum'
+# Also works for variances: how many variances are 0?
 
 percent_dist <- function(x, tol) {
   x_reached <- x[x < tol]

@@ -278,5 +278,41 @@ plot_gtab_freq_null <- gtable_add_cols(plot_gtab, unit(1/5, "line"), max(posR$r)
 grid.newpage()
 grid.draw(plot_gtab_freq_null)
 
+# stats: compare number  of rare alleles across groups
+# 2 sds away (2*locisigma)
 
+d_muts_rare <- d_muts_c[d_muts_c$Effect >= 2*d_muts_c$locisigma,]
+saveRDS(d_muts_rare, "d_muts_rare.RDS")
+
+d_muts_counts <- d_muts_rare[, c(1:2, 7:19)] %>%
+  group_by(seed, modelindex, delmu, rwide, pleiorate, pleiocov, locisigma, tau, delmu.cat, rwide.cat, pleiorate.cat, pleiocov.cat, locisigma.cat, tau.cat) %>%
+  summarise_all(list(nmuts = length))
+
+saveRDS(d_muts_counts, "d_muts_counts.RDS")
+
+d_muts_counts <- readRDS("d_muts_counts.RDS")
+
+d_muts_counts_null <- d_muts_counts[d_muts_counts$tau.cat == "Null",]
+d_muts_counts_sel <- d_muts_counts[d_muts_counts$tau.cat != "Null",]
+
+
+library(estimatr)
+lm_muts_null <- lm_robust(nmuts ~ delmu *locisigma * pleiorate,
+                     data = d_muts_counts_null)
+
+summary(lm_muts_null)
+
+lm_muts_sel <- lm_robust(nmuts ~ delmu *locisigma *pleiorate,
+                          data = d_muts_counts_sel)
+
+summary(lm_muts_sel)
+
+# Create a new factor of selection vs null models to compare across
+d_muts_counts$selnull <- d_muts_counts$tau.cat
+levels(d_muts_counts$selnull) <- c("Null", "Sel", "Sel", "Sel")
+
+lm_muts <- lm_robust(nmuts ~ delmu * locisigma * pleiorate * selnull,
+                          data = d_muts_counts)
+
+summary(lm_muts)
 
