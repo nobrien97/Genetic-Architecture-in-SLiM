@@ -5,6 +5,23 @@ Null
 gen, seed, modelindex, rsd, rwide, delmu, pleiocov_01, pleiocov_02, pleiocov_03, pleiocov_04, pleiocov_05, pleiocov_06, pleiocov_07, pleiocov_12, pleiocov_13, pleiocov_14, pleiocov_15, pleiocov_16, pleiocov_17, pleiocov_23, pleiocov_24, pleiocov_25, pleiocov_26, pleiocov_27, pleiocov_34, pleiocov_35, pleiocov_36, pleiocov_37, pleiocov_45, pleiocov_46, pleiocov_47, pleiocov_56, pleiocov_57, pleiocov_67, mutation_type, mutation_id, mutation_position, mutation_origingen, add_fx_t0, add_fx_t1, add_fx_t2, add_fx_t3, add_fx_t4, add_fx_t5, add_fx_t6, add_fx_t7, mutation_freq, mutation_fixgen
 
 
+Subs
+
+Sel
+gen, seed, modelindex, rsd, rwide, delmu, tau, pleiocov_01, pleiocov_02, pleiocov_03, pleiocov_04, pleiocov_05, pleiocov_06, pleiocov_07, pleiocov_12, pleiocov_13, pleiocov_14, pleiocov_15, pleiocov_16, pleiocov_17, pleiocov_23, pleiocov_24, pleiocov_25, pleiocov_26, pleiocov_27, pleiocov_34, pleiocov_35, pleiocov_36, pleiocov_37, pleiocov_45, pleiocov_46, pleiocov_47, pleiocov_56, pleiocov_57, pleiocov_67, mutation_type, mutation_id, mutation_position, mutation_origingen, add_fx_t0, add_fx_t1, add_fx_t2, add_fx_t3, add_fx_t4, add_fx_t5, add_fx_t6, add_fx_t7, fitness effect, mutation_freq, mutation_fixgen
+
+Fitness effect is column 48, 50 columns total
+In mutations, mutation frequency is column 48, 49 columns
+
+Null
+gen, seed, modelindex, rsd, rwide, delmu, pleiocov_01, pleiocov_02, pleiocov_03, pleiocov_04, pleiocov_05, pleiocov_06, pleiocov_07, pleiocov_12, pleiocov_13, pleiocov_14, pleiocov_15, pleiocov_16, pleiocov_17, pleiocov_23, pleiocov_24, pleiocov_25, pleiocov_26, pleiocov_27, pleiocov_34, pleiocov_35, pleiocov_36, pleiocov_37, pleiocov_45, pleiocov_46, pleiocov_47, pleiocov_56, pleiocov_57, pleiocov_67, mutation_type, mutation_id, mutation_position, mutation_origingen, add_fx_t0, add_fx_t1, add_fx_t2, add_fx_t3, add_fx_t4, add_fx_t5, add_fx_t6, add_fx_t7, fitness effect, mutation_freq, mutation_fixgen
+
+Fitness effect is column 47, 49 columns total
+In mutations, mutation frequency is column 47 (and fixgen is 48)
+
+
+
+
 gen = 150000
 seed, modelindex, mut_type, mut_pos, add_fx, mut_freq
 
@@ -70,6 +87,9 @@ And paste together
 
 cat sel_m_fix.csv sel_s_fix.csv > sel_muts_fixed.csv
 
+For deleterious mutations, we only have the fitness effects of substitutions: we need to cut different columns
 
+cut -d, -f 1-3,13 ./sel_muts_subs.csv > sel_s_fix.csv
+cut -d, -f 1-3,13 ./null_muts_subs.csv > null_s_fix.csv
 
 

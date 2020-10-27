@@ -3,10 +3,12 @@
 # 0) Conceptual diagram of the model space
 # 1) A) Prove we are at equilibrium with variance over time vs selection strength - also distance over time
 # 1) B) Define our space of models between HOC and Gaussian with end-sim Va vs tau
-# 2) Diagram of what our models are (adapted from Walsh and Lynch figure 28.1), the space between the discrete types
-# 3) One aspect of these models calculations are the effects as Ne -> Inf, we summarise that with delmu, how does delmu influence mean variance at equilibrium with locisigma
-# 4) Why does variance matter? Consequences for adaptation around an optimum, distance vs delmu and locisigma
-# 5) Unpack variance more: distributions of additive effects at equilibrium - deleterious mutation and locisigma
+# 2) Diagram of what our models are (adapted from Walsh and Lynch figure 28.1), the space between the discrete 
+# types: sampling different levels of mutation vs deleterious mutation
+# 3) Additive variance is supposed to predict how well you are able to get to an optimum. How does the additive
+# effect size distribution influence trait variance? Tau, rwide?
+# 4) Why does variance matter? Consequences for adaptation around an optimum, distance vs locisigma
+# 5) Unpack variance more: distributions of additive effects at equilibrium - locisigma, tau, rwide (?)
 # 6) Conceptual diagram of distances from optimum and random scatter according to rates of delmu at low and high locisigma
 # 7) Percentage of models that reach the optimum
 
@@ -37,6 +39,21 @@ d_mean_var <- readRDS("d_mean_var.RDS")
 
 d_raw_end <- readRDS("d_raw_end.RDS")
 
+# Use only from delmu = 0.25 to 0.75 to ensure we've got polygenic architecture: delmu = 1 means 50% fewer mutations
+# contributing to trait than delmu = 0
+
+d_eucdist_c <- d_eucdist_c[d_eucdist_c$delmu <= 0.75 & d_eucdist_c$delmu >= 0.25,]
+
+d_eucdist_fingen <- d_eucdist_fingen[d_eucdist_fingen$delmu <= 0.75 & d_eucdist_fingen$delmu >= 0.25,]
+
+d_raw_c <- d_raw_c[d_raw_c$delmu <= 0.75 & d_raw_c$delmu >= 0.25,]
+
+d_raw_end <- d_raw_end[d_raw_end$delmu <= 0.75 & d_raw_end$delmu >= 0.25,]
+
+levels(d_eucdist_c$tau.cat) <- c("Null", "Strong", "Medium", "Weak")
+levels(d_eucdist_fingen$tau.cat) <- c("Null", "Strong", "Medium", "Weak")
+levels(d_raw_c$tau.cat) <- c("Null", "Strong", "Medium", "Weak")
+levels(d_raw_end$tau.cat) <- c("Null", "Strong", "Medium", "Weak")
 
 
 # Axis labels
@@ -84,7 +101,6 @@ plot_vartime <- ggplot(dplot_varmean_time, aes(x = gen, y = varmean_mean, colour
 
 
 plot_vartime  
-
 
 # 1) A.5) Euc dist over time
 
@@ -135,8 +151,9 @@ dplot_var_t <- d_raw_end[, c(15:16, 20)] %>%
 dplot_var_t[dplot_var_t$tau == 0,]$tau <- 1500
 
 
-plot_var_t <- ggplot(d_raw_c[d_raw_c$gen == 150000,], aes(x = tau, y = varmean, group = 1)) +
+plot_var_t <- ggplot(d_raw_end, aes(x = tau.cat, y = varmean)) +
   geom_point() +
+  geom_boxplot()+
   scale_colour_manual(values = cs) +
   theme_classic() +
   labs(x = t_lab, y = var_lab) +
@@ -151,8 +168,9 @@ plot_var_t
 ggsave(filename = "var.t.png", plot = plot_var_t, width = 8, height = 8, dpi = 800)
 
 
-plot_cov_t <- ggplot(dplot_var_t, aes(x = tau, y = covmean_mean, group = 1)) +
+plot_cov_t <- ggplot(d_raw_end, aes(x = tau.cat, y = covmean)) +
   geom_point() +
+  geom_boxplot()+
   geom_smooth(se = T, method = "lm", formula = y ~ x, col = "#03A9F4", fill = "#5FBBE6") +
   theme_classic() +
   ggtitle(t_lab) +
@@ -168,254 +186,153 @@ plot_cov_t
 
 
 
-# 3) A) Mean variance at equilibrium vs delmu and locisigma under neutral drift B) Mean variance at equilibrum vs delmu and locisigma under selection
+# 3) A) Mean variance at equilibrium vs locisigma B) euclidean distance vs locisigma
 
 dplot_var_cont <- d_raw_end[, c(3, 5:6, 15:26)] %>%
   group_by(modelindex, delmu, rwide, pleiorate, pleiocov, locisigma, tau, delmu.cat, rwide.cat, pleiorate.cat, pleiocov.cat, locisigma.cat, tau.cat) %>%
   summarise_all(list(mean = mean, se = std.error, var = var))
 
-# 3)A 
+# 3)A: Variance
 
-dplot_var_cont_null <- dplot_var_cont[dplot_var_cont$tau.cat == "Null",]
 
-plot_var_cont.d.ls <- ggplot(dplot_var_cont, aes(x = delmu, y = varmean_mean)) +
-  facet_grid(locisigma.cat~.) +
+# LS
+
+plot_var_cont.ls <- ggplot(dplot_var_cont, aes(x = locisigma, y = varmean_mean)) +
+  geom_point(data = d_raw_end, mapping = aes(x=locisigma, y = varmean), shape = 1, size = 0.8, col = "grey") +
   geom_point() +
   geom_smooth(se = T, method = "lm", formula = y ~ poly(x, 2), col = "#03A9F4", fill = "#5FBBE6") +
   theme_classic() +
   #  ggtitle(d_lab) +
-  labs(x = d_lab, y = var_lab) + #"\u03C3(\u03B4\u0305)") +
+  labs(x = ls_lab, y = var_lab) + #"\u03C3(\u03B4\u0305)") +
   theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
         axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
         axis.title.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
         plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
         text = element_text(size = 22))
 
-plot_var_cont.d.ls
+plot_var_cont.ls
 
 
-# Thanks to: https://stackoverflow.com/a/37292665/13586824
-# Add delmu label
-# Labels 
-library(grid)
-library(gtable)
-labelR = ls_lab
 
-# Get the ggplot grob
-plot_gtab <- ggplotGrob(plot_var_cont.d.ls)
+# r
 
-# Get the positions of the strips in the gtable: t = top, l = left, ...
-posR <- subset(plot_gtab$layout, grepl("strip-r", name), select = t:r)
+plot_var_cont.r <- ggplot(dplot_var_cont, aes(x = rwide, y = varmean_mean)) +
+  geom_point(data = d_raw_end, mapping = aes(x=rwide, y = varmean), shape = 1, size = 0.8, col = "grey") +
+  geom_point() +
+  geom_smooth(se = T, method = "lm", formula = y ~ poly(x, 2), col = "#03A9F4", fill = "#5FBBE6") +
+  theme_classic() +
+  #  ggtitle(d_lab) +
+  labs(x = r_lab, y = var_lab) + #"\u03C3(\u03B4\u0305)") +
+  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        text = element_text(size = 22))
 
-# Add a new column to the right of current right strips, 
-# and a new row on top of current top strips
-width <- plot_gtab$widths[max(posR$r)]    # width of current right strips
-
-plot_gtab <- gtable_add_cols(plot_gtab, width, max(posR$r))  
-
-# Construct the new strip grobs
-stripR <- gTree(name = "Strip_right", children = gList(
-  rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
-  textGrob(labelR, rot = -90, gp = gpar(fontsize = 22, col = "black", fontface = "bold"))))
-
-# Position the grobs in the gtable
-plot_gtab <- gtable_add_grob(plot_gtab, stripR, t = min(posR$t), l = max(posR$r) + 1, b = max(posR$b), name = "strip-right")
-
-# Add small gaps between strips
-plot_gtab_var_cont.d.ls <- gtable_add_cols(plot_gtab, unit(1/5, "line"), max(posR$r))
-
-# Draw it
-grid.newpage()
-grid.draw(plot_gtab_var_cont.d.ls)
+plot_var_cont.r
 
 
-ggsave(filename = "var_d.ls.png", plot = plot_gtab_var_cont.d.ls, width = 8, height = 8, dpi = 800)
+
+
+ggsave(filename = "var_r.png", plot = plot_var_cont.ls, width = 8, height = 8, dpi = 800)
 
 #############################################################
-# 3)B: Selection model
-
-dplot_var_cont_sel <- dplot_var_cont[dplot_var_cont$tau.cat != "Null",]
-
-
-plot_var_cont.d.ls.s <- ggplot(dplot_var_cont_sel, aes(x = delmu, y = varmean_mean)) +
-  facet_grid(locisigma.cat~.) +
-  geom_point() +
-  geom_smooth(se = T, method = "lm", formula = y ~ poly(x, 2), col = "#03A9F4", fill = "#5FBBE6") +
-  theme_classic() +
-  #  ggtitle(d_lab) +
-  labs(x = d_lab, y = var_lab) + #"\u03C3(\u03B4\u0305)") +
-  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
-        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
-        axis.title.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
-        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
-        text = element_text(size = 22))
-
-plot_var_cont.d.ls.s
-
-
-# Thanks to: https://stackoverflow.com/a/37292665/13586824
-# Add delmu label
-# Labels 
-library(grid)
-library(gtable)
-labelR = ls_lab
-
-# Get the ggplot grob
-plot_gtab <- ggplotGrob(plot_var_cont.d.ls.s)
-
-# Get the positions of the strips in the gtable: t = top, l = left, ...
-posR <- subset(plot_gtab$layout, grepl("strip-r", name), select = t:r)
-
-# Add a new column to the right of current right strips, 
-# and a new row on top of current top strips
-width <- plot_gtab$widths[max(posR$r)]    # width of current right strips
-
-plot_gtab <- gtable_add_cols(plot_gtab, width, max(posR$r))  
-
-# Construct the new strip grobs
-stripR <- gTree(name = "Strip_right", children = gList(
-  rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
-  textGrob(labelR, rot = -90, gp = gpar(fontsize = 22, col = "black", fontface = "bold"))))
-
-# Position the grobs in the gtable
-plot_gtab <- gtable_add_grob(plot_gtab, stripR, t = min(posR$t), l = max(posR$r) + 1, b = max(posR$b), name = "strip-right")
-
-# Add small gaps between strips
-plot_gtab_var_cont.d.ls.s <- gtable_add_cols(plot_gtab, unit(1/5, "line"), max(posR$r))
-
-# Draw it
-grid.newpage()
-grid.draw(plot_gtab_var_cont.d.ls.s)
-
-
-
-##############
-# Covariance
-
-plot_cov_cont.d.ls <- ggplot(dplot_var_cont, aes(x = delmu, y = covmean_mean)) +
-  facet_grid(locisigma.cat~.) +
-  geom_point() +
-  geom_smooth(se = T, method = "lm", formula = y ~ poly(x, 2), col = "#03A9F4", fill = "#5FBBE6") +
-  theme_classic() +
-  #  ggtitle(d_lab) +
-  labs(x = d_lab, y = cov_lab) + #"\u03C3(\u03B4\u0305)") +
-  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
-        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
-        axis.title.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
-        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
-        text = element_text(size = 22))
-
-plot_cov_cont.d.ls
-
-
-# Thanks to: https://stackoverflow.com/a/37292665/13586824
-# Add delmu label
-# Labels 
-library(grid)
-library(gtable)
-labelR = ls_lab
-
-# Get the ggplot grob
-plot_gtab <- ggplotGrob(plot_cov_cont.d.ls)
-
-# Get the positions of the strips in the gtable: t = top, l = left, ...
-posR <- subset(plot_gtab$layout, grepl("strip-r", name), select = t:r)
-
-# Add a new column to the right of current right strips, 
-# and a new row on top of current top strips
-width <- plot_gtab$widths[max(posR$r)]    # width of current right strips
-
-plot_gtab <- gtable_add_cols(plot_gtab, width, max(posR$r))  
-
-# Construct the new strip grobs
-stripR <- gTree(name = "Strip_right", children = gList(
-  rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
-  textGrob(labelR, rot = -90, gp = gpar(fontsize = 22, col = "black", fontface = "bold"))))
-
-# Position the grobs in the gtable
-plot_gtab <- gtable_add_grob(plot_gtab, stripR, t = min(posR$t), l = max(posR$r) + 1, b = max(posR$b), name = "strip-right")
-
-# Add small gaps between strips
-plot_gtab_cov_cont.d.ls <- gtable_add_cols(plot_gtab, unit(1/5, "line"), max(posR$r))
-
-# Draw it
-grid.newpage()
-grid.draw(plot_gtab_cov_cont.d.ls)
-
-# 4) Mean distance at equilibrium vs delmu and locisigma
+# 3)B: Euclidean Distance
 
 dplot_eucdist_cont <- d_eucdist_fingen[, c(3:16)] %>%
   group_by(modelindex, delmu, rwide, pleiorate, pleiocov, locisigma, tau, delmu.cat, rwide.cat, pleiorate.cat, pleiocov.cat, locisigma.cat, tau.cat) %>%
   summarise_all(list(dist_mean = mean, dist_se = std.error, dist_var = var))
 
-plot_dist_cont.d.ls <- ggplot(dplot_eucdist_cont, aes(x = delmu, y = dist_mean)) +
-  facet_grid(locisigma.cat~.) +
+# LS
+
+plot_dist_cont.ls <- ggplot(dplot_eucdist_cont, aes(x = locisigma, y = dist_mean)) +
+  geom_point(data = d_eucdist_fingen, mapping = aes(x=locisigma, y = distance), shape = 1, size = 0.8, col = "grey") +
   geom_point() +
   geom_smooth(se = T, method = "lm", formula = y ~ poly(x, 2), col = "#03A9F4", fill = "#5FBBE6") +
   theme_classic() +
   #  ggtitle(d_lab) +
-  labs(x = d_lab, y = dist_lab) + #"\u03C3(\u03B4\u0305)") +
+  labs(x = ls_lab, y = dist_lab) + #"\u03C3(\u03B4\u0305)") +
   theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
         axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
         axis.title.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
         plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
         text = element_text(size = 22))
 
-plot_dist_cont.d.ls
+plot_dist_cont.ls
+
+
+# r
+
+plot_dist_cont.r <- ggplot(dplot_eucdist_cont, aes(x = rwide, y = dist_mean)) +
+  geom_point(data = d_eucdist_fingen, mapping = aes(x=rwide, y = distance), shape = 1, size = 0.8, col = "grey") +
+  geom_point() +
+  geom_smooth(se = T, method = "lm", formula = y ~ poly(x, 2), col = "#03A9F4", fill = "#5FBBE6") +
+  theme_classic() +
+  #  ggtitle(d_lab) +
+  labs(x = r_lab, y = dist_lab) + #"\u03C3(\u03B4\u0305)") +
+  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        text = element_text(size = 22))
+
+plot_dist_cont.r
 
 
 
-# Thanks to: https://stackoverflow.com/a/37292665/13586824
-# Add delmu label
-# Labels 
-library(grid)
-library(gtable)
-labelR = ls_lab
+##############
+# Covariance
+# LS
 
-# Get the ggplot grob
-plot_gtab <- ggplotGrob(plot_dist_cont.d.ls)
+plot_cov_cont.ls <- ggplot(dplot_var_cont, aes(x = locisigma, y = covmean_mean)) +
+  geom_point(data = d_raw_end, mapping = aes(x=locisigma, y = covmean), shape = 1, size = 0.8, col = "grey") +
+  geom_point() +
+  geom_smooth(se = T, method = "lm", formula = y ~ poly(x, 2), col = "#03A9F4", fill = "#5FBBE6") +
+  theme_classic() +
+  #  ggtitle(d_lab) +
+  labs(x = ls_lab, y = cov_lab) + #"\u03C3(\u03B4\u0305)") +
+  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        text = element_text(size = 22))
 
-# Get the positions of the strips in the gtable: t = top, l = left, ...
-posR <- subset(plot_gtab$layout, grepl("strip-r", name), select = t:r)
+plot_cov_cont.ls
 
-# Add a new column to the right of current right strips, 
-# and a new row on top of current top strips
-width <- plot_gtab$widths[max(posR$r)]    # width of current right strips
 
-plot_gtab <- gtable_add_cols(plot_gtab, width, max(posR$r))  
 
-# Construct the new strip grobs
-stripR <- gTree(name = "Strip_right", children = gList(
-  rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
-  textGrob(labelR, rot = -90, gp = gpar(fontsize = 22, col = "black", fontface = "bold"))))
+# r
 
-# Position the grobs in the gtable
-plot_gtab <- gtable_add_grob(plot_gtab, stripR, t = min(posR$t), l = max(posR$r) + 1, b = max(posR$b), name = "strip-right")
+plot_cov_cont.r <- ggplot(dplot_var_cont, aes(x = rwide, y = covmean_mean)) +
+  geom_point(data = d_raw_end, mapping = aes(x=rwide, y = covmean), shape = 1, size = 0.8, col = "grey") +
+  geom_point() +
+  geom_smooth(se = T, method = "lm", formula = y ~ poly(x, 2), col = "#03A9F4", fill = "#5FBBE6") +
+  theme_classic() +
+  #  ggtitle(d_lab) +
+  labs(x = r_lab, y = cov_lab) + #"\u03C3(\u03B4\u0305)") +
+  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        text = element_text(size = 22))
 
-# Add small gaps between strips
-plot_gtab_dist_cont.d.ls <- gtable_add_cols(plot_gtab, unit(1/5, "line"), max(posR$r))
-
-# Draw it
-grid.newpage()
-grid.draw(plot_gtab_dist_cont.d.ls)
-
-ggsave(filename = "dist_d.ls.png", plot = plot_gtab_dist_cont.d.ls, width = 8, height = 8, dpi = 800)
-
+plot_var_cont.r
 
 
 # 7) Percentage of models that reach the optimum
 
-dplot_po <- d_eucdist_fingen[d_eucdist_fingen$tau.cat != "Null" ,c(4:5, 9:10, 13:15)] %>%
+dplot_po <- d_eucdist_fingen[,c(4:5, 9:10, 13:15)] %>%
   group_by(delmu, locisigma, delmu.cat, tau, locisigma.cat, tau.cat) %>%
   summarise_all(list(po = percent_dist), tol=1) 
 
-# Combine medium and high locisigma (same trend)
-levels(dplot_po$locisigma.cat) <- c("Low", "High", "High")
 
-plot_po.d.ls <- ggplot(dplot_po, aes(x = delmu, y = po)) +
-  facet_grid(locisigma.cat~tau.cat) +
+# Combine medium and high locisigma (same trend)
+levels(dplot_po$locisigma.cat) <- c("Small", "Large", "Large")
+
+plot_po.t.ls <- ggplot(dplot_po, aes(x = locisigma, y = po)) +
+  facet_grid(tau.cat~.) +
   geom_point() +
-  geom_smooth(se = T, method = "lm", formula = y ~ poly(x, 2), col = "#03A9F4", fill = "#5FBBE6") +
+  geom_smooth(se = T, method = "lm", formula = y ~ poly(x, 3), col = "#03A9F4", fill = "#5FBBE6") +
   theme_classic() +
   #  ggtitle(d_lab) +
   labs(x = d_lab, y = po_lab) + #"\u03C3(\u03B4\u0305)") +
@@ -426,7 +343,7 @@ plot_po.d.ls <- ggplot(dplot_po, aes(x = delmu, y = po)) +
         text = element_text(size = 22),
         panel.spacing.x = unit(2, "lines"))
 
-plot_po.d.ls
+plot_po.t.ls
 
 
 
@@ -437,44 +354,35 @@ library(gtable)
 library(grid)
 
 # Labels 
-labelT = t_lab
 labelR = ls_lab
 
 # Get the ggplot grob
-plot_gtab <- ggplotGrob(plot_po.d.ls)
+plot_gtab <- ggplotGrob(plot_po.t.ls)
 
 # Get the positions of the strips in the gtable: t = top, l = left, ...
 posR <- subset(plot_gtab$layout, grepl("strip-r", name), select = t:r)
-posT <- subset(plot_gtab$layout, grepl("strip-t", name), select = t:r)
 
 # Add a new column to the right of current right strips, 
 # and a new row on top of current top strips
 width <- plot_gtab$widths[max(posR$r)]    # width of current right strips
-height <- plot_gtab$heights[min(posT$t)]  # height of current top strips
 
 plot_gtab <- gtable_add_cols(plot_gtab, width, max(posR$r))  
-plot_gtab <- gtable_add_rows(plot_gtab, height, min(posT$t)-1)
 
 # Construct the new strip grobs
 stripR <- gTree(name = "Strip_right", children = gList(
   rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
   textGrob(labelR, rot = -90, gp = gpar(fontsize = 22, col = "black", fontface = "bold"))))
 
-stripT <- gTree(name = "Strip_top", children = gList(
-  rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
-  textGrob(labelT, gp = gpar(fontsize = 22, col = "black", fontface = "bold"))))
 
 # Position the grobs in the gtable
-plot_gtab <- gtable_add_grob(plot_gtab, stripR, t = min(posR$t) + 1, l = max(posR$r) + 1, b = max(posR$b) + 1, name = "strip-right")
-plot_gtab <- gtable_add_grob(plot_gtab, stripT, t = min(posT$t), l = min(posT$l), r = max(posT$r), name = "strip-top")
+plot_gtab <- gtable_add_grob(plot_gtab, stripR, t = min(posR$t), l = max(posR$r) + 1, b = max(posR$b), name = "strip-right")
 
 # Add small gaps between strips
-plot_gtab <- gtable_add_cols(plot_gtab, unit(1/5, "line"), max(posR$r))
-plot_gtab_po.d.ls <- gtable_add_rows(plot_gtab, unit(1/5, "line"), min(posT$t))
+plot_gtab_po.t.ls <- gtable_add_cols(plot_gtab, unit(1/5, "line"), max(posR$r))
 
 # Draw it
 grid.newpage()
-grid.draw(plot_gtab_po.d.ls)
+grid.draw(plot_gtab_po.t.ls)
 
-ggsave(filename = "po.d.ls.png", plot = plot_gtab_po.d.ls, width = 12, height = 8, dpi = 800)
+ggsave(filename = "po.t.ls.png", plot = plot_gtab_po.t.ls, width = 12, height = 8, dpi = 800)
 
