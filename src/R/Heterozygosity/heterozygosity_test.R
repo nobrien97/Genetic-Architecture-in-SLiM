@@ -41,15 +41,15 @@ std.error <-  function(x) {
   sd/sqrt(n)
 }
 
-dat_het <-read.csv("heterozygosity.csv", header = F)
+dat_het <-read.csv("/mnt/z/Documents/GitHub/Genetic-Architecture-in-SLiM/src/SLiM/Heterozygosity/heterozygosity.csv", header = F)
 
-dat_het1000 <- read.csv("heterozygosity1000.csv", header = F)
+dat_het1000 <- read.csv("/mnt/z/Documents/GitHub/Genetic-Architecture-in-SLiM/src/SLiM/Heterozygosity/heterozygosity1000.csv", header = F)
 
 names(dat_het1000) <- c("gens", "seed", "mean", "var")
 dat_het1000$seed <- as.factor(dat_het1000$seed)
 
 names(dat_het) <- c("gens", "seed", "Ne", "rwide", "delmu", "mean", "var")
-dat_het$delmu <- factor(dat_het$delmu, levels = c('No~deleterious~mutations', 'Equal~chance~deleterious/neutral')) 
+dat_het$delmu <- as.factor(dat_het$delmu)
 dat_het$rwide <- factor(dat_het$rwide, levels = c("r~'='~0", "r~'='~1.346~'x'~10^{-5}")) 
 dat_het$seed <- as.factor(dat_het$seed)
 
@@ -73,7 +73,7 @@ autocorr.plot(mcmc_het, lag.max = 100)
 autocorr.plot(dat_het$mean, lag.max = 50)
 
 EPi1000bounds <- as.data.frame(c(0.0252+(0.0252*0.05), 0.0252-(0.0252*0.05)))
-names(EPibounds) <- "pibounds"
+names(EPi1000bounds) <- "pibounds"
 
 plot_het1000 <- ggplot(dat_het1000_means,
                    aes(x = gens, y = groupmean)) +
@@ -97,7 +97,7 @@ EPibounds <- as.data.frame(c(4*500*6.3e-6+((4*500*6.3e-6)*0.05), 4*500*6.3e-6-((
 EPibounds$delmu <- as.factor("No~deleterious~mutations")
 names(EPibounds) <- "pibounds"
  
-plot_het <- ggplot(dat_het_means,
+plot_het <- ggplot(dat_het_means[dat_het_means$delmu == 0,],
                          aes(x = gens, y = groupmean, color = as.factor(Ne))) +
     geom_ribbon(aes(ymin = (groupmean - se), ymax = (groupmean + se)), alpha=0.3, show.legend = F, linetype=0) +
     geom_line() +
@@ -105,11 +105,19 @@ plot_het <- ggplot(dat_het_means,
     data = EPibounds,
     aes(yintercept = pibounds), linetype="dashed"
   ) +
-    facet_grid(delmu ~ ., scales = "free", labeller = label_parsed) +
-    ggtitle("Mean heterozygosity across QTL loci over time (AIM 1 model)") +
+    theme_classic() +
+    scale_color_manual(values = c("red", "purple", "blue")) +
 #    theme_classic() +
 #    theme(legend.position = "right") +
-    labs(x = "Generation", y = "Mean heterozygosity", color = "Population size")
+    labs(x = "Generation", y = "Mean heterozygosity", color = "Population size") +
+    theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        text = element_text(size = 22))
+
+ggsave("figs1_het.png", plot_het, height = 8, width = 8, dpi = 800)
+
 
 plot_het_500 <- ggplot(subset(dat_het_means, Ne == 500),
                    aes(x = gens, y = groupmean)) +

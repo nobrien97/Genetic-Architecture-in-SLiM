@@ -316,3 +316,20 @@ lm_muts <- lm_robust(nmuts ~ delmu * locisigma * pleiorate * selnull,
 
 summary(lm_muts)
 
+# stats 2: compare means, variances, and kurtosis of data
+
+d_muts_stats <- readRDS("d_muts_stats.RDS")
+
+d_muts_mean_stats <- d_muts_stats %>%
+  group_by(seed, modelindex, delmu, rwide, pleiorate, pleiocov, locisigma, tau, delmu.cat, rwide.cat, pleiorate.cat, pleiocov.cat, locisigma.cat, tau.cat) %>%
+  summarise_all(list(mean = mean, se = std.error))
+
+lm_muts_kurt <- lm_robust(kurt ~ locisigma * rwide * tau.cat, data = d_muts_stats)
+summary(lm_muts_kurt)
+
+lm_muts_mean <- lm_robust(mean ~ locisigma * rwide * tau.cat, data = d_muts_stats)
+summary(lm_muts_mean)
+
+lm_muts_var <- lm_robust(var ~ locisigma * rwide * tau.cat, data = d_muts_stats)
+summary(lm_muts_var)
+

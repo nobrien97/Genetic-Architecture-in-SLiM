@@ -89,6 +89,7 @@ plot_vartime <- ggplot(dplot_varmean_time, aes(x = gen, y = varmean_mean, colour
     ymax = varmean_mean + 1.96*varmean_se
   ), linetype = 0, alpha = 0.2) +
   scale_colour_manual(values = cs) +
+  ggtitle("A") + 
   scale_fill_manual(values = cs) +
   scale_x_continuous(breaks = c(seq(50000, 150000, 10000)), labels = c(as.character(seq(0, 10, 1)))) +
   labs(x = expression(bold(Generation~(x*"10"^"5"))), y = var_lab, colour = t_lab, fill = t_lab) +
@@ -96,7 +97,7 @@ plot_vartime <- ggplot(dplot_varmean_time, aes(x = gen, y = varmean_mean, colour
   theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
         axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
         axis.title.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
-        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        plot.title = element_text(margin = margin(t = 30), face = "bold", size = 20, hjust = -0.05, vjust = 3),
         text = element_text(size = 22))
 
 
@@ -118,13 +119,14 @@ plot_disttime_t <- ggplot(dplot_dist_time, aes(x = gen, y = dist_mean, col = tau
   ), linetype = 0, alpha = 0.2) +
   scale_colour_manual(values = cs) +
   scale_fill_manual(values = cs) +
+  ggtitle("B") + 
   theme_classic() +
   scale_x_continuous(breaks = c(seq(50000, 150000, 10000)), labels = c(as.character(seq(0, 10, 1)))) +
   labs(x = expression(bold(Generation~(x*"10"^"5"))), y = dist_lab, col = t_lab, fill = t_lab) +
   theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
         axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
         axis.title.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
-        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        plot.title = element_text(margin = margin(t = 30), face = "bold", size = 20, hjust = -0.05, vjust = 3),
         text = element_text(size = 22))
 
 
@@ -135,7 +137,7 @@ plot_disttime_t
 
 library(patchwork)
 
-plot_dist_vartime <- plot_disttime_t / plot_vartime
+plot_dist_vartime <-  plot_vartime / plot_disttime_t
 
 ggsave(filename = "dist+vartime.t.png", plot = plot_dist_vartime, width = 8, height = 12, dpi = 800)
 
@@ -202,12 +204,12 @@ plot_var_cont.ls <- ggplot(dplot_var_cont, aes(x = locisigma, y = varmean_mean))
   geom_point() +
   geom_smooth(se = T, method = "lm", formula = y ~ poly(x, 2), col = "#03A9F4", fill = "#5FBBE6") +
   theme_classic() +
-  #  ggtitle(d_lab) +
+  ggtitle("A") +
   labs(x = ls_lab, y = var_lab) + #"\u03C3(\u03B4\u0305)") +
   theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
         axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
         axis.title.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
-        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        plot.title = element_text(margin = margin(t = 30), face = "bold", size = 20, hjust = -0.05, vjust = 3),
         text = element_text(size = 22))
 
 plot_var_cont.ls
@@ -220,21 +222,38 @@ plot_var_cont.r <- ggplot(dplot_var_cont, aes(x = rwide, y = varmean_mean)) +
   geom_point(data = d_raw_end, mapping = aes(x=rwide, y = varmean), shape = 1, size = 0.8, col = "grey") +
   geom_point() +
   geom_smooth(se = T, method = "lm", formula = y ~ poly(x, 2), col = "#03A9F4", fill = "#5FBBE6") +
+  ggtitle("B") +
   theme_classic() +
-  #  ggtitle(d_lab) +
-  labs(x = r_lab, y = var_lab) + #"\u03C3(\u03B4\u0305)") +
+  scale_x_continuous(breaks = seq(0, 0.00012, 0.00004), labels = seq(0, 1.2, 0.4)) +
+  labs(x = expression(bold(Recombination~rate~(x*"10"^"-4"))), y = var_lab) + #"\u03C3(\u03B4\u0305)") +
   theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
         axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
         axis.title.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
-        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        plot.title = element_text(margin = margin(t = 30), face = "bold", size = 20, hjust = -0.05, vjust = 3),
         text = element_text(size = 22))
 
 plot_var_cont.r
 
+# t
+
+plot_var_cont.t <- ggplot(dplot_var_cont[dplot_var_cont$tau.cat != "Null",], aes(x = tau, y = varmean_mean)) +
+  geom_point(data = d_raw_end[d_raw_end$tau.cat != "Null",], mapping = aes(x=tau, y = varmean), shape = 1, size = 0.8, col = "grey") +
+  geom_point() +
+  geom_smooth(se = T, method = "lm", formula = y ~ poly(x, 2), col = "#03A9F4", fill = "#5FBBE6") +
+  theme_classic() +
+  labs(x = t_lab, y = var_lab) + #"\u03C3(\u03B4\u0305)") +
+  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        plot.title = element_text(margin = margin(t = 30), face = "bold", size = 20, hjust = -0.05, vjust = 3),
+        text = element_text(size = 22))
+
+plot_var_cont.t
 
 
+var_ls.r <- plot_var_cont.ls + plot_var_cont.r
 
-ggsave(filename = "var_r.png", plot = plot_var_cont.ls, width = 8, height = 8, dpi = 800)
+ggsave(filename = "var_ls.r.png", plot = var_ls.r, width = 12, height = 8, dpi = 800)
 
 #############################################################
 # 3)B: Euclidean Distance
@@ -250,12 +269,12 @@ plot_dist_cont.ls <- ggplot(dplot_eucdist_cont, aes(x = locisigma, y = dist_mean
   geom_point() +
   geom_smooth(se = T, method = "lm", formula = y ~ poly(x, 2), col = "#03A9F4", fill = "#5FBBE6") +
   theme_classic() +
-  #  ggtitle(d_lab) +
+  ggtitle("C") +
   labs(x = ls_lab, y = dist_lab) + #"\u03C3(\u03B4\u0305)") +
   theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
         axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
         axis.title.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
-        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        plot.title = element_text(margin = margin(t = 30), face = "bold", size = 20, hjust = -0.05, vjust = 3),
         text = element_text(size = 22))
 
 plot_dist_cont.ls
@@ -267,17 +286,27 @@ plot_dist_cont.r <- ggplot(dplot_eucdist_cont, aes(x = rwide, y = dist_mean)) +
   geom_point(data = d_eucdist_fingen, mapping = aes(x=rwide, y = distance), shape = 1, size = 0.8, col = "grey") +
   geom_point() +
   geom_smooth(se = T, method = "lm", formula = y ~ poly(x, 2), col = "#03A9F4", fill = "#5FBBE6") +
+  scale_x_continuous(breaks = seq(0, 0.00012, 0.00004), labels = seq(0, 1.2, 0.4)) +
   theme_classic() +
-  #  ggtitle(d_lab) +
-  labs(x = r_lab, y = dist_lab) + #"\u03C3(\u03B4\u0305)") +
+  ggtitle("D") +
+  labs(x = expression(bold(Recombination~rate~(x*"10"^"-4"))), y = dist_lab) + #"\u03C3(\u03B4\u0305)") +
   theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
         axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
         axis.title.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
-        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        plot.title = element_text(margin = margin(t = 30), face = "bold", size = 20, hjust = -0.05, vjust = 3),
         text = element_text(size = 22))
 
 plot_dist_cont.r
 
+
+
+eucdist_ls.r <- plot_dist_cont.ls | plot_dist_cont.r
+
+ggsave(filename = "eucdist_ls.r.png", plot = eucdist_ls.r, width = 12, height = 8, dpi = 800)
+
+var_dist_ls.r <- ( plot_var_cont.ls | plot_var_cont.r ) / ( plot_dist_cont.ls | plot_dist_cont.r ) 
+
+ggsave(filename = "var_dist_ls.r.png", plot = var_dist_ls.r, width = 12, height = 12, dpi = 800)
 
 
 ##############
@@ -325,17 +354,22 @@ dplot_po <- d_eucdist_fingen[,c(4:5, 9:10, 13:15)] %>%
   group_by(delmu, locisigma, delmu.cat, tau, locisigma.cat, tau.cat) %>%
   summarise_all(list(po = percent_dist), tol=1) 
 
+d_eucdist_fingen$atopt <- d_eucdist_fingen$distance
+d_eucdist_fingen[d_eucdist_fingen$distance <= 1.0,]$atopt <- 1
+d_eucdist_fingen[d_eucdist_fingen$distance > 1.0,]$atopt <- 0
+
 
 # Combine medium and high locisigma (same trend)
 levels(dplot_po$locisigma.cat) <- c("Small", "Large", "Large")
 
 plot_po.t.ls <- ggplot(dplot_po, aes(x = locisigma, y = po)) +
   facet_grid(tau.cat~.) +
+  geom_point(data = d_eucdist_fingen, mapping = aes(x=locisigma, y = atopt), shape = 1, size = 0.8, col = "grey") +
   geom_point() +
   geom_smooth(se = T, method = "lm", formula = y ~ poly(x, 3), col = "#03A9F4", fill = "#5FBBE6") +
   theme_classic() +
   #  ggtitle(d_lab) +
-  labs(x = d_lab, y = po_lab) + #"\u03C3(\u03B4\u0305)") +
+  labs(x = ls_lab, y = po_lab) + #"\u03C3(\u03B4\u0305)") +
   theme(axis.text.x = element_text(size = 18, margin = margin(t = 10), face = "bold"),
         axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
         axis.title.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
@@ -384,5 +418,5 @@ plot_gtab_po.t.ls <- gtable_add_cols(plot_gtab, unit(1/5, "line"), max(posR$r))
 grid.newpage()
 grid.draw(plot_gtab_po.t.ls)
 
-ggsave(filename = "po.t.ls.png", plot = plot_gtab_po.t.ls, width = 12, height = 8, dpi = 800)
+ggsave(filename = "po.t.ls.png", plot = plot_gtab_po.t.ls, width = 6, height = 8, dpi = 800)
 
