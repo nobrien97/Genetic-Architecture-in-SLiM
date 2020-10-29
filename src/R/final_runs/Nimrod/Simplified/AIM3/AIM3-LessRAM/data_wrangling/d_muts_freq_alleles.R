@@ -621,6 +621,9 @@ d_sel_muts <- na.omit(d_sel_muts)
 
 d_null_muts <- na.omit(d_null_muts)
 
+d_null_muts <- d_null_muts[,-c(4:12)]
+d_sel_muts <- d_sel_muts[,-c(4:12)]
+
 # Arrange by seed and muts
 d_sel_muts <- arrange(d_sel_muts, seed, modelindex)
 d_null_muts <- arrange(d_null_muts, seed, modelindex)
@@ -630,27 +633,6 @@ saveRDS(d_null_muts, "d_null_muts_freqs.RDS")
 
 d_sel_muts <- readRDS("d_sel_muts_freqs.RDS")
 d_null_muts <- readRDS("d_null_muts_freqs.RDS")
-
-# R decided to make this a factor for some reason?
-d_null_muts$t2 <- as.numeric(levels(d_null_muts$t2)[d_null_muts$t2])
-d_null_muts$t7 <- as.numeric(levels(d_null_muts$t7)[d_null_muts$t7])
-
-# Takes 90.8GB in R as a data.frame!
-# Reduce size by only looking at 50 seeds
-
-# We have the seed set so we know we will sample the same numbers each time
-
-# temporarily convert seed to character so we don't get any floating point funny business
-d_null_muts$seed <- as.character(d_null_muts$seed)
-seed_sample <- readRDS("seed_sample.RDS")
-d_null_muts <- d_null_muts[d_null_muts$seed %in% seed_sample,]
-# Convert back
-d_null_muts$seed <- as.numeric(d_null_muts$seed)
-
-
-d_sel_muts$seed <- as.character(d_sel_muts$seed)
-d_sel_muts <- d_sel_muts[d_sel_muts$seed %in% seed_sample,]
-d_sel_muts$seed <- as.numeric(d_sel_muts$seed)
 
 
 ls_combos_sel <- read.csv("/90days/s4395747/lscombos_sel.csv")
@@ -662,7 +644,7 @@ d_sel_muts$pleiocov <- ls_combos_sel$pleiocov[d_sel_muts$modelindex]
 d_sel_muts$locisigma <- ls_combos_sel$locisigma[d_sel_muts$modelindex]
 d_sel_muts$tau <- ls_combos_sel$tau[d_sel_muts$modelindex]
 
-saveRDS(d_sel_long, "d_sel_long.RDS")
+saveRDS(d_sel_muts, "d_sel_muts_freqs.RDS")
 
 
 ls_combos_null <- read.csv("/90days/s4395747/lscombos_null.csv")
@@ -675,17 +657,16 @@ d_null_muts$locisigma <- ls_combos_null$locisigma[d_null_muts$modelindex]
 d_null_muts$tau <- 0.0
 
 
+saveRDS(d_null_muts, "d_null_muts_freqs.RDS")
 
-d_sel_muts$modelindex <- d_sel_long$modelindex + 1024
-
+d_sel_muts$modelindex <- d_sel_muts$modelindex + 1024
 
 # Combine the data sets:
-d_muts_freqq <- data.table::rbindlist(list(d_null_muts, d_sel_muts), use.names=T)
+d_muts_freq <- data.table::rbindlist(list(d_null_muts, d_sel_muts), use.names=T)
 
 # Arrange by seed and muts
 d_muts_freq <- arrange(d_muts_freq, seed, modelindex)
 
-saveRDS(d_muts_freq, "d_muts_freq.RDS")
 
 # Categorise
 
@@ -699,4 +680,49 @@ d_muts_freq$rwide.cat <- cut(d_muts_freq$rwide, breaks = 3, labels = c("Low", "M
 tau_bp <- c(-Inf, 0.1, 333.3, 666.6, Inf)
 
 d_muts_freq$tau.cat <- cut(d_muts_freq$tau, breaks = tau_bp, labels = c("Null", "Strong", "Medium", "Weak")) 
+
+d_muts_freq$del <- d_muts_freq$type
+d_muts_freq[d_muts_freq$type == 2]$del <- 1 # Separate mutations to QTL vs deleterious
+d_muts_freq[d_muts_freq$type != 2]$del <- 0
+
+saveRDS(d_muts_freq, "d_muts_freq.RDS")
+
+# Look at only segregating mutations, no substitutions
+
+d_muts_freq <- d_muts_freq[d_muts_freq$freq < 1,]
+
+d_mut_meanfreqs <- d_muts_freq[,-c(1,3)] %>% # Exclude seed and type, average across those. Del is the proper categoryyyy
+  group_by(modelindex, delmu, rwide, pleiorate, pleiocov, locisigma, tau, delmu.cat, 
+           rwide.cat, pleiorate.cat, pleiocov.cat, locisigma.cat, tau.cat, del) %>%
+  summarise_all(list(freq_mean = mean, freq_se = std.error))
+
+# Reshape
+d_mut_meanfreqs <- d_mut_meanfreqs  %>%
+  pivot_wider(
+    names_from = "del",
+    names_prefix = "del_",
+    values_from = c("freq_mean", "freq_se")
+  )
+
+d_mut_meanfreqs$freqrat <- d_mut_meanfreqs$freq_mean_del_0 / d_mut_meanfreqs$freq_mean_del_1
+
+saveRDS(d_mut_meanfreqs, "d_mut_meanfreqs.RDS")
+plot_mut_freqs <- ggplot(d_mut_meanfreqs, aes(x = delmu, y = freqrat)) +
+  geom_point() +
+  theme_classic() +
+  ggtitle("Rate of 'deleterious mutation' with the mean ratio of segregating QTLs to segregating deleterious mutation") +
+  ylab("Mean ratio of QTL mutation frequencies\nto deleterious mutation frequencies")
+
+plot_mut_freqs
+
+plot_mut_freq01 <- ggplot(d_mut_meanfreqs, aes(x = freq_mean_del_0, y = freq_mean_del_1)) +
+  facet_grid(delmu.cat~.) +
+  geom_point() +
+  ggtitle("Relative mean frequencies QTL mutations under\nlevels of 'background selection' (Low, Medium, High)")+
+  xlab("Mean frequency of QTL mutations") +
+  ylab("Mean frequency of deleterious mutations") +
+  theme_classic()
+
+plot_mut_freq01
+
 

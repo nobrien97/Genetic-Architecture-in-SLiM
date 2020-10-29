@@ -430,10 +430,16 @@ d_raw_end <- d_raw_c[d_raw_c$gen == 150000,]
 lm_var_end <- lm_robust(varmean ~ tau,
                     data = d_raw_end)
 
-lm_var_end <-lm_robust(varmean ~ (rwide + locisigma + tau)^2,
-                    data = d_raw_end[d_raw_end$tau.cat != "Null"])
+lm_var_end <-lm_robust(varmean ~ (rwide + locisigma + COA.cat + pleiorate + pleiocov)^2,
+                    data = d_raw_end[d_raw_end$COA.cat != "Other",])
 
 summary(lm_var_end)
+
+lm_cov_end <-lm_robust(covmean ~ (rwide + locisigma + COA.cat + pleiorate + pleiocov)^2,
+                       data = d_raw_end[d_raw_end$COA.cat != "Other",])
+
+summary(lm_cov_end)
+
 
 # Probability that variance is 0
 
@@ -444,7 +450,7 @@ dplot_pv <- d_raw_end[d_raw_end$tau.cat != "Null" ,c(5:6, 15:16, 17:26)] %>%
 d_raw_end$pv <- percent_dist(d_raw_end$varmean, 1)
 
 
-lm_var_t <- lm_robust(pv ~ tau * locisigma, data = d_raw_end[d_raw_end$tau.cat != "Null"])
+lm_var_t <- lm_robust(pv ~ locisigma, data = d_raw_end[d_raw_end$tau.cat != "Null"])
 
 summary(lm_var_t)
 

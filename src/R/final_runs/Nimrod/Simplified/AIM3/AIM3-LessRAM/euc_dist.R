@@ -920,9 +920,13 @@ d_eucdist_fingen <- d_eucdist_c[d_eucdist_c$gen == 150000,]
 library(emmeans)
 library(estimatr)
 
-eucdist_fingen_lm <- lm_robust(distance ~ (delmu + rwide + locisigma + pleiorate + tau)^2 +
+d_eucdist_fingen$sqrtdist <- sqrt(d_eucdist_fingen$distance)
+
+eucdist_fingen_lm <- lm_robust(sqrtdist ~ (rwide + locisigma + pleiorate + pleiocov + COA.cat)^2 +
                                  delmu*rwide*locisigma,
-data = d_eucdist_fingen)
+data = d_eucdist_fingen[d_eucdist_fingen$COA.cat != "Other",])
+
+summary(eucdist_fingen_lm)
 
 eucdist_fingen_lm <- lm_robust(distance ~ delmu*locisigma,
                                data = d_eucdist_fingen)
