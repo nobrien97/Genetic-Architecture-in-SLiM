@@ -434,10 +434,14 @@ dplot_po <- d_eucdist_fingen[,c(4:5, 9:10, 13:15)] %>%
   group_by(delmu, locisigma, delmu.cat, tau, locisigma.cat, tau.cat) %>%
   summarise_all(list(po = percent_dist), tol=1) 
 
+d_eucdist_fingen$sqrtdist <- sqrt(d_eucdist_fingen$distance) 
 d_eucdist_fingen$atopt <- d_eucdist_fingen$distance
-d_eucdist_fingen[d_eucdist_fingen$distance <= 1.0,]$atopt <- 1
-d_eucdist_fingen[d_eucdist_fingen$distance > 1.0,]$atopt <- 0
+d_eucdist_fingen[d_eucdist_fingen$sqrtdist < 4.0,]$atopt <- 1
+d_eucdist_fingen[d_eucdist_fingen$sqrtdist >= 4.0,]$atopt <- 0
 
+d_eucdist_fingen$seedmod <- interaction(d_eucdist_fingen$seed, d_eucdist_fingen$modelindex)
+
+write.csv(d_eucdist_fingen[d_eucdist_fingen$atopt == 1, c(2:3, 20)], "seedmod_Po1.csv", row.names = F)
 
 # Combine medium and high locisigma (same trend)
 levels(dplot_po$locisigma.cat) <- c("Small", "Large", "Large")
@@ -575,3 +579,16 @@ ggsave("plot_lhc_sel.png", plot_lhc_sel, height = 16, width = 16, dpi = 300)
 
 library(patchwork)
 plot_lhc <- grid.arrange(plot_lhc_null, plot_lhc_sel)
+
+
+
+# Po as predictor: combine data
+
+d_eucdist_fingen <- arrange(d_eucdist_fingen, modelindex, seed)
+d_raw_end <- arrange(d_raw_end, modelindex, seed)
+
+d_combined <- d_eucdist_fingen
+d_combined$varmean <- d_raw_end$varmean
+d_combined$covmean <- d_raw_end$covmean
+
+write.csv(d_combined, "d_combined.csv", row.names = F)
