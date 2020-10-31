@@ -441,7 +441,11 @@ d_eucdist_fingen[d_eucdist_fingen$sqrtdist >= 4.0,]$atopt <- 0
 
 d_eucdist_fingen$seedmod <- interaction(d_eucdist_fingen$seed, d_eucdist_fingen$modelindex)
 
-write.csv(d_eucdist_fingen[d_eucdist_fingen$atopt == 1, c(2:3, 20)], "seedmod_Po1.csv", row.names = F)
+write.csv(d_eucdist_fingen[d_eucdist_fingen$atopt == 1 & d_eucdist_fingen$tau.cat == "Null", c(2:3, 20)], "seedmod_Po1_null.csv", row.names = F)
+write.csv(d_eucdist_fingen[d_eucdist_fingen$atopt == 1 & d_eucdist_fingen$tau.cat != "Null", c(2:3, 20)], "seedmod_Po1_sel.csv", row.names = F)
+
+
+
 
 # Combine medium and high locisigma (same trend)
 levels(dplot_po$locisigma.cat) <- c("Small", "Large", "Large")

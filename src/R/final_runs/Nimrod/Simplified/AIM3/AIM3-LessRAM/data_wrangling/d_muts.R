@@ -140,30 +140,69 @@ d_muts_c$tau.cat <- cut(d_muts_c$tau, breaks = tau_bp, labels = c("Null", "High"
 
 d_muts_c <- readRDS("d_muts_c.RDS")
 
+# Split figures across At the optimum vs away from it
+
 d_muts_c_nofix <- d_muts_c[d_muts_c$freq < 1,]
 
 
-d_muts_null <- d_muts_c_nofix[d_muts_c_nofix$tau == 0.0,]
-d_muts_sel <- d_muts_c_nofix[d_muts_c_nofix$tau != 0.0,]
+
+d_muts_c_nofix$seedmod <- as.character(interaction(d_muts_c_nofix$seed, d_muts_c_nofix$modelindex))
+
+d_muts_null <- d_muts_c_nofix[d_muts_c_nofix$tau.cat == "Null",]
+d_muts_sel <- d_muts_c_nofix[d_muts_c_nofix$tau.cat != "Null",]
 
 
-cpal <- scales::seq_gradient_pal("blue", "red", "Lab")(seq(0,1, length.out = 100))
-cpal <- cpal[c(1, 15, 100)]
+# Need to check that we're only selecting the subsetted rows (mdl_sample)
+# seedmod_Po1 needs to only include those
 
+seedmod_Po1_null <- read.csv("seedmod_Po1_null.csv")
+seedmod_Po1_sel <- read.csv("seedmod_Po1_sel.csv")
 
-# Null models
-
-# For this to be feasible, may have to cut some amount of models since we have 4 times the selection model
+# For this to work, will cut some amount of models since we have 4 times the selection model
 set.seed(873662137)
-mdl_sample <- sample(unique(d_muts_null$modelindex), 128)
+mdl_sample <- sample(unique(d_muts_null$modelindex), 256)
 saveRDS(mdl_sample, "mdl_sample.RDS")
 mdl_sample <- readRDS("mdl_sample.RDS")
+
+# Select only models that are being sampled
+seedmod_Po1_null <- seedmod_Po1_null[seedmod_Po1_null$modelindex %in% mdl_sample,]
+
+# Recombine
+seedmod_Po1 <- data.table::rbindlist(list(seedmod_Po1_null, seedmod_Po1_sel))
+
+# Do the same but with seeds that are in here
+seed_sample <- readRDS("seed_sample.RDS")
+
+seedmod_Po1$seed <- as.character(seedmod_Po1$seed)
+seedmod_Po1 <- seedmod_Po1[seedmod_Po1$seed %in% seed_sample]
+seedmod_Po1$seed <- as.numeric(seedmod_Po1$seed)
+seedmod_Po1$seedmod <- as.character(seedmod_Po1$seedmod)
+# Null models
+
 d_muts_null_sbst <- d_muts_null[d_muts_null$modelindex %in% mdl_sample,]
 d_muts_null_sbst <- d_muts_null_sbst[d_muts_null_sbst$Effect < 10000,] # Remove outlier
 
 d_muts_c_nofix <- data.table::rbindlist(list(d_muts_null_sbst, d_muts_sel))
 
 saveRDS(d_muts_c_nofix, "d_muts_c_nofix.RDS")
+
+# d_muts_p1 are mutations in models which have reached distance < 16
+# d_muts_p0 are ones from models with distance >= 16
+d_muts_p1 <- d_muts_c_nofix[d_muts_c_nofix$seedmod %in% seedmod_Po1$seedmod,]
+d_muts_p0 <- d_muts_c_nofix[!(d_muts_c_nofix$seedmod %in% seedmod_Po1$seedmod),]
+
+saveRDS(d_muts_p1, "d_muts_p1.RDS")
+saveRDS(d_muts_p0, "d_muts_p0.RDS")
+
+# d_muts_p1: 2,027,147 mutations contributing to adapted phenotypes
+# d_muts_p0: 65,858,594 mutations contributing to non-adapted phenotypes
+# 2157 total model/seed combos adapted out of 25600 = 8.4% have adapted
+
+
+cpal <- scales::seq_gradient_pal("blue", "red", "Lab")(seq(0,1, length.out = 100))
+cpal <- cpal[c(1, 15, 100)]
+
+
 # Combination: use sel/no sel as a facet so we can have the same scale between
 # Three facets: one for each sel strength, with common null model to compare against
 # Three groups of size fx
@@ -200,10 +239,10 @@ plot_freq <- ggplot(d_muts_sel[d_muts_sel$COA.cat == "Gaussian" | d_muts_sel$COA
     colour = locisigma.cat
   )) +
   coord_cartesian(xlim = c(-15, 15)) + # Truncate at 15 to get a better view
-  scale_y_continuous(breaks = c(seq(0, 200000, 50000)), labels = c(as.character(seq(0, 2, 0.5)))) +
+  scale_y_continuous(breaks = c(seq(0, 4000000, 1000000)), labels = c(as.character(seq(0, 4, 1)))) +
   scale_color_manual(values = c("blue", "turquoise", "red")) +
   theme_classic() +
-  labs(x = "Allelic effect on trait", y = expression(bold(Frequency~(x*"10"^"5"))), colour = "Additive effect\nsize distribution\n(\u03B1)") +
+  labs(x = "Allelic effect on trait", y = expression(bold(Frequency~(x*"10"^"6"))), colour = "Additive effect\nsize distribution\n(\u03B1)") +
   theme(axis.text.x = element_text(size = 16, margin = margin(t = 8), face = "bold"),
         axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
         axis.title.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
@@ -245,6 +284,60 @@ plot_gtab_freq <- gtable_add_rows(plot_gtab, unit(1/5, "line"), min(posT$t))
 
 ggsave(filename = "AllelicFX_ls.models.png", plot = plot_gtab_freq, width = 16, height = 6, dpi = 800)
 
+
+
+
+plot_freq_mods <- ggplot(d_muts_sel[d_muts_sel$COA.cat == "Gaussian" | d_muts_sel$COA.cat == "House-of-Cards",], aes(x = Effect, colour = locisigma.cat)) +
+  facet_grid(.~COA.cat) +
+  geom_freqpoly(bins = 500, size = 1) +
+  coord_cartesian(xlim = c(-15, 15)) + # Truncate at 15 to get a better view
+  scale_y_continuous(breaks = c(seq(0, 150000, 50000)), labels = c(as.character(seq(0, 1.5, 0.5)))) +
+  scale_color_manual(values = c("blue", "turquoise", "red")) +
+  theme_classic() +
+  labs(x = "Allelic effect on trait", y = expression(bold(Frequency~(x*"10"^"5"))), colour = "Additive effect\nsize distribution\n(\u03B1)") +
+  theme(axis.text.x = element_text(size = 16, margin = margin(t = 8), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        text = element_text(size = 22))
+
+plot_freq_mods
+
+
+library(gtable)
+library(grid)
+
+# Labels 
+labelT = "Allelic effect model"
+
+# Get the ggplot grob
+plot_gtab <- ggplotGrob(plot_freq_mods)
+
+# Get the positions of the strips in the gtable: t = top, l = left, ...
+posT <- subset(plot_gtab$layout, grepl("strip-t", name), select = t:r)
+
+# Add a new column to the right of current right strips, 
+# and a new row on top of current top strips
+height <- plot_gtab$heights[min(posT$t)]  # height of current top strips
+
+plot_gtab <- gtable_add_rows(plot_gtab, height, min(posT$t)-1)
+
+# Construct the new strip grobs
+
+stripT <- gTree(name = "Strip_top", children = gList(
+  rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
+  textGrob(labelT, gp = gpar(fontsize = 22, col = "black", fontface = "bold"))))
+
+# Position the grobs in the gtable
+plot_gtab <- gtable_add_grob(plot_gtab, stripT, t = min(posT$t), l = min(posT$l), r = max(posT$r), name = "strip-top")
+
+# Add small gaps between strips
+plot_gtab_freq_mods <- gtable_add_rows(plot_gtab, unit(1/5, "line"), min(posT$t))
+
+ggsave(filename = "AllelicFX_ls.models.nonull.png", plot = plot_gtab_freq_mods, width = 12, height = 6, dpi = 600)
+
+
+
 ##################################################
 
 # stats: compare number  of rare alleles across groups
@@ -266,6 +359,7 @@ d_muts_stats <- d_muts_c_nofix[, c(1:2, 7:20)] %>%
   summarise_all(list(mean = mean, var = var, kurt = kurtosis))
 
 saveRDS(d_muts_stats, "d_muts_stats.RDS")
+write.csv(d_muts_stats, "d_muts_stats.csv", row.names = F)
 
 saveRDS(d_muts_counts, "d_muts_counts.RDS")
 

@@ -1,5 +1,5 @@
 # Stats: 
-# locisigma + pleiorate + rwide + delmu (mu) + model type on variance, covariance, distance
+# locisigma + pleiorate + rwide + model type on variance, covariance, distance
 # also the above on allelic effect distributions: means, variance, kurtosis
 # kurtosis gives an idea of relative likelihood of getting a rare allele
 
