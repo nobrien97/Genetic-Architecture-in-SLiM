@@ -125,8 +125,8 @@ d_lab <- "Mutation rate"
 ls_lab <- "Additive effect\nsize distribution (\u03B1)"
 t_lab <- "Selection\nstrength (\u03C4)"
 dist_lab <- "\u03B4\u0305"
-var_lab <- "\u03C3\u0305\u00B2"
-cov_lab <- "Cov(X, Y)"
+var_lab <- expression(bold(V[a]))
+cov_lab <- "Covariance"
 po_lab <- "P(o)"
 m_lab <- "Allelic effect model"
 
@@ -205,26 +205,43 @@ ggsave(filename = "fig3_varcovtime.png", plot = fig3_varcovtime, width = 8, heig
 
 #######################################################################################################################
 
-# 4) Scatter plot of distance vs model type (HoC Gaussian Null) 
+# 4) Box plot of distance vs model type (HoC Gaussian Null) 
 
 
 
-plot_dist_mod <- ggplot(d_combined[d_combined$COA.cat != "Other",], aes(x = COA.cat, y = distance)) +
-  geom_jitter(colour = "grey", size = 0.8, shape = 1) +
-  stat_summary(fun = mean, geom = "point", size = 5, colour = c("red", "blue", "black")) +
+plot_dist_mod_full <- ggplot(d_combined[d_combined$COA.cat != "Other",], aes(x = COA.cat, y = distance)) +
+  stat_boxplot(geom = "errorbar", width = 0.5) +
+  geom_boxplot(width = 0.5) +
   theme_classic() +
-  labs(x = m_lab, y = dist_lab) + #"\u03C3(\u03B4\u0305)") +
-  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+  labs(x = m_lab, y = dist_lab, tag = "A") + #"\u03C3(\u03B4\u0305)") +
+  theme(axis.text.x = element_text(size = 24, margin = margin(t = 10), face = "bold"),
         axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
-        axis.title.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.x = element_text(size = 26, margin = margin(t = 10), face = "bold"),
         plot.title = element_text(margin = margin(t = 30), face = "bold", size = 20, hjust = -0.05, vjust = 12),
-        text = element_text(size = 22, face = "bold"),
+        text = element_text(size = 26, face = "bold"),
         plot.margin = margin(10, 20, 10, 10))
 
-plot_dist_mod
+plot_dist_mod_full
 
+plot_dist_mod_po1 <- ggplot(d_combined[d_combined$COA.cat != "Other" & d_combined$atopt == "Adapted",], aes(x = COA.cat, y = distance)) +
+  stat_boxplot(geom = "errorbar", width = 0.5) +
+  geom_boxplot(width = 0.5) +
+  theme_classic() +
+  labs(x = m_lab, y = dist_lab, tag = "B") + #"\u03C3(\u03B4\u0305)") +
+  theme(axis.text.x = element_text(size = 24, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_text(size = 26, margin = margin(t = 10), face = "bold"),
+        plot.title = element_text(margin = margin(t = 30), face = "bold", size = 20, hjust = -0.05, vjust = 12),
+        text = element_text(size = 26, face = "bold"),
+        plot.margin = margin(10, 20, 10, 10))
 
-ggsave(filename = "fig2_dist_mod.png", plot = plot_dist_mod, width = 8, height = 8, dpi = 800)
+plot_dist_mod_po1
+
+library(patchwork)
+
+fig2_dist_mod <- plot_dist_mod_full / plot_dist_mod_po1 
+
+ggsave(filename = "fig2_dist_mod.png", plot = fig2_dist_mod, width = 12, height = 12, dpi = 800)
 
 
 #######################################################################################################################
@@ -233,57 +250,94 @@ ggsave(filename = "fig2_dist_mod.png", plot = plot_dist_mod, width = 8, height =
 #          influence these models? Is there a robustness against these effects with high/lower mutation/selection?  
 #          - Box plots with specific models and parameter types, mean point with confidence interval around it
 
+# Colour palette: light to dark
+
+cpal <- scales::seq_gradient_pal("gray70", "black", "Lab")(seq(0,1, length.out = 100))
+cpal <- cpal[c(1, 35, 100)]
+
+
 # Fig 4
 
-dplot_combined_meanCOA <- d_combined[, c(4, 17)] %>%
-  group_by(COA.cat) %>%
+dplot_combined_ls <- d_combined[d_combined$atopt  == "Adapted", c(4, 15, 17)] %>%
+  group_by(COA.cat, locisigma.cat) %>%
   summarise_all(list(dist_mean = mean, dist_se = std.error))
 
 
 # 4A
 
-plot_dist_ls.m <- ggplot(d_combined[d_combined$COA.cat != "Other" & d_combined$atopt == "Adapted",], aes(x = COA.cat, y = distance, colour = locisigma.cat)) +
-  stat_boxplot(geom = "errorbar") + 
-  geom_boxplot() +
+plot_dist_ls.m <- ggplot(dplot_combined_ls[dplot_combined_ls$COA.cat != "Other" & dplot_combined_ls$COA.cat != "Null",], aes(x = COA.cat, y = dist_mean, colour = locisigma.cat)) +
+  geom_point(position = position_dodge(0.9), size = 3) + 
+  geom_errorbar(aes(
+    ymin = dist_mean - (1.96*dist_se),
+    ymax = dist_mean + (1.96*dist_se)
+  ), position = position_dodge(0.9),
+  width = 0.5) +
   theme_classic() +
+  ylim(0, 5.5) +
+  scale_color_manual(values = cpal) +
   labs(x = m_lab, y = dist_lab, colour = ls_lab, tag = "A") + #"\u03C3(\u03B4\u0305)") +
-  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+  theme(axis.text.x = element_text(size = 26, margin = margin(t = 10), face = "bold"),
         axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
-        axis.title.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.x = element_text(size = 28, margin = margin(t = 10), face = "bold"),
+        legend.text = element_text(size = 26, margin = margin(t = 10), face = "bold"),
         plot.title = element_text(margin = margin(t = 30), face = "bold", size = 20, hjust = -0.05, vjust = 12),
-        text = element_text(size = 22, face = "bold"),
+        text = element_text(size = 28, face = "bold"),
         plot.margin = margin(10, 20, 10, 10))
 
 plot_dist_ls.m
 
 # 4B
 
-plot_dist_r.m <- ggplot(d_combined[d_combined$COA.cat != "Other" & d_combined$atopt == "Adapted",], aes(x = COA.cat, y = distance, colour = rwide.cat)) +
-  stat_boxplot(geom = "errorbar") + 
-  geom_boxplot() +
+dplot_combined_r <- d_combined[d_combined$atopt  == "Adapted", c(4, 16, 17)] %>%
+  group_by(COA.cat, rwide.cat) %>%
+  summarise_all(list(dist_mean = mean, dist_se = std.error))
+
+
+plot_dist_r.m <- ggplot(dplot_combined_r[dplot_combined_r$COA.cat != "Other" & dplot_combined_r$COA.cat != "Null",], aes(x = COA.cat, y = dist_mean, colour = rwide.cat)) +
+  geom_point(position = position_dodge(0.9), size = 3) + 
+  geom_errorbar(aes(
+    ymin = dist_mean - (1.96*dist_se),
+    ymax = dist_mean + (1.96*dist_se)
+  ), position = position_dodge(0.9),
+  width = 0.5) +
   theme_classic() +
+  ylim(0, 5.5) +
+  scale_color_manual(values = cpal) +
   labs(x = m_lab, y = dist_lab, colour = r_lab, tag = "B") + #"\u03C3(\u03B4\u0305)") +
-  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+  theme(axis.text.x = element_text(size = 26, margin = margin(t = 10), face = "bold"),
         axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
-        axis.title.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.x = element_text(size = 28, margin = margin(t = 10), face = "bold"),
+        legend.text = element_text(size = 26, margin = margin(t = 10), face = "bold"),
         plot.title = element_text(margin = margin(t = 30), face = "bold", size = 20, hjust = -0.05, vjust = 12),
-        text = element_text(size = 22, face = "bold"),
+        text = element_text(size = 28, face = "bold"),
         plot.margin = margin(10, 20, 10, 10))
 
 plot_dist_r.m
 
 # 4C
 
-plot_dist_pr.m <- ggplot(d_combined[d_combined$COA.cat != "Other" & d_combined$atopt == "Adapted",], aes(x = COA.cat, y = distance, colour = pleiorate.cat)) +
-  stat_boxplot(geom = "errorbar") + 
-  geom_boxplot() +
+dplot_combined_pr <- d_combined[d_combined$atopt  == "Adapted", c(4, 11, 17)] %>%
+  group_by(COA.cat, pleiorate.cat) %>%
+  summarise_all(list(dist_mean = mean, dist_se = std.error))
+
+
+plot_dist_pr.m <- ggplot(dplot_combined_pr[dplot_combined_r$COA.cat != "Other" & dplot_combined_r$COA.cat != "Null",], aes(x = COA.cat, y = dist_mean, colour = pleiorate.cat)) +
+  geom_point(position = position_dodge(0.9), size = 3) + 
+  geom_errorbar(aes(
+    ymin = dist_mean - (1.96*dist_se),
+    ymax = dist_mean + (1.96*dist_se)
+  ), position = position_dodge(0.9),
+  width = 0.5) +
+  ylim(0, 5.5) +
   theme_classic() +
+  scale_color_manual(values = cpal) +
   labs(x = m_lab, y = dist_lab, colour = pr_lab, tag = "C") + #"\u03C3(\u03B4\u0305)") +
-  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+  theme(axis.text.x = element_text(size = 26, margin = margin(t = 10), face = "bold"),
         axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
-        axis.title.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.x = element_text(size = 28, margin = margin(t = 10), face = "bold"),
+        legend.text = element_text(size = 26, margin = margin(t = 10), face = "bold"),
         plot.title = element_text(margin = margin(t = 30), face = "bold", size = 20, hjust = -0.05, vjust = 12),
-        text = element_text(size = 22, face = "bold"),
+        text = element_text(size = 28, face = "bold"),
         plot.margin = margin(10, 20, 10, 10))
 
 plot_dist_pr.m
@@ -291,16 +345,28 @@ plot_dist_pr.m
 
 # 4D
 
-plot_dist_pc.m <- ggplot(d_combined[d_combined$COA.cat != "Other" & d_combined$atopt == "Adapted",], aes(x = COA.cat, y = distance, colour = pleiocov.cat)) +
-  stat_boxplot(geom = "errorbar") + 
-  geom_boxplot() +
+dplot_combined_pc <- d_combined[d_combined$atopt  == "Adapted", c(4, 12, 17)] %>%
+  group_by(COA.cat, pleiocov.cat) %>%
+  summarise_all(list(dist_mean = mean, dist_se = std.error))
+
+
+plot_dist_pc.m <- ggplot(dplot_combined_pc[dplot_combined_r$COA.cat != "Other" & dplot_combined_r$COA.cat != "Null",], aes(x = COA.cat, y = dist_mean, colour = pleiocov.cat)) +
+  geom_point(position = position_dodge(0.9), size = 4) + 
+  geom_errorbar(aes(
+    ymin = dist_mean - (1.96*dist_se),
+    ymax = dist_mean + (1.96*dist_se)
+  ), position = position_dodge(0.9),
+  width = 0.5) +
   theme_classic() +
+  ylim(0, 5.5) +
+  scale_color_manual(values = cpal) +
   labs(x = m_lab, y = dist_lab, colour = pc_lab, tag = "D") + #"\u03C3(\u03B4\u0305)") +
-  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+  theme(axis.text.x = element_text(size = 26, margin = margin(t = 10), face = "bold"),
         axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
-        axis.title.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.x = element_text(size = 28, margin = margin(t = 10), face = "bold"),
+        legend.text = element_text(size = 26, margin = margin(t = 10), face = "bold"),
         plot.title = element_text(margin = margin(t = 30), face = "bold", size = 20, hjust = -0.05, vjust = 12),
-        text = element_text(size = 22, face = "bold"),
+        text = element_text(size = 28, face = "bold"),
         plot.margin = margin(10, 20, 10, 10))
 
 plot_dist_pc.m
@@ -318,51 +384,83 @@ ggsave(filename = "fig4_dist_fx.png", plot = fig4_dist_fx, width = 24, height = 
 # 5A
 
 
-plot_varmean_ls.m <- ggplot(d_combined[d_combined$COA.cat != "Other" & d_combined$atopt == "Adapted",], aes(x = COA.cat, y = varmean, colour = locisigma.cat)) +
-  stat_boxplot(geom = "errorbar") + 
-  geom_boxplot() +
+dplot_combined_ls <- d_combined[d_combined$atopt  == "Adapted", c(18, 15, 17)] %>%
+  group_by(COA.cat, locisigma.cat) %>%
+  summarise_all(list(varmean_mean = mean, varmean_se = std.error))
+
+plot_varmean_ls.m <- ggplot(dplot_combined_ls[dplot_combined_ls$COA.cat != "Other" & dplot_combined_ls$COA.cat != "Null",], aes(x = COA.cat, y = varmean_mean, colour = locisigma.cat)) +
+  geom_point(position = position_dodge(0.9), size = 3) + 
+  geom_errorbar(aes(
+    ymin = varmean_mean - (1.96*varmean_se),
+    ymax = varmean_mean + (1.96*varmean_se)
+  ), position = position_dodge(0.9),
+  width = 0.5) +
   theme_classic() +
-  coord_cartesian(ylim = quantile(d_combined[d_combined$COA.cat != "Other" & d_combined$atopt == "Adapted",]$varmean, c(0.05, 0.99))) +
+#  ylim(0, 10) +
+  scale_color_manual(values = cpal) +
   labs(x = m_lab, y = var_lab, colour = ls_lab, tag = "A") + #"\u03C3(\u03B4\u0305)") +
-  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+  theme(axis.text.x = element_text(size = 26, margin = margin(t = 10), face = "bold"),
         axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
-        axis.title.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.x = element_text(size = 28, margin = margin(t = 10), face = "bold"),
+        legend.text = element_text(size = 26, margin = margin(t = 10), face = "bold"),
         plot.title = element_text(margin = margin(t = 30), face = "bold", size = 20, hjust = -0.05, vjust = 12),
-        text = element_text(size = 22, face = "bold"),
+        text = element_text(size = 28, face = "bold"),
         plot.margin = margin(10, 20, 10, 10))
 
 plot_varmean_ls.m
 
 # 5B
 
-plot_varmean_r.m <- ggplot(d_combined[d_combined$COA.cat != "Other" & d_combined$atopt == "Adapted",], aes(x = COA.cat, y = varmean, colour = rwide.cat)) +
-  stat_boxplot(geom = "errorbar") + 
-  geom_boxplot() +
-  coord_cartesian(ylim = quantile(d_combined[d_combined$COA.cat != "Other" & d_combined$atopt == "Adapted",]$varmean, c(0.05, 0.99))) +
+dplot_combined_r <- d_combined[d_combined$atopt  == "Adapted", c(18, 16, 17)] %>%
+  group_by(COA.cat, rwide.cat) %>%
+  summarise_all(list(varmean_mean = mean, varmean_se = std.error))
+
+
+plot_varmean_r.m <- ggplot(dplot_combined_r[dplot_combined_r$COA.cat != "Other" & dplot_combined_r$COA.cat != "Null",], aes(x = COA.cat, y = varmean_mean, colour = rwide.cat)) +
+  geom_point(position = position_dodge(0.9), size = 3) + 
+  geom_errorbar(aes(
+    ymin = varmean_mean - (1.96*varmean_se),
+    ymax = varmean_mean + (1.96*varmean_se)
+  ), position = position_dodge(0.9),
+  width = 0.5) +
   theme_classic() +
+ # ylim(0, 5.5) +
+  scale_color_manual(values = cpal) +
   labs(x = m_lab, y = var_lab, colour = r_lab, tag = "B") + #"\u03C3(\u03B4\u0305)") +
-  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+  theme(axis.text.x = element_text(size = 26, margin = margin(t = 10), face = "bold"),
         axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
-        axis.title.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.x = element_text(size = 28, margin = margin(t = 10), face = "bold"),
+        legend.text = element_text(size = 26, margin = margin(t = 10), face = "bold"),
         plot.title = element_text(margin = margin(t = 30), face = "bold", size = 20, hjust = -0.05, vjust = 12),
-        text = element_text(size = 22, face = "bold"),
+        text = element_text(size = 28, face = "bold"),
         plot.margin = margin(10, 20, 10, 10))
 
 plot_varmean_r.m
 
 # 5C
 
-plot_varmean_pr.m <- ggplot(d_combined[d_combined$COA.cat != "Other" & d_combined$atopt == "Adapted",], aes(x = COA.cat, y = varmean, colour = pleiorate.cat)) +
-  stat_boxplot(geom = "errorbar") + 
-  geom_boxplot() +
+dplot_combined_pr <- d_combined[d_combined$atopt  == "Adapted", c(18, 11, 17)] %>%
+  group_by(COA.cat, pleiorate.cat) %>%
+  summarise_all(list(varmean_mean = mean, varmean_se = std.error))
+
+
+plot_varmean_pr.m <- ggplot(dplot_combined_pr[dplot_combined_r$COA.cat != "Other" & dplot_combined_r$COA.cat != "Null",], aes(x = COA.cat, y = varmean_mean, colour = pleiorate.cat)) +
+  geom_point(position = position_dodge(0.9), size = 3) + 
+  geom_errorbar(aes(
+    ymin = varmean_mean - (1.96*varmean_se),
+    ymax = varmean_mean + (1.96*varmean_se)
+  ), position = position_dodge(0.9),
+  width = 0.5) +
+#  ylim(0, 5.5) +
   theme_classic() +
-  coord_cartesian(ylim = quantile(d_combined[d_combined$COA.cat != "Other" & d_combined$atopt == "Adapted",]$varmean, c(0.05, 0.994))) +
+  scale_color_manual(values = cpal) +
   labs(x = m_lab, y = var_lab, colour = pr_lab, tag = "C") + #"\u03C3(\u03B4\u0305)") +
-  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+  theme(axis.text.x = element_text(size = 26, margin = margin(t = 10), face = "bold"),
         axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
-        axis.title.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.x = element_text(size = 28, margin = margin(t = 10), face = "bold"),
+        legend.text = element_text(size = 26, margin = margin(t = 10), face = "bold"),
         plot.title = element_text(margin = margin(t = 30), face = "bold", size = 20, hjust = -0.05, vjust = 12),
-        text = element_text(size = 22, face = "bold"),
+        text = element_text(size = 28, face = "bold"),
         plot.margin = margin(10, 20, 10, 10))
 
 plot_varmean_pr.m
@@ -370,43 +468,35 @@ plot_varmean_pr.m
 
 # 5D
 
-plot_varmean_pc.m <- ggplot(d_combined[d_combined$COA.cat != "Other" & d_combined$atopt == "Adapted",], aes(x = COA.cat, y = varmean, colour = pleiocov.cat)) +
-  stat_boxplot(geom = "errorbar") + 
-  geom_boxplot() +
+dplot_combined_pc <- d_combined[d_combined$atopt  == "Adapted", c(18, 12, 17)] %>%
+  group_by(COA.cat, pleiocov.cat) %>%
+  summarise_all(list(varmean_mean = mean, varmean_se = std.error))
+
+
+plot_varmean_pc.m <- ggplot(dplot_combined_pc[dplot_combined_r$COA.cat != "Other" & dplot_combined_r$COA.cat != "Null",], aes(x = COA.cat, y = varmean_mean, colour = pleiocov.cat)) +
+  geom_point(position = position_dodge(0.9), size = 4) + 
+  geom_errorbar(aes(
+    ymin = varmean_mean - (1.96*varmean_se),
+    ymax = varmean_mean + (1.96*varmean_se)
+  ), position = position_dodge(0.9),
+  width = 0.5) +
   theme_classic() +
-  coord_cartesian(ylim = quantile(d_combined[d_combined$COA.cat != "Other" & d_combined$atopt == "Adapted",]$varmean, c(0.05, 0.99))) +
+#  ylim(0, 5.5) +
+  scale_color_manual(values = cpal) +
   labs(x = m_lab, y = var_lab, colour = pc_lab, tag = "D") + #"\u03C3(\u03B4\u0305)") +
-  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+  theme(axis.text.x = element_text(size = 26, margin = margin(t = 10), face = "bold"),
         axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
-        axis.title.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.x = element_text(size = 28, margin = margin(t = 10), face = "bold"),
+        legend.text = element_text(size = 26, margin = margin(t = 10), face = "bold"),
         plot.title = element_text(margin = margin(t = 30), face = "bold", size = 20, hjust = -0.05, vjust = 12),
-        text = element_text(size = 22, face = "bold"),
+        text = element_text(size = 28, face = "bold"),
         plot.margin = margin(10, 20, 10, 10))
 
 plot_varmean_pc.m
 
+fig5_varmean_fx <- (plot_varmean_ls.m + plot_varmean_r.m) / (plot_varmean_pr.m + plot_varmean_pc.m )
 
-fig5_var_fx <- (plot_varmean_ls.m + plot_varmean_r.m) / (plot_varmean_pr.m + plot_varmean_pc.m )
-
-ggsave(filename = "fig5_var_fx.png", plot = fig5_var_fx, width = 24, height = 12, dpi = 600)
-
-# SUPP FIGURE: fig 5 LS but zoomed out to see big variance of that one box
-
-plot_varmean_ls.m_supp <- ggplot(d_combined[d_combined$COA.cat != "Other" & d_combined$atopt == "Adapted",], aes(x = COA.cat, y = varmean, colour = locisigma.cat)) +
-  stat_boxplot(geom = "errorbar") + 
-  geom_boxplot() +
-  theme_classic() +
-  labs(x = m_lab, y = var_lab, colour = ls_lab, tag = "A") + #"\u03C3(\u03B4\u0305)") +
-  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
-        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
-        axis.title.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
-        plot.title = element_text(margin = margin(t = 30), face = "bold", size = 20, hjust = -0.05, vjust = 12),
-        text = element_text(size = 22, face = "bold"),
-        plot.margin = margin(10, 20, 10, 10))
-
-plot_varmean_ls.m_supp
-
-ggsave(filename = "suppfig_var_ls.png", plot = plot_varmean_ls.m_supp, width = 12, height = 8, dpi = 600)
+ggsave(filename = "fig5_varmean_fx.png", plot = fig5_varmean_fx, width = 24, height = 12, dpi = 600)
 
 
 
@@ -415,97 +505,120 @@ ggsave(filename = "suppfig_var_ls.png", plot = plot_varmean_ls.m_supp, width = 1
 
 # Fig 6
 
+dplot_combined_ls <- d_combined[d_combined$atopt  == "Adapted", c(19, 15, 17)] %>%
+  group_by(COA.cat, locisigma.cat) %>%
+  summarise_all(list(covmean_mean = mean, covmean_se = std.error))
+
+
 # 6A
 
-plot_cov_ls.m <- ggplot(d_combined[d_combined$COA.cat != "Other" & d_combined$atopt == "Adapted",], aes(x = COA.cat, y = covmean, colour = locisigma.cat)) +
-  stat_boxplot(geom = "errorbar") + 
-  geom_boxplot() +
+plot_covmean_ls.m <- ggplot(dplot_combined_ls[dplot_combined_ls$COA.cat != "Other" & dplot_combined_ls$COA.cat != "Null",], aes(x = COA.cat, y = covmean_mean, colour = locisigma.cat)) +
+  geom_point(position = position_dodge(0.9), size = 3) + 
+  geom_errorbar(aes(
+    ymin = covmean_mean - (1.96*covmean_se),
+    ymax = covmean_mean + (1.96*covmean_se)
+  ), position = position_dodge(0.9),
+  width = 0.5) +
   theme_classic() +
-  coord_cartesian(ylim = quantile(d_combined[d_combined$COA.cat != "Other" & d_combined$atopt == "Adapted",]$covmean, c(0.01, 0.99))) +
+  #  ylim(0, 10) +
+  scale_color_manual(values = cpal) +
   labs(x = m_lab, y = cov_lab, colour = ls_lab, tag = "A") + #"\u03C3(\u03B4\u0305)") +
-  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+  theme(axis.text.x = element_text(size = 26, margin = margin(t = 10), face = "bold"),
         axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
-        axis.title.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.x = element_text(size = 28, margin = margin(t = 10), face = "bold"),
+        legend.text = element_text(size = 26, margin = margin(t = 10), face = "bold"),
         plot.title = element_text(margin = margin(t = 30), face = "bold", size = 20, hjust = -0.05, vjust = 12),
-        text = element_text(size = 22, face = "bold"),
+        text = element_text(size = 28, face = "bold"),
         plot.margin = margin(10, 20, 10, 10))
 
-plot_cov_ls.m
+plot_covmean_ls.m
 
 # 6B
 
-plot_cov_r.m <- ggplot(d_combined[d_combined$COA.cat != "Other" & d_combined$atopt == "Adapted",], aes(x = COA.cat, y = covmean, colour = rwide.cat)) +
-  stat_boxplot(geom = "errorbar") + 
-  geom_boxplot() +
+dplot_combined_r <- d_combined[d_combined$atopt  == "Adapted", c(19, 16, 17)] %>%
+  group_by(COA.cat, rwide.cat) %>%
+  summarise_all(list(covmean_mean = mean, covmean_se = std.error))
+
+
+plot_covmean_r.m <- ggplot(dplot_combined_r[dplot_combined_r$COA.cat != "Other" & dplot_combined_r$COA.cat != "Null",], aes(x = COA.cat, y = covmean_mean, colour = rwide.cat)) +
+  geom_point(position = position_dodge(0.9), size = 3) + 
+  geom_errorbar(aes(
+    ymin = covmean_mean - (1.96*covmean_se),
+    ymax = covmean_mean + (1.96*covmean_se)
+  ), position = position_dodge(0.9),
+  width = 0.5) +
   theme_classic() +
-  coord_cartesian(ylim = quantile(d_combined[d_combined$COA.cat != "Other" & d_combined$atopt == "Adapted",]$covmean, c(0.01, 0.99))) +
+  # ylim(0, 5.5) +
+  scale_color_manual(values = cpal) +
   labs(x = m_lab, y = cov_lab, colour = r_lab, tag = "B") + #"\u03C3(\u03B4\u0305)") +
-  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+  theme(axis.text.x = element_text(size = 26, margin = margin(t = 10), face = "bold"),
         axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
-        axis.title.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.x = element_text(size = 28, margin = margin(t = 10), face = "bold"),
+        legend.text = element_text(size = 26, margin = margin(t = 10), face = "bold"),
         plot.title = element_text(margin = margin(t = 30), face = "bold", size = 20, hjust = -0.05, vjust = 12),
-        text = element_text(size = 22, face = "bold"),
+        text = element_text(size = 28, face = "bold"),
         plot.margin = margin(10, 20, 10, 10))
 
-plot_cov_r.m
+plot_covmean_r.m
 
 # 6C
 
-plot_cov_pr.m <- ggplot(d_combined[d_combined$COA.cat != "Other" & d_combined$atopt == "Adapted",], aes(x = COA.cat, y = covmean, colour = pleiorate.cat)) +
-  stat_boxplot(geom = "errorbar") + 
-  geom_boxplot() +
+dplot_combined_pr <- d_combined[d_combined$atopt  == "Adapted", c(19, 11, 17)] %>%
+  group_by(COA.cat, pleiorate.cat) %>%
+  summarise_all(list(covmean_mean = mean, covmean_se = std.error))
+
+
+plot_covmean_pr.m <- ggplot(dplot_combined_pr[dplot_combined_r$COA.cat != "Other" & dplot_combined_r$COA.cat != "Null",], aes(x = COA.cat, y = covmean_mean, colour = pleiorate.cat)) +
+  geom_point(position = position_dodge(0.9), size = 3) + 
+  geom_errorbar(aes(
+    ymin = covmean_mean - (1.96*covmean_se),
+    ymax = covmean_mean + (1.96*covmean_se)
+  ), position = position_dodge(0.9),
+  width = 0.5) +
+  #  ylim(0, 5.5) +
   theme_classic() +
-  coord_cartesian(ylim = quantile(d_combined[d_combined$COA.cat != "Other" & d_combined$atopt == "Adapted",]$covmean, c(0.01, 0.99))) +
+  scale_color_manual(values = cpal) +
   labs(x = m_lab, y = cov_lab, colour = pr_lab, tag = "C") + #"\u03C3(\u03B4\u0305)") +
-  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+  theme(axis.text.x = element_text(size = 26, margin = margin(t = 10), face = "bold"),
         axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
-        axis.title.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.x = element_text(size = 28, margin = margin(t = 10), face = "bold"),
+        legend.text = element_text(size = 26, margin = margin(t = 10), face = "bold"),
         plot.title = element_text(margin = margin(t = 30), face = "bold", size = 20, hjust = -0.05, vjust = 12),
-        text = element_text(size = 22, face = "bold"),
+        text = element_text(size = 28, face = "bold"),
         plot.margin = margin(10, 20, 10, 10))
 
-plot_cov_pr.m
+plot_covmean_pr.m
 
 
 # 6D
 
-plot_cov_pc.m <- ggplot(d_combined[d_combined$COA.cat != "Other" & d_combined$atopt == "Adapted",], aes(x = COA.cat, y = covmean, colour = pleiocov.cat)) +
-  stat_boxplot(geom = "errorbar") + 
-  geom_boxplot() +
+dplot_combined_pc <- d_combined[d_combined$atopt  == "Adapted", c(19, 12, 17)] %>%
+  group_by(COA.cat, pleiocov.cat) %>%
+  summarise_all(list(covmean_mean = mean, covmean_se = std.error))
+
+
+plot_covmean_pc.m <- ggplot(dplot_combined_pc[dplot_combined_r$COA.cat != "Other" & dplot_combined_r$COA.cat != "Null",], aes(x = COA.cat, y = covmean_mean, colour = pleiocov.cat)) +
+  geom_point(position = position_dodge(0.9), size = 4) + 
+  geom_errorbar(aes(
+    ymin = covmean_mean - (1.96*covmean_se),
+    ymax = covmean_mean + (1.96*covmean_se)
+  ), position = position_dodge(0.9),
+  width = 0.5) +
   theme_classic() +
-  coord_cartesian(ylim = quantile(d_combined[d_combined$COA.cat != "Other" & d_combined$atopt == "Adapted",]$covmean, c(0.01, 0.99))) +
+  #  ylim(0, 5.5) +
+  scale_color_manual(values = cpal) +
   labs(x = m_lab, y = cov_lab, colour = pc_lab, tag = "D") + #"\u03C3(\u03B4\u0305)") +
-  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+  theme(axis.text.x = element_text(size = 26, margin = margin(t = 10), face = "bold"),
         axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
-        axis.title.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        axis.title.x = element_text(size = 28, margin = margin(t = 10), face = "bold"),
+        legend.text = element_text(size = 26, margin = margin(t = 10), face = "bold"),
         plot.title = element_text(margin = margin(t = 30), face = "bold", size = 20, hjust = -0.05, vjust = 12),
-        text = element_text(size = 22, face = "bold"),
+        text = element_text(size = 28, face = "bold"),
         plot.margin = margin(10, 20, 10, 10))
 
-plot_cov_pc.m
+plot_covmean_pc.m
 
-fig6_cov_fx <- (plot_cov_ls.m + plot_cov_r.m) / (plot_cov_pr.m + plot_cov_pc.m )
+fig6_covmean_fx <- (plot_covmean_ls.m + plot_covmean_r.m) / (plot_covmean_pr.m + plot_covmean_pc.m )
 
-ggsave(filename = "fig6_cov_fx.png", plot = fig6_cov_fx, width = 24, height = 12, dpi = 600)
-
-
-# SUPP FIGURE: LS again
-
-
-plot_cov_ls.m_supp <- ggplot(d_combined[d_combined$COA.cat != "Other" & d_combined$atopt == "Adapted",], aes(x = COA.cat, y = covmean, colour = locisigma.cat)) +
-  stat_boxplot(geom = "errorbar") + 
-  geom_boxplot() +
-  theme_classic() +
-  labs(x = m_lab, y = cov_lab, colour = ls_lab, tag = "A") + #"\u03C3(\u03B4\u0305)") +
-  theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
-        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
-        axis.title.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
-        plot.title = element_text(margin = margin(t = 30), face = "bold", size = 20, hjust = -0.05, vjust = 12),
-        text = element_text(size = 22, face = "bold"),
-        plot.margin = margin(10, 20, 10, 10))
-
-plot_cov_ls.m_supp
-
-
-ggsave(filename = "supp_cov_ls.png", plot = plot_cov_ls.m_supp, width = 12, height = 8, dpi = 600)
+ggsave(filename = "fig6_covmean_fx.png", plot = fig6_covmean_fx, width = 24, height = 12, dpi = 600)
 

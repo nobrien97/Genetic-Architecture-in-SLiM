@@ -34,13 +34,14 @@ d_muts_stats <- read.csv("d_muts_stats.csv")
 
 levels(d_eucdist_c$locisigma.cat) <- c("Low variance", "Medium variance", "High variance")
 levels(d_raw_c$locisigma.cat) <- c("Low variance", "Medium variance", "High variance")
+levels(d_muts_stats$locisigma.cat) <- c("Low variance", "Medium variance", "High variance")
 levels(d_eucdist_c$tau.cat) <- c("Null", "Strong", "Medium", "Weak")
 levels(d_raw_c$tau.cat) <- c("Null", "Strong", "Medium", "Weak")
 
 d_eucdist_c$locisigma.cat <- factor(d_eucdist_c$locisigma.cat, levels = c("Low variance", "Medium variance", "High variance"))
 d_raw_c$locisigma.cat <- factor(d_raw_c$locisigma.cat, levels = c("Low variance", "Medium variance", "High variance"))
 d_combined$locisigma.cat <- factor(d_combined$locisigma.cat, levels = c("Low variance", "Medium variance", "High variance"))
-d_muts_stats$locisigma.cat <- factor(d_muts_stats$locisigma.cat, levels = c("Low variance", "Medium variance", "High variance"))
+d_muts_stats$locisigma.cat <- factor(d_muts_stats$locisigma.cat, levels = c("Small variance", "Medium variance", "Large variance"))
 
 d_combined$rwide.cat <- factor(d_combined$rwide.cat, levels = c("Low", "Medium", "High"))
 d_combined$pleiorate.cat <- factor(d_combined$pleiorate.cat, levels = c("Low", "Medium", "High"))
@@ -86,37 +87,180 @@ chisq.posthoc.test(conttab_dist)
 
 # Variance linear model
 
+# Standardise
 d_combined_stat <- d_combined
 d_combined_stat$rwide <- scale(d_combined_stat$rwide)
 d_combined_stat$locisigma <- scale(d_combined_stat$locisigma)
 d_combined_stat$pleiorate <- scale(d_combined_stat$pleiorate)
 d_combined_stat$pleiocov <- scale(d_combined_stat$pleiocov)
 
+d_combined_stat$distance_scal <- scale(d_combined_stat$distance)
+d_combined_stat$varmean_scal <- scale(d_combined_stat$varmean)
+d_combined_stat$covmean_scal <- scale(d_combined_stat$covmean)
+
+
+
 
 
 d_combined_stat$COA.cat <- factor(d_combined_stat$COA.cat, levels = c("Null", "Gaussian", "House-of-Cards", "Other"))
 
+library(estimatr)
+library(emmeans)
 
-lm_var_end <- lm(varmean ~ rwide + locisigma + COA.cat + pleiorate + pleiocov +
-                   COA.cat*rwide + COA.cat*locisigma + COA.cat*pleiorate + COA.cat*pleiocov,
-                 data = d_combined_stat[d_combined_stat$COA.cat != "Other" & d_combined$atopt == "Adapted",]) # Not looking at the in-between models for now
+lm_var_end <- lm_robust(varmean ~ rwide.cat + locisigma.cat + COA.cat + pleiorate.cat + pleiocov.cat +
+                   COA.cat*rwide.cat + COA.cat*locisigma.cat + COA.cat*pleiorate.cat + COA.cat*pleiocov.cat,
+                 data = d_combined_stat[d_combined_stat$COA.cat != "Other" & d_combined_stat$COA.cat != "Null" & d_combined$atopt == "Adapted",]) # Not looking at the in-between models for now
 
 summary(lm_var_end)
 
+es_var.m <- emmeans(lm_var_end, pairwise ~  COA.cat)
+es_var.m
 
-lm_cov_end <- lm(covmean ~ rwide + locisigma + COA.cat + pleiorate + pleiocov +
-                   COA.cat*rwide + COA.cat*locisigma + COA.cat*pleiorate + COA.cat*pleiocov,
-                 data = d_combined[d_combined$COA.cat != "Other" & d_combined$atopt == "Adapted",]) # Not looking at the in-between models for now
+es_var_l.m <- emmeans(lm_var_end, pairwise ~ locisigma.cat | COA.cat)
+es_var_l.m
+
+emm_var_contr_l.m <- pairs(pairs(emmeans(lm_var_end, ~ locisigma.cat | COA.cat,
+                                          at = list(locisigma.cat = c("Low variance", "High variance"),
+                                                    COA.cat = c("Gaussian", "House-of-Cards")))),
+                            by = NULL)
+
+emm_var_contr_l.m
+
+es_var_pr.m <- emmeans(lm_var_end, pairwise ~ pleiorate.cat | COA.cat)
+es_var_pr.m
+
+emm_var_contr_pr.m <- pairs(pairs(emmeans(lm_var_end, ~ pleiorate.cat | COA.cat,
+                                           at = list(pleiorate.cat = c("Low", "High"),
+                                                     COA.cat = c("Gaussian", "House-of-Cards")))),
+                             by = NULL)
+
+emm_var_contr_pr.m
+
+
+es_var_r.m <- emmeans(lm_var_end, pairwise ~ rwide.cat | COA.cat)
+es_var_r.m
+
+emm_var_contr_r.m <- pairs(pairs(emmeans(lm_var_end, ~ rwide.cat | COA.cat,
+                                          at = list(rwide.cat = c("Low", "High"),
+                                                    COA.cat = c("Gaussian", "House-of-Cards")))),
+                            by = NULL)
+
+emm_var_contr_r.m
+
+
+es_var_pc.m <- emmeans(lm_var_end, pairwise ~ pleiocov.cat | COA.cat)
+es_var_pc.m
+
+emm_var_contr_pc.m <- pairs(pairs(emmeans(lm_var_end, ~ pleiocov.cat | COA.cat,
+                                           at = list(pleiocov.cat = c("Low", "High"),
+                                                     COA.cat = c("Gaussian", "House-of-Cards")))),
+                             by = NULL)
+
+emm_var_contr_pc.m
+
+lm_cov_end <- lm_robust(covmean ~ rwide.cat + locisigma.cat + COA.cat + pleiorate.cat + pleiocov.cat +
+                          COA.cat*rwide.cat + COA.cat*locisigma.cat + COA.cat*pleiorate.cat + COA.cat*pleiocov.cat,
+                        data = d_combined_stat[d_combined_stat$COA.cat != "Other" & d_combined_stat$COA.cat != "Null" & d_combined$atopt == "Adapted",]) # Not looking at the in-between models for now
 
 summary(lm_cov_end)
 
-lm_dist_end <- lm(distance ~ rwide + locisigma + COA.cat + pleiorate + pleiocov +
-                    COA.cat*rwide + COA.cat*locisigma + COA.cat*pleiorate + COA.cat*pleiocov,
-                  data = d_combined[d_combined$COA.cat != "Other" & d_combined$atopt == "Adapted",]) # Not looking at the in-between models for now
+es_cov.m <- emmeans(lm_cov_end, pairwise ~  COA.cat)
+es_cov.m
+
+es_cov_l.m <- emmeans(lm_cov_end, pairwise ~ locisigma.cat | COA.cat)
+es_cov_l.m
+
+emm_cov_contr_l.m <- pairs(pairs(emmeans(lm_cov_end, ~ locisigma.cat | COA.cat,
+                                         at = list(locisigma.cat = c("Low variance", "High variance"),
+                                                   COA.cat = c("Gaussian", "House-of-Cards")))),
+                           by = NULL)
+
+emm_cov_contr_l.m
+
+es_cov_pr.m <- emmeans(lm_cov_end, pairwise ~ pleiorate.cat | COA.cat)
+es_cov_pr.m
+
+emm_cov_contr_pr.m <- pairs(pairs(emmeans(lm_cov_end, ~ pleiorate.cat | COA.cat,
+                                          at = list(pleiorate.cat = c("Low", "High"),
+                                                    COA.cat = c("Gaussian", "House-of-Cards")))),
+                            by = NULL)
+
+emm_cov_contr_pr.m
+
+
+es_cov_r.m <- emmeans(lm_cov_end, pairwise ~ rwide.cat) # No effects of interaction 
+es_cov_r.m
+
+emm_cov_contr_r.m <- pairs(pairs(emmeans(lm_cov_end, ~ rwide.cat | COA.cat,
+                                         at = list(rwide.cat = c("Low", "High"),
+                                                   COA.cat = c("Gaussian", "House-of-Cards")))),
+                           by = NULL)
+
+emm_cov_contr_r.m
+
+
+es_cov_pc.m <- emmeans(lm_cov_end, pairwise ~ pleiocov.cat | COA.cat)
+es_cov_pc.m
+
+emm_cov_contr_pc.m <- pairs(pairs(emmeans(lm_cov_end, ~ pleiocov.cat | COA.cat,
+                                          at = list(pleiocov.cat = c("Low", "High"),
+                                                    COA.cat = c("Gaussian", "House-of-Cards")))),
+                            by = NULL)
+
+emm_cov_contr_pc.m
+
+
+lm_dist_end <- lm_cov_end <- lm_robust(distance ~ rwide.cat + locisigma.cat + COA.cat + pleiorate.cat + pleiocov.cat +
+                                         COA.cat*rwide.cat + COA.cat*locisigma.cat + COA.cat*pleiorate.cat + COA.cat*pleiocov.cat,
+                                       data = d_combined_stat[d_combined_stat$COA.cat != "Other" & d_combined_stat$COA.cat != "Null" & d_combined$atopt == "Adapted",]) # Not looking at the in-between models for now
 
 summary(lm_dist_end)
 
+es_dist.m <- emmeans(lm_dist_end, pairwise ~  COA.cat)
+es_dist.m
 
+
+es_dist_l.m <- emmeans(lm_dist_end, pairwise ~ locisigma.cat)
+es_dist_l.m
+
+emm_dist_contr_l.m <- pairs(pairs(emmeans(lm_dist_end, ~ locisigma.cat | COA.cat,
+                                            at = list(locisigma.cat = c("Low variance", "High variance"),
+                                                      COA.cat = c("Gaussian", "House-of-Cards")))),
+                                                      by = NULL)
+
+emm_dist_contr_l.m
+
+es_dist_pr.m <- emmeans(lm_dist_end, pairwise ~ pleiorate.cat)
+es_dist_pr.m
+
+emm_dist_contr_pr.m <- pairs(pairs(emmeans(lm_dist_end, ~ pleiorate.cat | COA.cat,
+                                          at = list(pleiorate.cat = c("Low", "High"),
+                                                    COA.cat = c("Gaussian", "House-of-Cards")))),
+                            by = NULL)
+
+emm_dist_contr_pr.m
+
+
+es_dist_r.m <- emmeans(lm_dist_end, pairwise ~ rwide.cat | COA.cat)
+es_dist_r.m
+
+emm_dist_contr_r.m <- pairs(pairs(emmeans(lm_dist_end, ~ rwide.cat | COA.cat,
+                                           at = list(rwide.cat = c("Low", "High"),
+                                                     COA.cat = c("Gaussian", "House-of-Cards")))),
+                             by = NULL)
+
+emm_dist_contr_r.m
+
+
+es_dist_pc.m <- emmeans(lm_dist_end, pairwise ~ pleiocov.cat | COA.cat)
+es_dist_pc.m
+
+emm_dist_contr_pc.m <- pairs(pairs(emmeans(lm_dist_end, ~ pleiocov.cat | COA.cat,
+                                          at = list(pleiocov.cat = c("Low", "High"),
+                                                    COA.cat = c("Gaussian", "House-of-Cards")))),
+                            by = NULL)
+
+emm_dist_contr_pc.m
 
 # Use lm_robust to adjust for non-uniform errors, non-normality accounted for by sample size
 library(estimatr)
@@ -125,4 +269,165 @@ library(xtable)
 lm_cov_end <- lm_robust(covmean ~ (rwide + locisigma + COA.cat + pleiorate)^2,
                         data = d_raw_end[d_raw_end$COA.cat != "Other",])
 
+
+
+############################
+
+# Mutation stats: comparing means, variance, kurtosis, count
+
+
+
+lm_mean_muts <- lm_robust(mean ~ rwide.cat + locisigma.cat + COA.cat + pleiorate.cat + pleiocov.cat +
+                          COA.cat*rwide.cat + COA.cat*locisigma.cat + COA.cat*pleiorate.cat + COA.cat*pleiocov.cat,
+                        data = d_muts_stats[d_muts_stats$COA.cat != "Other" & d_muts_stats$COA.cat != "Null" & d_muts_stats$Po == "Adapted",],
+                        se_type = "HC3") # Not looking at the in-between models for now
+
+summary(lm_mean_muts)
+
+
+lm_var_muts <- lm_robust(var ~ rwide.cat + locisigma.cat + COA.cat + pleiorate.cat + pleiocov.cat +
+                      COA.cat*rwide.cat + COA.cat*locisigma.cat + COA.cat*pleiorate.cat + COA.cat*pleiocov.cat,
+                    data = d_muts_stats[d_muts_stats$COA.cat != "Other" & d_muts_stats$COA.cat != "Null" & d_muts_stats$Po == "Adapted",],
+                    se_type = "HC3") # Not looking at the in-between models for now
+
+summary(lm_var_muts)
+
+es_varmuts.m <- emmeans(lm_var_muts, pairwise ~  COA.cat)
+es_varmuts.m
+
+es_varmuts_l.m <- emmeans(lm_var_muts, pairwise ~ locisigma.cat | COA.cat)
+es_varmuts_l.m
+
+
+es_varmuts_pr.m <- emmeans(lm_var_muts, pairwise ~ pleiorate.cat | COA.cat)
+es_varmuts_pr.m
+
+emm_varmuts_contr_pr.m <- pairs(pairs(emmeans(lm_var_muts, ~ pleiorate.cat | COA.cat,
+                                          at = list(pleiorate.cat = c("Low", "Medium", "High"),
+                                                    COA.cat = c("Gaussian", "House-of-Cards")))),
+                            by = NULL)
+
+emm_varmuts_contr_pr.m
+
+
+es_varmuts_r.m <- emmeans(lm_var_muts, pairwise ~ rwide.cat | COA.cat)
+es_varmuts_r.m
+
+
+
+
+es_varmuts_pc.m <- emmeans(lm_var_muts, pairwise ~ pleiocov.cat | COA.cat)
+es_varmuts_pc.m
+
+emm_varmuts_contr_pc.m <- pairs(pairs(emmeans(lm_var_muts, ~ pleiocov.cat | COA.cat,
+                                          at = list(pleiocov.cat = c("Low", "High"),
+                                                    COA.cat = c("Gaussian", "House-of-Cards")))),
+                            by = NULL)
+
+emm_varmuts_contr_pc.m
+
+
+lm_kurt_muts <- lm_robust(kurt ~ rwide.cat + locisigma.cat + COA.cat + pleiorate.cat + pleiocov.cat +
+                            COA.cat*rwide.cat + COA.cat*locisigma.cat + COA.cat*pleiorate.cat + COA.cat*pleiocov.cat,
+                          data = d_muts_stats[d_muts_stats$COA.cat != "Other" & d_muts_stats$COA.cat != "Null" & d_muts_stats$Po == "Adapted",],
+                          se_type = "HC3") # Not looking at the in-between models for now
+
+summary(lm_kurt_muts)
+
+es_kurtmuts.m <- emmeans(lm_kurt_muts, pairwise ~  COA.cat)
+es_kurtmuts.m
+
+es_kurt_l.m <- emmeans(lm_kurt_muts, pairwise ~ locisigma.cat | COA.cat)
+es_kurt_l.m
+
+emm_kurt_contr_l.m <- pairs(pairs(emmeans(lm_kurt_muts, ~ locisigma.cat | COA.cat,
+                                         at = list(locisigma.cat = c("Low variance", "High variance"),
+                                                   COA.cat = c("Gaussian", "House-of-Cards")))),
+                           by = NULL)
+
+emm_kurt_contr_l.m
+
+es_kurt_pr.m <- emmeans(lm_kurt_muts, pairwise ~ pleiorate.cat | COA.cat)
+es_kurt_pr.m
+
+emm_kurt_contr_pr.m <- pairs(pairs(emmeans(lm_kurt_muts, ~ pleiorate.cat | COA.cat,
+                                          at = list(pleiorate.cat = c("Low", "High"),
+                                                    COA.cat = c("Gaussian", "House-of-Cards")))),
+                            by = NULL)
+
+emm_kurt_contr_pr.m
+
+
+es_kurt_r.m <- emmeans(lm_kurt_muts, pairwise ~ rwide.cat | COA.cat)
+es_kurt_r.m
+
+emm_kurt_contr_r.m <- pairs(pairs(emmeans(lm_kurt_muts, ~ rwide.cat | COA.cat,
+                                         at = list(rwide.cat = c("Low", "High"),
+                                                   COA.cat = c("Gaussian", "House-of-Cards")))),
+                           by = NULL)
+
+emm_kurt_contr_r.m
+
+
+es_kurt_pc.m <- emmeans(lm_kurt_muts, pairwise ~ pleiocov.cat | COA.cat)
+es_kurt_pc.m
+
+emm_kurt_contr_pc.m <- pairs(pairs(emmeans(lm_kurt_muts, ~ pleiocov.cat | COA.cat,
+                                          at = list(pleiocov.cat = c("Low", "High"),
+                                                    COA.cat = c("Gaussian", "House-of-Cards")))),
+                            by = NULL)
+
+emm_kurt_contr_pc.m
+
+
+lm_count_muts <- lm_robust(count ~ rwide.cat + locisigma.cat + COA.cat + pleiorate.cat + pleiocov.cat +
+                             COA.cat*rwide.cat + COA.cat*locisigma.cat + COA.cat*pleiorate.cat + COA.cat*pleiocov.cat,
+                           data = d_muts_stats[d_muts_stats$COA.cat != "Other" & d_muts_stats$COA.cat != "Null" & d_muts_stats$Po == "Adapted",],
+                           se_type = "HC3") # Not looking at the in-between models for now
+summary(lm_count_muts)
+
+es_countmuts.m <- emmeans(lm_count_muts, pairwise ~  COA.cat)
+es_countmuts.m
+
+es_countmuts_l.m <- emmeans(lm_count_muts, pairwise ~ locisigma.cat | COA.cat)
+es_countmuts_l.m
+
+emm_countmuts_contr_l.m <- pairs(pairs(emmeans(lm_count_muts, ~ locisigma.cat | COA.cat,
+                                          at = list(locisigma.cat = c("Low meaniance", "High meaniance"),
+                                                    COA.cat = c("Gaussian", "House-of-Cards")))),
+                            by = NULL)
+
+emm_countmuts_contr_l.m
+
+es_countmuts_pr.m <- emmeans(lm_count_muts, pairwise ~ pleiorate.cat | COA.cat)
+es_countmuts_pr.m
+
+emm_countmuts_contr_pr.m <- pairs(pairs(emmeans(lm_count_muts, ~ pleiorate.cat | COA.cat,
+                                           at = list(pleiorate.cat = c("Low", "High"),
+                                                     COA.cat = c("Gaussian", "House-of-Cards")))),
+                             by = NULL)
+
+emm_countmuts_contr_pr.m
+
+
+es_countmuts_r.m <- emmeans(lm_count_muts, pairwise ~ rwide.cat | COA.cat)
+es_countmuts_r.m
+
+emm_countmuts_contr_r.m <- pairs(pairs(emmeans(lm_count_muts, ~ rwide.cat | COA.cat,
+                                          at = list(rwide.cat = c("Low", "High"),
+                                                    COA.cat = c("Gaussian", "House-of-Cards")))),
+                            by = NULL)
+
+emm_countmuts_contr_r.m
+
+
+es_countmuts_pc.m <- emmeans(lm_count_muts, pairwise ~ pleiocov.cat | COA.cat)
+es_countmuts_pc.m
+
+emm_countmuts_contr_pc.m <- pairs(pairs(emmeans(lm_count_muts, ~ pleiocov.cat | COA.cat,
+                                           at = list(pleiocov.cat = c("Low", "High"),
+                                                     COA.cat = c("Gaussian", "House-of-Cards")))),
+                             by = NULL)
+
+emm_countmuts_contr_pc.m
 
