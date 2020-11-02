@@ -247,11 +247,11 @@ library(patchwork)
 
 fig2_dist_mod <- plot_dist_mod_full / plot_dist_mod_po1 
 
-ggsave(filename = "fig2_dist_mod.png", plot = fig2_dist_mod, width = 12, height = 12, dpi = 800)
+ggsave(filename = "fig4_dist_mod.png", plot = fig2_dist_mod, width = 12, height = 12, dpi = 800)
 
-ggsave(filename = "fig2a_dist_mod_full.png", plot = plot_dist_mod_full, width = 8, height = 8, dpi = 800)
+ggsave(filename = "fig4a_dist_mod_full.png", plot = plot_dist_mod_full, width = 12, height = 8, dpi = 800)
 
-ggsave(filename = "fig2_dist_mod_p1.png", plot = plot_dist_mod_po1, width = 8, height = 8, dpi = 800)
+ggsave(filename = "fig4b_dist_mod_p1.png", plot = plot_dist_mod_po1, width = 12, height = 8, dpi = 800)
 
 #######################################################################################################################
 
