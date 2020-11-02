@@ -265,17 +265,16 @@ dplot_combined_ls <- d_combined[d_combined$atopt  == "Adapted", c(4, 15, 17)] %>
 
 # 4A
 
-plot_dist_ls.m <- ggplot(dplot_combined_ls[dplot_combined_ls$COA.cat != "Other" & dplot_combined_ls$COA.cat != "Null",], aes(x = COA.cat, y = dist_mean, colour = locisigma.cat)) +
+plot_dist_ls.m <- ggplot(dplot_combined_ls[dplot_combined_ls$COA.cat != "Other" & dplot_combined_ls$COA.cat != "Null",], aes(x = COA.cat, y = dist_mean, shape = locisigma.cat, colour = COA.cat)) +
   geom_point(position = position_dodge(0.9), size = 3) + 
   geom_errorbar(aes(
-    ymin = dist_mean - (1.96*dist_se),
-    ymax = dist_mean + (1.96*dist_se)
+    ymin = dist_mean - (dist_se),
+    ymax = dist_mean + (dist_se)
   ), position = position_dodge(0.9),
   width = 0.5) +
   theme_classic() +
-  ylim(0, 5.5) +
-  scale_color_manual(values = cpal) +
-  labs(x = m_lab, y = dist_lab, colour = ls_lab, tag = "A") + #"\u03C3(\u03B4\u0305)") +
+  scale_color_manual(values = cpal, guide = F) +
+  labs(x = m_lab, y = dist_lab, shape = ls_lab) + #"\u03C3(\u03B4\u0305)") +
   theme(axis.text.x = element_text(size = 26, margin = margin(t = 10), face = "bold"),
         axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
         axis.title.x = element_text(size = 28, margin = margin(t = 10), face = "bold"),
@@ -285,6 +284,11 @@ plot_dist_ls.m <- ggplot(dplot_combined_ls[dplot_combined_ls$COA.cat != "Other" 
         plot.margin = margin(10, 20, 10, 10))
 
 plot_dist_ls.m
+
+ggsave(filename = "fig4_dist_ls.png", plot = plot_dist_ls.m, width = 12, height = 8, dpi = 600)
+
+
+# Don't need the rest
 
 # 4B
 
@@ -384,21 +388,22 @@ ggsave(filename = "fig4_dist_fx.png", plot = fig4_dist_fx, width = 24, height = 
 # 5A
 
 
-dplot_combined_ls <- d_combined[d_combined$atopt  == "Adapted", c(18, 15, 17)] %>%
+dplot_combined_ls <- d_combined[d_combined$atopt  == "Adapted"  & d_combined$varmean < 50, c(21, 15, 17)] %>%
   group_by(COA.cat, locisigma.cat) %>%
-  summarise_all(list(varmean_mean = mean, varmean_se = std.error))
+  summarise_all(list(varmean_mean = mean, varmean_se = std.error, n = length))
 
-plot_varmean_ls.m <- ggplot(dplot_combined_ls[dplot_combined_ls$COA.cat != "Other" & dplot_combined_ls$COA.cat != "Null",], aes(x = COA.cat, y = varmean_mean, colour = locisigma.cat)) +
+plot_varmean_ls.m <- ggplot(dplot_combined_ls[dplot_combined_ls$COA.cat != "Other" & dplot_combined_ls$COA.cat != "Null",], aes(x = COA.cat, y = varmean_mean, shape = locisigma.cat, colour = COA.cat)) +
   geom_point(position = position_dodge(0.9), size = 3) + 
   geom_errorbar(aes(
-    ymin = varmean_mean - (1.96*varmean_se),
-    ymax = varmean_mean + (1.96*varmean_se)
+    ymin = varmean_mean - (varmean_se),
+    ymax = varmean_mean + (varmean_se)
   ), position = position_dodge(0.9),
   width = 0.5) +
   theme_classic() +
 #  ylim(0, 10) +
-  scale_color_manual(values = cpal) +
-  labs(x = m_lab, y = var_lab, colour = ls_lab, tag = "A") + #"\u03C3(\u03B4\u0305)") +
+  scale_color_manual(values = cpal, guide = F) +
+  scale_shape_discrete(drop = F) +
+  labs(x = m_lab, y = var_lab, shape = ls_lab) + #"\u03C3(\u03B4\u0305)") +
   theme(axis.text.x = element_text(size = 26, margin = margin(t = 10), face = "bold"),
         axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
         axis.title.x = element_text(size = 28, margin = margin(t = 10), face = "bold"),
@@ -409,11 +414,35 @@ plot_varmean_ls.m <- ggplot(dplot_combined_ls[dplot_combined_ls$COA.cat != "Othe
 
 plot_varmean_ls.m
 
+ggsave(filename = "fig5_var_ls.png", plot = plot_varmean_ls.m, width = 12, height = 8, dpi = 600)
+
+# SUPP mat: we needed to cut out three data points here as they weren't saying anything - Add effect = high, HoC, only 3 points
+# To justify, show spread of variance over models
+
+plot_supp_varmean <- ggplot(d_combined[d_combined$COA.cat != "Other" & d_combined$COA.cat != "Null" & d_combined$atopt == "Adapted",], aes(x = locisigma.cat, y = varmean, colour = COA.cat)) +
+  geom_jitter() +
+  theme_classic() +
+  scale_colour_manual(values = cpal) +
+  labs(x = ls_lab, y = var_lab, colour = "Allelic effect\nmodel") + #"\u03C3(\u03B4\u0305)") +
+  theme(axis.text.x = element_text(size = 24, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_text(size = 26, margin = margin(t = 10), face = "bold"),
+        plot.title = element_text(margin = margin(t = 30), face = "bold", size = 20, hjust = -0.05, vjust = 12),
+        text = element_text(size = 26, face = "bold"),
+        plot.margin = margin(10, 20, 10, 10))
+
+plot_supp_varmean
+
+ggsave(filename = "figS4_var_ls.png", plot = plot_varmean_ls.m, width = 12, height = 8, dpi = 600)
+
+
+# Don't need the rest
+
 # 5B
 
-dplot_combined_r <- d_combined[d_combined$atopt  == "Adapted", c(18, 16, 17)] %>%
+dplot_combined_r <- d_combined[d_combined$atopt  == "Adapted", c(21, 16, 17)] %>%
   group_by(COA.cat, rwide.cat) %>%
-  summarise_all(list(varmean_mean = mean, varmean_se = std.error))
+  summarise_all(list(varmean_mean = mean, varmean_se = std.error, n = length))
 
 
 plot_varmean_r.m <- ggplot(dplot_combined_r[dplot_combined_r$COA.cat != "Other" & dplot_combined_r$COA.cat != "Null",], aes(x = COA.cat, y = varmean_mean, colour = rwide.cat)) +
@@ -439,9 +468,9 @@ plot_varmean_r.m
 
 # 5C
 
-dplot_combined_pr <- d_combined[d_combined$atopt  == "Adapted", c(18, 11, 17)] %>%
+dplot_combined_pr <- d_combined[d_combined$atopt  == "Adapted", c(21, 11, 17)] %>%
   group_by(COA.cat, pleiorate.cat) %>%
-  summarise_all(list(varmean_mean = mean, varmean_se = std.error))
+  summarise_all(list(varmean_mean = mean, varmean_se = std.error, n = length))
 
 
 plot_varmean_pr.m <- ggplot(dplot_combined_pr[dplot_combined_r$COA.cat != "Other" & dplot_combined_r$COA.cat != "Null",], aes(x = COA.cat, y = varmean_mean, colour = pleiorate.cat)) +
@@ -468,9 +497,9 @@ plot_varmean_pr.m
 
 # 5D
 
-dplot_combined_pc <- d_combined[d_combined$atopt  == "Adapted", c(18, 12, 17)] %>%
+dplot_combined_pc <- d_combined[d_combined$atopt  == "Adapted", c(21, 12, 17)] %>%
   group_by(COA.cat, pleiocov.cat) %>%
-  summarise_all(list(varmean_mean = mean, varmean_se = std.error))
+  summarise_all(list(varmean_mean = mean, varmean_se = std.error, n = length))
 
 
 plot_varmean_pc.m <- ggplot(dplot_combined_pc[dplot_combined_r$COA.cat != "Other" & dplot_combined_r$COA.cat != "Null",], aes(x = COA.cat, y = varmean_mean, colour = pleiocov.cat)) +
@@ -505,24 +534,24 @@ ggsave(filename = "fig5_varmean_fx.png", plot = fig5_varmean_fx, width = 24, hei
 
 # Fig 6
 
-dplot_combined_ls <- d_combined[d_combined$atopt  == "Adapted", c(19, 15, 17)] %>%
+dplot_combined_ls <- d_combined[d_combined$atopt  == "Adapted" & d_combined$covmean > -1.2, c(22, 15, 17)] %>%
   group_by(COA.cat, locisigma.cat) %>%
-  summarise_all(list(covmean_mean = mean, covmean_se = std.error))
+  summarise_all(list(covmean_mean = mean, covmean_se = std.error, n = length))
 
 
 # 6A
 
-plot_covmean_ls.m <- ggplot(dplot_combined_ls[dplot_combined_ls$COA.cat != "Other" & dplot_combined_ls$COA.cat != "Null",], aes(x = COA.cat, y = covmean_mean, colour = locisigma.cat)) +
+plot_covmean_ls.m <- ggplot(dplot_combined_ls[dplot_combined_ls$COA.cat != "Other" & dplot_combined_ls$COA.cat != "Null",], aes(x = COA.cat, y = covmean_mean, shape = locisigma.cat, colour = COA.cat)) +
   geom_point(position = position_dodge(0.9), size = 3) + 
   geom_errorbar(aes(
-    ymin = covmean_mean - (1.96*covmean_se),
-    ymax = covmean_mean + (1.96*covmean_se)
+    ymin = covmean_mean - (covmean_se),
+    ymax = covmean_mean + (covmean_se)
   ), position = position_dodge(0.9),
   width = 0.5) +
   theme_classic() +
   #  ylim(0, 10) +
-  scale_color_manual(values = cpal) +
-  labs(x = m_lab, y = cov_lab, colour = ls_lab, tag = "A") + #"\u03C3(\u03B4\u0305)") +
+  scale_color_manual(values = cpal, guide = F) +
+  labs(x = m_lab, y = cov_lab, shape = ls_lab) + #"\u03C3(\u03B4\u0305)") +
   theme(axis.text.x = element_text(size = 26, margin = margin(t = 10), face = "bold"),
         axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
         axis.title.x = element_text(size = 28, margin = margin(t = 10), face = "bold"),
@@ -533,11 +562,36 @@ plot_covmean_ls.m <- ggplot(dplot_combined_ls[dplot_combined_ls$COA.cat != "Othe
 
 plot_covmean_ls.m
 
+ggsave(filename = "fig6_cov_ls.png", plot = plot_covmean_ls.m, width = 12, height = 8, dpi = 600)
+
+# SUPP mat: we needed to cut out some data points here as they were obscuring the trend 
+# To justify, show spread of covariance over models
+
+plot_supp_covmean <- ggplot(d_combined[d_combined$COA.cat != "Other" & d_combined$COA.cat != "Null" & d_combined$atopt == "Adapted",], aes(x = locisigma.cat, y = covmean, colour = COA.cat)) +
+  geom_jitter() +
+  theme_classic() +
+  scale_colour_manual(values = cpal) +
+  labs(x = ls_lab, y = cov_lab, colour = "Allelic effect\nmodel") + #"\u03C3(\u03B4\u0305)") +
+  theme(axis.text.x = element_text(size = 24, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_text(size = 26, margin = margin(t = 10), face = "bold"),
+        plot.title = element_text(margin = margin(t = 30), face = "bold", size = 20, hjust = -0.05, vjust = 12),
+        text = element_text(size = 26, face = "bold"),
+        plot.margin = margin(10, 20, 10, 10))
+
+plot_supp_covmean
+
+ggsave(filename = "figS5_cov_ls.png", plot = plot_supp_covmean, width = 12, height = 8, dpi = 600)
+
+
+
+
+
 # 6B
 
-dplot_combined_r <- d_combined[d_combined$atopt  == "Adapted", c(19, 16, 17)] %>%
+dplot_combined_r <- d_combined[d_combined$atopt  == "Adapted", c(22, 16, 17)] %>%
   group_by(COA.cat, rwide.cat) %>%
-  summarise_all(list(covmean_mean = mean, covmean_se = std.error))
+  summarise_all(list(covmean_mean = mean, covmean_se = std.error, n = length))
 
 
 plot_covmean_r.m <- ggplot(dplot_combined_r[dplot_combined_r$COA.cat != "Other" & dplot_combined_r$COA.cat != "Null",], aes(x = COA.cat, y = covmean_mean, colour = rwide.cat)) +
@@ -563,9 +617,9 @@ plot_covmean_r.m
 
 # 6C
 
-dplot_combined_pr <- d_combined[d_combined$atopt  == "Adapted", c(19, 11, 17)] %>%
+dplot_combined_pr <- d_combined[d_combined$atopt  == "Adapted", c(22, 11, 17)] %>%
   group_by(COA.cat, pleiorate.cat) %>%
-  summarise_all(list(covmean_mean = mean, covmean_se = std.error))
+  summarise_all(list(covmean_mean = mean, covmean_se = std.error, n = length))
 
 
 plot_covmean_pr.m <- ggplot(dplot_combined_pr[dplot_combined_r$COA.cat != "Other" & dplot_combined_r$COA.cat != "Null",], aes(x = COA.cat, y = covmean_mean, colour = pleiorate.cat)) +
@@ -592,9 +646,9 @@ plot_covmean_pr.m
 
 # 6D
 
-dplot_combined_pc <- d_combined[d_combined$atopt  == "Adapted", c(19, 12, 17)] %>%
+dplot_combined_pc <- d_combined[d_combined$atopt  == "Adapted", c(22, 12, 17)] %>%
   group_by(COA.cat, pleiocov.cat) %>%
-  summarise_all(list(covmean_mean = mean, covmean_se = std.error))
+  summarise_all(list(covmean_mean = mean, covmean_se = std.error, n = length))
 
 
 plot_covmean_pc.m <- ggplot(dplot_combined_pc[dplot_combined_r$COA.cat != "Other" & dplot_combined_r$COA.cat != "Null",], aes(x = COA.cat, y = covmean_mean, colour = pleiocov.cat)) +

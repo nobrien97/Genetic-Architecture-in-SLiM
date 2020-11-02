@@ -113,6 +113,27 @@ lm_var_end <- lm_robust(varmean ~ rwide.cat + locisigma.cat + COA.cat + pleiorat
 
 summary(lm_var_end)
 
+# Relative importance of predictors based on R2
+lm_var_end_OLS <- lm(varmean ~ rwide.cat + locisigma.cat + COA.cat + pleiorate.cat + pleiocov.cat +
+                          COA.cat*rwide.cat + COA.cat*locisigma.cat + COA.cat*pleiorate.cat + COA.cat*pleiocov.cat,
+                        data = d_combined_stat[d_combined_stat$COA.cat != "Other" & d_combined_stat$COA.cat != "Null" & d_combined$atopt == "Adapted",]) # Not looking at the in-between models for now
+
+
+
+library(relaimpo)
+
+calc.relimp(lm_var_end_OLS)
+
+
+
+
+lm_var_end_noCOA <- lm(varmean ~ rwide.cat + locisigma.cat + pleiorate.cat + pleiocov.cat +
+                          COA.cat*rwide.cat + COA.cat*locisigma.cat + COA.cat*pleiorate.cat + COA.cat*pleiocov.cat,
+                        data = d_combined_stat[d_combined_stat$COA.cat != "Other" & d_combined_stat$COA.cat != "Null" & d_combined$atopt == "Adapted",]) # Not looking at the in-between models for now
+
+
+
+
 es_var.m <- emmeans(lm_var_end, pairwise ~  COA.cat)
 es_var.m
 
@@ -164,6 +185,19 @@ lm_cov_end <- lm_robust(covmean ~ rwide.cat + locisigma.cat + COA.cat + pleiorat
 
 summary(lm_cov_end)
 
+
+lm_cov_end_OLS <- lm(covmean ~ rwide.cat + locisigma.cat + COA.cat + pleiorate.cat + pleiocov.cat +
+                       COA.cat*rwide.cat + COA.cat*locisigma.cat + COA.cat*pleiorate.cat + COA.cat*pleiocov.cat,
+                     data = d_combined_stat[d_combined_stat$COA.cat != "Other" & d_combined_stat$COA.cat != "Null" & d_combined$atopt == "Adapted",]) # Not looking at the in-between models for now
+
+
+
+library(relaimpo)
+
+calc.relimp(lm_cov_end_OLS, rela = T)
+
+
+
 es_cov.m <- emmeans(lm_cov_end, pairwise ~  COA.cat)
 es_cov.m
 
@@ -210,11 +244,22 @@ emm_cov_contr_pc.m <- pairs(pairs(emmeans(lm_cov_end, ~ pleiocov.cat | COA.cat,
 emm_cov_contr_pc.m
 
 
-lm_dist_end <- lm_cov_end <- lm_robust(distance ~ rwide.cat + locisigma.cat + COA.cat + pleiorate.cat + pleiocov.cat +
+lm_dist_end <- lm_robust(distance ~ rwide.cat + locisigma.cat + COA.cat + pleiorate.cat + pleiocov.cat +
                                          COA.cat*rwide.cat + COA.cat*locisigma.cat + COA.cat*pleiorate.cat + COA.cat*pleiocov.cat,
                                        data = d_combined_stat[d_combined_stat$COA.cat != "Other" & d_combined_stat$COA.cat != "Null" & d_combined$atopt == "Adapted",]) # Not looking at the in-between models for now
 
 summary(lm_dist_end)
+
+lm_dist_end_OLS <- lm(distance ~ rwide.cat + locisigma.cat + COA.cat + pleiorate.cat + pleiocov.cat +
+                       COA.cat*rwide.cat + COA.cat*locisigma.cat + COA.cat*pleiorate.cat + COA.cat*pleiocov.cat,
+                     data = d_combined_stat[d_combined_stat$COA.cat != "Other" & d_combined_stat$COA.cat != "Null" & d_combined$atopt == "Adapted",]) # Not looking at the in-between models for now
+
+
+
+library(relaimpo)
+
+calc.relimp(lm_dist_end_OLS)
+
 
 es_dist.m <- emmeans(lm_dist_end, pairwise ~  COA.cat)
 es_dist.m
@@ -262,15 +307,6 @@ emm_dist_contr_pc.m <- pairs(pairs(emmeans(lm_dist_end, ~ pleiocov.cat | COA.cat
 
 emm_dist_contr_pc.m
 
-# Use lm_robust to adjust for non-uniform errors, non-normality accounted for by sample size
-library(estimatr)
-library(xtable)
-
-lm_cov_end <- lm_robust(covmean ~ (rwide + locisigma + COA.cat + pleiorate)^2,
-                        data = d_raw_end[d_raw_end$COA.cat != "Other",])
-
-
-
 ############################
 
 # Mutation stats: comparing means, variance, kurtosis, count
@@ -284,6 +320,14 @@ lm_mean_muts <- lm_robust(mean ~ rwide.cat + locisigma.cat + COA.cat + pleiorate
 
 summary(lm_mean_muts)
 
+lm_mean_muts_OLS <- lm(mean ~ rwide.cat + locisigma.cat + COA.cat + pleiorate.cat + pleiocov.cat +
+                            COA.cat*rwide.cat + COA.cat*locisigma.cat + COA.cat*pleiorate.cat + COA.cat*pleiocov.cat,
+                          data = d_muts_stats[d_muts_stats$COA.cat != "Other" & d_muts_stats$COA.cat != "Null" & d_muts_stats$Po == "Adapted",]) # Not looking at the in-between models for now
+
+
+calc.relimp(lm_mean_muts_OLS, rela = T)
+
+
 
 lm_var_muts <- lm_robust(var ~ rwide.cat + locisigma.cat + COA.cat + pleiorate.cat + pleiocov.cat +
                       COA.cat*rwide.cat + COA.cat*locisigma.cat + COA.cat*pleiorate.cat + COA.cat*pleiocov.cat,
@@ -291,6 +335,15 @@ lm_var_muts <- lm_robust(var ~ rwide.cat + locisigma.cat + COA.cat + pleiorate.c
                     se_type = "HC3") # Not looking at the in-between models for now
 
 summary(lm_var_muts)
+
+
+lm_var_muts_OLS <- lm(var ~ rwide.cat + locisigma.cat + COA.cat + pleiorate.cat + pleiocov.cat +
+                         COA.cat*rwide.cat + COA.cat*locisigma.cat + COA.cat*pleiorate.cat + COA.cat*pleiocov.cat,
+                       data = d_muts_stats[d_muts_stats$COA.cat != "Other" & d_muts_stats$COA.cat != "Null" & d_muts_stats$Po == "Adapted",]) # Not looking at the in-between models for now
+
+
+calc.relimp(lm_var_muts_OLS, rela = T)
+
 
 es_varmuts.m <- emmeans(lm_var_muts, pairwise ~  COA.cat)
 es_varmuts.m
@@ -333,6 +386,14 @@ lm_kurt_muts <- lm_robust(kurt ~ rwide.cat + locisigma.cat + COA.cat + pleiorate
                           se_type = "HC3") # Not looking at the in-between models for now
 
 summary(lm_kurt_muts)
+
+lm_kurt_muts_OLS <- lm(kurt ~ rwide.cat + locisigma.cat + COA.cat + pleiorate.cat + pleiocov.cat +
+                         COA.cat*rwide.cat + COA.cat*locisigma.cat + COA.cat*pleiorate.cat + COA.cat*pleiocov.cat,
+                       data = d_muts_stats[d_muts_stats$COA.cat != "Other" & d_muts_stats$COA.cat != "Null" & d_muts_stats$Po == "Adapted",]) # Not looking at the in-between models for now
+
+
+calc.relimp(lm_kurt_muts_OLS, rela = T)
+
 
 es_kurtmuts.m <- emmeans(lm_kurt_muts, pairwise ~  COA.cat)
 es_kurtmuts.m
@@ -385,6 +446,15 @@ lm_count_muts <- lm_robust(count ~ rwide.cat + locisigma.cat + COA.cat + pleiora
                            data = d_muts_stats[d_muts_stats$COA.cat != "Other" & d_muts_stats$COA.cat != "Null" & d_muts_stats$Po == "Adapted",],
                            se_type = "HC3") # Not looking at the in-between models for now
 summary(lm_count_muts)
+
+lm_count_muts_OLS <- lm(count ~ rwide.cat + locisigma.cat + COA.cat + pleiorate.cat + pleiocov.cat +
+                         COA.cat*rwide.cat + COA.cat*locisigma.cat + COA.cat*pleiorate.cat + COA.cat*pleiocov.cat,
+                       data = d_muts_stats[d_muts_stats$COA.cat != "Other" & d_muts_stats$COA.cat != "Null" & d_muts_stats$Po == "Adapted",]) # Not looking at the in-between models for now
+
+
+calc.relimp(lm_count_muts_OLS, rela = T)
+
+
 
 es_countmuts.m <- emmeans(lm_count_muts, pairwise ~  COA.cat)
 es_countmuts.m
