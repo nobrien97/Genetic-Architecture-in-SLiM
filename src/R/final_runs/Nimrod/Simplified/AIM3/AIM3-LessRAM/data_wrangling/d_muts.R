@@ -213,6 +213,8 @@ d_muts_p1$Po <- 1
 
 d_muts_c_nofix <- data.table::rbindlist(list(d_muts_p0, d_muts_p1))
 
+saveRDS(d_muts_c_nofix, "d_muts_c_nofix.RDS")
+
 d_muts_null_sbst <- d_muts_c_nofix[d_muts_c_nofix$tau.cat == "Null",]
 d_muts_sel <- d_muts_c_nofix[d_muts_c_nofix$tau.cat != "Null",] 
 
@@ -232,9 +234,9 @@ levels(d_muts_null_sbst$COA.cat) <- c("Null", "Null", "Null", "Other", "Other",
 
 
 levels(d_muts_sel$tau.cat) <- c("Null", "Strong", "Medium", "Weak")
-levels(d_muts_sel$locisigma.cat) <- c("Low variance", "Medium variance", "High variance")
+levels(d_muts_sel$locisigma.cat) <- c("Low", "Medium", "High")
 levels(d_muts_null_sbst$tau.cat) <- c("Null", "Strong", "Medium", "Weak")
-levels(d_muts_null_sbst$locisigma.cat) <- c("Low variance", "Medium variance", "High variance")
+levels(d_muts_null_sbst$locisigma.cat) <- c("Low", "Medium", "High")
 
 d_muts_sel$Po <- as.factor(d_muts_sel$Po)
 levels(d_muts_sel$Po) <- c("Maladapted", "Adapted")
@@ -242,24 +244,30 @@ levels(d_muts_sel$Po) <- c("Maladapted", "Adapted")
 d_muts_null_sbst$Po <- as.factor(d_muts_null_sbst$Po)
 levels(d_muts_null_sbst$Po) <- c("Maladapted", "Adapted")
 
+cpal <- c("deepskyblue", "red")
+
 # Plot freq according to genetic architecture parameter, model, and adapted status
-plot_freq_ls.m.po <- ggplot(d_muts_sel[d_muts_sel$Po == "Adapted" & d_muts_sel$COA.cat == "Gaussian" | d_muts_sel$COA.cat == "House-of-Cards",], aes(x = Effect, after_stat(scaled), colour = locisigma.cat)) +
+plot_freq_ls.m.po <- ggplot(d_muts_sel[d_muts_sel$Po == "Adapted" & d_muts_sel$COA.cat == "Gaussian" | d_muts_sel$COA.cat == "House-of-Cards",], aes(x = Effect, after_stat(scaled), linetype = locisigma.cat, colour = COA.cat)) +
   facet_grid(.~COA.cat) +
-  geom_density(size = 1) +
-#  geom_density(size = 1, data = d_muts_null_sbst[d_muts_null_sbst$Po == "Adapted" & d_muts_null_sbst$COA.cat == "Null",-19], mapping = aes(
-#    x = Effect,
-#    colour = locisigma.cat
-#  )) +
+  geom_density(size = 1, aes(linetype = locisigma.cat), show.legend = F) +
+  stat_density(size = 1, aes(x = Effect, linetype = locisigma.cat, colour = COA.cat), geom = "line", position =   "identity") +
   coord_cartesian(xlim = c(-15, 15)) + # Truncate at 15 to get a better view
-#  scale_y_continuous(breaks = c(seq(0, 4000000, 1000000)), labels = c(as.character(seq(0, 4, 1)))) +
-  scale_color_manual(values = cpal) +
+  scale_color_manual(values = cpal, guide = F) +
+  scale_linetype_manual(values = c("dotted", "longdash", "solid")) +
   theme_classic() +
-  labs(x = "Allelic effect on trait", y = "Density", colour = "Additive effect\nsize distribution\n(\u03B1)") +
+  guides(fill = guide_legend(
+    keywidth = 0.1,
+    keyheight = 0.1,
+    default.unit = "inch"
+  )) +
+  labs(x = "Allelic effect on trait", y = "Density", linetype = "\u03B1") +
   theme(axis.text.x = element_text(size = 16, margin = margin(t = 8), face = "bold"),
         axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
         axis.title.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
         plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
         text = element_text(size = 22),
+        legend.key.width = unit(1.6, "cm"),
+        legend.title.align = 0.5,
         panel.spacing.y = unit(1, "lines"))
 
 plot_freq_ls.m.po

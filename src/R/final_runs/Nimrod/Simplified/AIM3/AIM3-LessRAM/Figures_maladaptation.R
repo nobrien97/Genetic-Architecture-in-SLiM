@@ -155,8 +155,8 @@ plot_vartime <- ggplot(dplot_varmean_time[dplot_varmean_time$COA.cat != "Other",
     ymin = varmean_mean - 1.96*varmean_se,
     ymax = varmean_mean + 1.96*varmean_se
   ), linetype = 0, alpha = 0.2) +
-  scale_colour_manual(values = c("black", "blue", "red"))+
-  scale_fill_manual(values = c("black", "blue", "red")) +
+  scale_colour_manual(values = c("black", "deepskyblue", "red"))+
+  scale_fill_manual(values = c("black", "deepskyblue", "red")) +
   scale_x_continuous(breaks = c(seq(50000, 150000, 10000)), labels = c(as.character(seq(0, 10, 1)))) +
   labs(x = expression(bold(Generation~(x*"10"^"5"))), y = var_lab, colour = m_lab, fill = m_lab, tag = "A") +
   theme_classic() +
@@ -179,8 +179,8 @@ plot_covtime <- ggplot(dplot_varmean_time[dplot_varmean_time$COA.cat != "Other",
     ymin = covmean_mean - 1.96*covmean_se,
     ymax = covmean_mean + 1.96*covmean_se
   ), linetype = 0, alpha = 0.2) +
-  scale_colour_manual(values = c("black", "blue", "red"))+
-  scale_fill_manual(values = c("black", "blue", "red")) +
+  scale_colour_manual(values = c("black", "deepskyblue", "red"))+
+  scale_fill_manual(values = c("black", "deepskyblue", "red")) +
   scale_x_continuous(breaks = c(seq(50000, 150000, 10000)), labels = c(as.character(seq(0, 10, 1)))) +
   labs(x = expression(bold(Generation~(x*"10"^"5"))), y = cov_lab, colour = m_lab, fill = m_lab, tag = "B") +
   theme_classic() +
@@ -200,7 +200,9 @@ fig3_varcovtime <-  plot_vartime / plot_covtime
 ggsave(filename = "fig3_varcovtime.png", plot = fig3_varcovtime, width = 8, height = 12, dpi = 800)
 
 
+ggsave(filename = "fig3a_vartime.png", plot = plot_vartime, width = 8, height = 10, dpi = 800)
 
+ggsave(filename = "fig3b_covtime.png", plot = plot_covtime, width = 8, height = 10, dpi = 800)
 
 
 #######################################################################################################################
@@ -209,30 +211,34 @@ ggsave(filename = "fig3_varcovtime.png", plot = fig3_varcovtime, width = 8, heig
 
 
 
-plot_dist_mod_full <- ggplot(d_combined[d_combined$COA.cat != "Other",], aes(x = COA.cat, y = distance)) +
+plot_dist_mod_full <- ggplot(d_combined[d_combined$COA.cat != "Other",], aes(x = COA.cat, y = distance, fill = COA.cat)) +
   stat_boxplot(geom = "errorbar", width = 0.5) +
   geom_boxplot(width = 0.5) +
   theme_classic() +
+  scale_fill_manual(values = c("grey", "red", "deepskyblue")) +
   labs(x = m_lab, y = dist_lab, tag = "A") + #"\u03C3(\u03B4\u0305)") +
   theme(axis.text.x = element_text(size = 24, margin = margin(t = 10), face = "bold"),
         axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
         axis.title.x = element_text(size = 26, margin = margin(t = 10), face = "bold"),
         plot.title = element_text(margin = margin(t = 30), face = "bold", size = 20, hjust = -0.05, vjust = 12),
         text = element_text(size = 26, face = "bold"),
+        legend.position = "none",
         plot.margin = margin(10, 20, 10, 10))
 
 plot_dist_mod_full
 
-plot_dist_mod_po1 <- ggplot(d_combined[d_combined$COA.cat != "Other" & d_combined$atopt == "Adapted",], aes(x = COA.cat, y = distance)) +
+plot_dist_mod_po1 <- ggplot(d_combined[d_combined$COA.cat != "Other" & d_combined$atopt == "Adapted",], aes(x = COA.cat, y = distance, fill = COA.cat)) +
   stat_boxplot(geom = "errorbar", width = 0.5) +
   geom_boxplot(width = 0.5) +
   theme_classic() +
+  scale_fill_manual(values = c("grey", "red", "deepskyblue")) +
   labs(x = m_lab, y = dist_lab, tag = "B") + #"\u03C3(\u03B4\u0305)") +
   theme(axis.text.x = element_text(size = 24, margin = margin(t = 10), face = "bold"),
         axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
         axis.title.x = element_text(size = 26, margin = margin(t = 10), face = "bold"),
         plot.title = element_text(margin = margin(t = 30), face = "bold", size = 20, hjust = -0.05, vjust = 12),
         text = element_text(size = 26, face = "bold"),
+        legend.position = "none",
         plot.margin = margin(10, 20, 10, 10))
 
 plot_dist_mod_po1
@@ -243,6 +249,9 @@ fig2_dist_mod <- plot_dist_mod_full / plot_dist_mod_po1
 
 ggsave(filename = "fig2_dist_mod.png", plot = fig2_dist_mod, width = 12, height = 12, dpi = 800)
 
+ggsave(filename = "fig2a_dist_mod_full.png", plot = plot_dist_mod_full, width = 8, height = 8, dpi = 800)
+
+ggsave(filename = "fig2_dist_mod_p1.png", plot = plot_dist_mod_po1, width = 8, height = 8, dpi = 800)
 
 #######################################################################################################################
 
