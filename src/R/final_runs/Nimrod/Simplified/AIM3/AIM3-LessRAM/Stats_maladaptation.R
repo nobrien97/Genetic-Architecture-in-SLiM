@@ -260,7 +260,7 @@ es_dist.m <- emmeans(lm_dist_end, pairwise ~  COA.cat)
 es_dist.m
 
 
-es_dist_l.m <- emmeans(lm_dist_end, pairwise ~ locisigma.cat)
+es_dist_l.m <- emmeans(lm_dist_end, pairwise ~ locisigma.cat * COA.cat)
 es_dist_l.m
 
 emm_dist_contr_l.m <- pairs(pairs(emmeans(lm_dist_end, ~ locisigma.cat | COA.cat,

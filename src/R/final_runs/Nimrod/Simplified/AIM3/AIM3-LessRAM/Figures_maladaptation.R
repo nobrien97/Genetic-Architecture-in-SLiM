@@ -128,7 +128,7 @@ dist_lab <- "\u03B4\u0305"
 var_lab <- expression(bold(V[a]))
 cov_lab <- "Covariance"
 po_lab <- "P(o)"
-m_lab <- "Allelic effect model"
+m_lab <- "Allelic effect model:"
 
 # Colours
 
@@ -164,6 +164,7 @@ plot_vartime <- ggplot(dplot_varmean_time[dplot_varmean_time$COA.cat != "Other",
         axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
         axis.title.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
         plot.title = element_text(margin = margin(t = 30), face = "bold", size = 20, hjust = -0.05, vjust = 3),
+        legend.position = "bottom",
         text = element_text(size = 22))
 
 
@@ -188,6 +189,7 @@ plot_covtime <- ggplot(dplot_varmean_time[dplot_varmean_time$COA.cat != "Other",
         axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
         axis.title.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
         plot.title = element_text(margin = margin(t = 30), face = "bold", size = 20, hjust = -0.05, vjust = 3),
+        legend.position = "bottom",
         text = element_text(size = 22))
 
 
@@ -195,15 +197,18 @@ plot_covtime
 
 library(patchwork)
 
-fig3_varcovtime <-  plot_vartime / plot_covtime
+fig3_varcovtime <-  (plot_vartime | plot_covtime) + plot_layout(guides = "collect") & theme(legend.position = "bottom")
 
-ggsave(filename = "fig3_varcovtime.png", plot = fig3_varcovtime, width = 8, height = 12, dpi = 800)
+ggsave(filename = "fig3_varcovtime.png", plot = fig3_varcovtime, width = 12, height = 8, dpi = 800)
 
 
 ggsave(filename = "fig3a_vartime.png", plot = plot_vartime, width = 8, height = 10, dpi = 800)
 
 ggsave(filename = "fig3b_covtime.png", plot = plot_covtime, width = 8, height = 10, dpi = 800)
 
+# Combination with one legend
+
+fig3_varcovtime 
 
 #######################################################################################################################
 
