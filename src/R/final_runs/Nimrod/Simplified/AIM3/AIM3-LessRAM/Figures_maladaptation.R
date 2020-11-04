@@ -50,10 +50,10 @@ source("../../AIM1/AIM-1_R/src_plot.R")
 
 # Set the seed
 
-set.seed(873662137) # sampled using sample(1:2147483647, 1)
 
 library(plyr)
 library(tidyverse)
+set.seed(873662137) # sampled using sample(1:2147483647, 1)
 
 
 # Import data
@@ -689,4 +689,87 @@ plot_covmean_pc.m
 fig6_covmean_fx <- (plot_covmean_ls.m + plot_covmean_r.m) / (plot_covmean_pr.m + plot_covmean_pc.m )
 
 ggsave(filename = "fig6_covmean_fx.png", plot = fig6_covmean_fx, width = 24, height = 12, dpi = 600)
+
+
+
+
+
+# Supplementary: S3 Latin Hypercube Sampling
+library(GGally) # for multivariate scatterplots
+lscombos_null <- read.csv("/mnt/z/Documents/GitHub/Genetic-Architecture-in-SLiM/src/Cluster_jobs/final_runs/Nimrod/Simplified/AIM1/lscombos_null.csv")
+lscombos_null <- lscombos_null[,-1]
+lscombos_sel <- read.csv("/mnt/z/Documents/GitHub/Genetic-Architecture-in-SLiM/src/Cluster_jobs/final_runs/Nimrod/Simplified/AIM3/lscombos_sel.csv")
+lscombos_sel <- lscombos_sel[,-1]
+
+lscombos_null$rwide <- scales::rescale(lscombos_null$rwide)
+lscombos_null$locisigma <- scales::rescale(lscombos_null$locisigma)
+lscombos_null$pleiorate <- scales::rescale(lscombos_null$pleiorate)
+lscombos_null$delmu <- scales::rescale(lscombos_null$delmu)
+lscombos_null$pleiocov <- scales::rescale(lscombos_null$pleiocov)
+
+
+
+names(lscombos_null) <- c(rwide = "Recombination\nrate (per locus)", 
+                          locisigma = "Additive effect\nsize (\u03B1)", 
+                          pleiorate = "Rate of\npleiotropy", 
+                          delmu = "Deleterious\nmutation rate", 
+                          pleiocov = "Mutational\ncorrelation")
+
+
+
+plot_lhc_null <- ggpairs(lscombos_null, xlab = "Scaled parameter value", ylab = "Scaled parameter value",
+                         lower = list(continuous = wrap("points", size = 0.1)),
+                         upper = list(continuous = wrap("cor", size = 10))) +
+  theme_classic() +
+  scale_x_continuous(breaks = seq(0, 1, 0.5), labels = as.character(seq(0, 1, 0.5))) +
+  scale_y_continuous(breaks = seq(0, 1, 0.5), labels = as.character(seq(0, 1, 0.5))) +
+  labs(tag = "A") +
+  theme(text = element_text(size = 22, face = "bold"),
+        panel.spacing = unit(1, "lines")
+  )
+plot_lhc_null
+
+ggsave("plot_lhc_null.png", plot_lhc_null, height = 12, width = 12, dpi = 400)
+
+
+
+# Selection
+
+lscombos_sel$rwide <- scales::rescale(lscombos_sel$rwide)
+lscombos_sel$locisigma <- scales::rescale(lscombos_sel$locisigma)
+lscombos_sel$pleiorate <- scales::rescale(lscombos_sel$pleiorate)
+lscombos_sel$delmu <- scales::rescale(lscombos_sel$delmu)
+lscombos_sel$pleiocov <- scales::rescale(lscombos_sel$pleiocov)
+lscombos_sel$tau <- scales::rescale(lscombos_sel$tau)
+
+
+
+names(lscombos_sel) <- c(rwide = "Recombination\nrate (per locus)", 
+                         locisigma = "Additive effect\nsize (\u03B1)", 
+                         pleiorate = "Rate of\npleiotropy", 
+                         delmu = "Deleterious\nmutation rate", 
+                         pleiocov = "Mutational\ncorrelation",
+                         tau = "Selection\nstrength (\u03C4)")
+
+
+
+plot_lhc_sel <- ggpairs(lscombos_sel, xlab = "Scaled parameter value", ylab = "Scaled parameter value",
+                        lower = list(continuous = wrap("points", size = 0.1)),
+                        upper = list(continuous = wrap("cor", size = 10))) +
+  theme_classic() +
+  labs(tag = "B") +
+  scale_x_continuous(breaks = seq(0, 1, 0.5), labels = as.character(seq(0, 1, 0.5))) +
+  scale_y_continuous(breaks = seq(0, 1, 0.5), labels = as.character(seq(0, 1, 0.5))) +
+  theme(text = element_text(size = 22, face = "bold"),
+        panel.spacing = unit(1, "lines")
+  )
+plot_lhc_sel
+
+ggsave("plot_lhc_sel.png", plot_lhc_sel, height = 16, width = 16, dpi = 300)
+
+library(patchwork)
+plot_lhc <- grid.arrange(plot_lhc_null, plot_lhc_sel)
+
+
+
 
