@@ -64,7 +64,7 @@ d_eucdist_c <- readRDS("d_eucdist_c.RDS")
 d_raw_c <- readRDS("d_raw_c.RDS")
 
 # End point 'equilibrium' data
-d_combined <- read.csv("d_combined.csv")
+d_combined <- read.csv("d_combined.csv", stringsAsFactors = T)
 
 # Allelic effects data
 d_muts_stats <- read.csv("d_muts_stats.csv")
@@ -122,7 +122,7 @@ pr_lab <- "Rate of\npleiotropy"
 pc_lab <- "Mutational\ncorrelation"
 r_lab <- "Recombination\nrate"
 d_lab <- "Mutation rate"
-ls_lab <- "Additive effect\nsize distribution (\u03B1)"
+ls_lab <- "Additive effect size distribution (\u03B1)"
 t_lab <- "Selection\nstrength (\u03C4)"
 dist_lab <- "\u03B4\u0305"
 var_lab <- expression(bold(V[a]))
@@ -771,5 +771,38 @@ library(patchwork)
 plot_lhc <- grid.arrange(plot_lhc_null, plot_lhc_sel)
 
 
+# Figure S4: prob of reaching optimum interaction plot
 
+d_combined$atopt_num <- as.numeric(d_combined$atopt) - 1
+
+dplot_Po_ls.m <- d_combined[, c(23, 15, 17)] %>%
+  group_by(COA.cat, locisigma.cat) %>%
+  summarise_all(list(Po_mean = mean, Po_se = std.error))
+
+
+figs4_Po_int <- ggplot(dplot_Po_ls.m[dplot_Po_ls.m$COA.cat != "Other" & dplot_Po_ls.m$COA.cat != "Null",], aes(x = locisigma.cat, y = Po_mean, group = COA.cat, colour = COA.cat)) +
+  geom_line(position = position_dodge(0.9), size = 1) + 
+  geom_errorbar(aes(
+    ymin = Po_mean - 1.96*Po_se,
+    ymax = Po_mean + Po_se
+  ), position = position_dodge(0.9),
+  width = 0.5) +
+  theme_classic() +
+  #  ylim(0, 5.5) +
+  scale_color_manual(values = c("red", "deepskyblue")) +
+  labs(x = ls_lab, y = "P(o)", colour = m_lab) +
+  theme(axis.text.x = element_text(size = 26, margin = margin(t = 10), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_text(size = 28, margin = margin(t = 10), face = "bold"),
+        legend.text = element_text(size = 26, margin = margin(t = 10), face = "bold"),
+        plot.title = element_text(margin = margin(t = 30), face = "bold", size = 20, hjust = -0.05, vjust = 12),
+        text = element_text(size = 28, face = "bold"),
+        legend.position = c(0.75, 0.75),
+        plot.margin = margin(10, 20, 10, 10))
+
+
+figs4_Po_int
+
+
+ggsave("figs4_Po_int.png", figs4_Po_int, height = 8, width = 12, dpi = 600)
 
