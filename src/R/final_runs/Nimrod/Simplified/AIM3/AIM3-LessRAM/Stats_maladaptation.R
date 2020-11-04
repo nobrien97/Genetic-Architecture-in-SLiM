@@ -26,7 +26,7 @@ d_raw_c <- readRDS("d_raw_c.RDS")
 d_combined <- read.csv("d_combined.csv")
 
 # Allelic effects data
-d_muts_stats <- read.csv("d_muts_stats.csv")
+d_muts_stats <- read.csv("d_muts_stats.csv", stringsAsFactors = T)
 
 ########################
 
@@ -86,19 +86,6 @@ chisq.posthoc.test(conttab_dist)
 
 
 # Variance linear model
-
-# Standardise
-d_combined_stat <- d_combined
-d_combined_stat$rwide <- scale(d_combined_stat$rwide)
-d_combined_stat$locisigma <- scale(d_combined_stat$locisigma)
-d_combined_stat$pleiorate <- scale(d_combined_stat$pleiorate)
-d_combined_stat$pleiocov <- scale(d_combined_stat$pleiocov)
-
-d_combined_stat$distance_scal <- scale(d_combined_stat$distance)
-d_combined_stat$varmean_scal <- scale(d_combined_stat$varmean)
-d_combined_stat$covmean_scal <- scale(d_combined_stat$covmean)
-
-
 
 
 
@@ -495,4 +482,33 @@ emm_countmuts_contr_pc.m <- pairs(pairs(emmeans(lm_count_muts, ~ pleiocov.cat | 
                              by = NULL)
 
 emm_countmuts_contr_pc.m
+
+
+
+# For Table 3: need a table of effects of each parameter on var, kurt, count
+
+dmeans_muts_ls <- d_muts_stats[d_muts_stats$Po  == "Adapted", c(15, 13, 18:20)] %>%
+  group_by(COA.cat, locisigma.cat) %>%
+  summarise_all(list(mean = mean, se = std.error, n = length))
+
+dmeans_muts_ls
+
+dmeans_muts_r <- d_muts_stats[d_muts_stats$Po  == "Adapted", c(15, 10, 18:20)] %>%
+  group_by(COA.cat, rwide.cat) %>%
+  summarise_all(list(mean = mean, se = std.error, n = length))
+
+dmeans_muts_r
+
+dmeans_muts_pr <- d_muts_stats[d_muts_stats$Po  == "Adapted", c(15, 11, 18:20)] %>%
+  group_by(COA.cat, pleiorate.cat) %>%
+  summarise_all(list(mean = mean, se = std.error, n = length))
+
+dmeans_muts_pr
+
+
+dmeans_muts_pc <- d_muts_stats[d_muts_stats$Po  == "Adapted", c(15, 12, 18:20)] %>%
+  group_by(COA.cat, pleiocov.cat) %>%
+  summarise_all(list(mean = mean, se = std.error, n = length))
+
+dmeans_muts_pr
 
