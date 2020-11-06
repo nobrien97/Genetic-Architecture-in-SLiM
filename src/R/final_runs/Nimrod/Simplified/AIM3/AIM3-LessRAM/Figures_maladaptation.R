@@ -783,7 +783,7 @@ dplot_Po_ls.m <- d_combined[, c(23, 15, 17)] %>%
 figs4_Po_int <- ggplot(dplot_Po_ls.m[dplot_Po_ls.m$COA.cat != "Other" & dplot_Po_ls.m$COA.cat != "Null",], aes(x = locisigma.cat, y = Po_mean, group = COA.cat, colour = COA.cat)) +
   geom_line(position = position_dodge(0.9), size = 1) + 
   geom_errorbar(aes(
-    ymin = Po_mean - 1.96*Po_se,
+    ymin = Po_mean - Po_se,
     ymax = Po_mean + Po_se
   ), position = position_dodge(0.9),
   width = 0.5) +
