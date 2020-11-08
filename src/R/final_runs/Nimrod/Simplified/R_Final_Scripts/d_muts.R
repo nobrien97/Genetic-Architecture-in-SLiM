@@ -1,9 +1,13 @@
+# This script takes allele frequency data and plots densities according to CoA Model
+# First, there's a bunch of transformation to the data to get only the data we need, then we plot
+
 setwd("/90days/s4395747")
 source("src_G_mat.R")
 library(plyr)
 library(tidyverse)
-set.seed(873662137)
+set.seed(873662137) # Sampled from sample(1:2147483647, 1)
 
+# Import data
 
 d_null_muts <- read.csv("/30days/s4395747/null_muts_fixed.csv", header = F)
 
@@ -28,6 +32,8 @@ d_null_muts <- na.omit(d_null_muts)
 d_sel_muts <- arrange(d_sel_muts, seed, modelindex)
 d_null_muts <- arrange(d_null_muts, seed, modelindex)
 
+
+# SaveRDS()/readRDS() in case we run out of memory at some point, or need to restart
 saveRDS(d_sel_muts, "d_sel_muts.RDS")
 saveRDS(d_null_muts, "d_null_muts.RDS")
 
@@ -58,7 +64,7 @@ d_sel_muts$seed <- as.numeric(d_sel_muts$seed)
 
 saveRDS(d_sel_muts, "d_sel_muts_sbst.RDS")
 
-# Size effect vs freq graph: combine columns
+# Size effect vs freq graph: combine columns - wrangle into a long format, so allele effects are all in a single column 
 
 d_sel_long <- d_sel_muts %>% 
   pivot_longer(
@@ -74,10 +80,14 @@ d_null_long <- d_null_muts %>%
     values_to = "Effect"
   )
 
-d_sel_long <- d_sel_long[!abs(d_sel_long$Effect) <= .Machine$double.eps,]
+# Take away all of the entries where the effect = exactly 0: 
+# these come from non-pleiotropic mutations where additive effects for each trait are also recorded (but there is only 1 effect, for the 1 trait that mutation is affecting)
+  
+d_sel_long <- d_sel_long[!abs(d_sel_long$Effect) <= .Machine$double.eps,] 
 
 d_null_long <- d_null_long[!abs(d_null_long$Effect) <= .Machine$double.eps,]
 
+# Import hypercube samples and match the modelindex to the appropriate values
 
 ls_combos_sel <- read.csv("/90days/s4395747/lscombos_sel.csv")
 
@@ -107,8 +117,9 @@ d_null_long <- readRDS("d_null_long.RDS")
 
 d_sel_long <- readRDS("d_sel_long.RDS")
 
+# Adjust selection modelindex so they are different to the null ones
 
-d_sel_long$modelindex <- d_sel_long$modelindex + 1024
+d_sel_long$modelindex <- d_sel_long$modelindex + 1024 # 1024 null models, sel start after that, from 1025-1280
 
 
 # Combine the data sets:
@@ -142,10 +153,11 @@ d_muts_c <- readRDS("d_muts_c.RDS")
 
 # Split figures across At the optimum vs away from it
 
+# Segregating mutations only
 d_muts_c_nofix <- d_muts_c[d_muts_c$freq < 1,]
 
 
-
+# Seedmod: use this to compare which ones have reached the optimum, by comparing combinations of seed and model with distance data 
 d_muts_c_nofix$seedmod <- as.character(interaction(d_muts_c_nofix$seed, d_muts_c_nofix$modelindex))
 
 d_muts_null <- d_muts_c_nofix[d_muts_c_nofix$tau.cat == "Null",]
@@ -154,6 +166,7 @@ d_muts_sel <- d_muts_c_nofix[d_muts_c_nofix$tau.cat != "Null",]
 
 # Need to check that we're only selecting the subsetted rows (mdl_sample)
 # seedmod_Po1 needs to only include those
+# Seedmod_Po1 includes the model/seed combinations that produced adapted populations (distance < 16)
 
 seedmod_Po1_null <- read.csv("seedmod_Po1_null.csv")
 seedmod_Po1_sel <- read.csv("seedmod_Po1_sel.csv")
@@ -177,6 +190,8 @@ seedmod_Po1$seed <- as.character(seedmod_Po1$seed)
 seedmod_Po1 <- seedmod_Po1[seedmod_Po1$seed %in% seed_sample]
 seedmod_Po1$seed <- as.numeric(seedmod_Po1$seed)
 seedmod_Po1$seedmod <- as.character(seedmod_Po1$seedmod)
+
+
 # Null models
 
 d_muts_null_sbst <- d_muts_null[d_muts_null$modelindex %in% mdl_sample,]
@@ -207,7 +222,7 @@ cpal <- cpal[c(1, 35, 100)]
 # Figure for at opt vs maladapted
 d_muts_p0 <- readRDS("d_muts_p0.RDS")
 d_muts_p1 <- readRDS("d_muts_p1.RDS")
-# Category for P
+# Category for Adapted/not
 d_muts_p0$Po <- 0
 d_muts_p1$Po <- 1
 
@@ -220,12 +235,10 @@ d_muts_c_nofix <- readRDS("d_muts_c_nofix.RDS")
 d_muts_null_sbst <- d_muts_c_nofix[d_muts_c_nofix$tau.cat == "Null",]
 d_muts_sel <- d_muts_c_nofix[d_muts_c_nofix$tau.cat != "Null",] 
 
-# Which model is it? interaction between tau and delmu
+# Which model is it? interaction between tau and delmu, gives Gaussian vs HoC
 d_muts_sel$COA.cat <- interaction(d_muts_sel$delmu.cat, d_muts_sel$tau.cat)
 d_muts_null_sbst$COA.cat <- interaction(d_muts_null_sbst$delmu.cat, d_muts_null_sbst$tau.cat)
 
-d_muts_c_nofix$nullsel <- d_muts_c_nofix$tau.cat
-levels(d_muts_c_nofix$nullsel) <- c("Null", "Selection", "Selection", "Selection")
 
 levels(d_muts_sel$COA.cat) <- c("Null", "Null", "Null", "Other", "Other",  
                                 "House-of-Cards", "Other", "Other", "Other", "Gaussian",
@@ -246,10 +259,11 @@ levels(d_muts_sel$Po) <- c("Maladapted", "Adapted")
 d_muts_null_sbst$Po <- as.factor(d_muts_null_sbst$Po)
 levels(d_muts_null_sbst$Po) <- c("Maladapted", "Adapted")
 
+# Reorder factors to align with other figures (Gaussian first)
 d_muts_null_sbst$COA.cat <- factor(d_muts_null_sbst$COA.cat, levels = c("Null", "Other", "Gaussian", "House-of-Cards"))
 d_muts_sel$COA.cat <- factor(d_muts_sel$COA.cat, levels = c("Null", "Other", "Gaussian", "House-of-Cards"))
 
-
+# Colours for plot
 cpal <- c("red", "deepskyblue")
 
 # Plot freq according to genetic architecture parameter, model, and adapted status
@@ -278,7 +292,7 @@ plot_freq_ls.m.po <- ggplot(d_muts_sel[d_muts_sel$Po == "Adapted" & d_muts_sel$C
 
 plot_freq_ls.m.po
 
-
+# Add facet label
 library(gtable)
 library(grid)
 
@@ -312,6 +326,11 @@ plot_gtab_freq_ls.m.po1 <- gtable_add_rows(plot_gtab, unit(1/5, "line"), min(pos
 ggsave(filename = "AllelicFX_ls.m.po1.png", plot = plot_gtab_freq_ls.m.po1, width = 16, height = 6, dpi = 800)
 
 
+
+
+
+#################################################################################################################
+# Other parameters: not considered in this report due to small effects on variance/distance 
 
 plot_freq_r.m.po <- ggplot(d_muts_sel[d_muts_sel$Po == "Adapted" & d_muts_sel$COA.cat == "Gaussian" | d_muts_sel$COA.cat == "House-of-Cards",], aes(x = Effect, after_stat(scaled), colour = rwide.cat)) +
   facet_grid(.~COA.cat) +
@@ -479,16 +498,13 @@ plot_gtab_freq_pc.m.po <- gtable_add_rows(plot_gtab, unit(1/5, "line"), min(posT
 ggsave(filename = "AllelicFX_pc.m.po1.png", plot = plot_gtab_freq_pc.m.po, width = 16, height = 6, dpi = 800)
 
 
-##################################################
+#####################################################################################################################################
 
-# stats: compare number  of rare alleles across groups
-# 2 sds away (2*locisigma)
+# stats: get a few moments of distributions to compare: mean, variance, kurtosis
+# Also the number of mutations on average contributing to each distribution
 
 d_muts_c_nofix <- data.table::rbindlist(list(d_muts_null_sbst, d_muts_sel))
 
-
-d_muts_rare <- d_muts_c_nofix[d_muts_c_nofix$Effect >= 2*d_muts_c_nofix$locisigma,]
-saveRDS(d_muts_rare, "d_muts_rare.RDS")
 
 d_muts_counts <- d_muts_rare[, c(1:2, 7:19)] %>%
   group_by(seed, modelindex, delmu, rwide, pleiorate, pleiocov, locisigma, tau, delmu.cat, rwide.cat, pleiorate.cat, pleiocov.cat, locisigma.cat, tau.cat) %>%
@@ -511,186 +527,16 @@ lm_muts <- lm_robust(nmuts ~ (delmu + rwide + pleiorate + locisigma + tau)^2,
 
 
 
-##################################################
-
-
-
-
-
-
+###########################################################################################################################
 
 
 # Deleterious mutations: Distributions of fixed fitness effects
+# Using this to figure out what's going on with delmu - is it because of mutation rate or deleterious effects?
+# Figure S1
 
-# Import data
+# frequency of additive/ freq: determine neutrality of delmu
 
-d_null_del <- read.csv("/30days/s4395747/null_s_fix.csv", header = F)
-
-d_sel_del <- read.csv("/30days/s4395747/sel_s_fix.csv", header = F)
-
-names(d_sel_del) <- c("seed", "modelindex", "type", "fitness")
-
-names(d_null_del) <- c("seed", "modelindex", "type", "fitness")
-
-d_null_del <- d_null_del[d_null_del$type == 2, ]
-d_sel_del <- d_sel_del[d_sel_del$type == 2, ]
-
-
-ls_combos_null <- read.csv("/90days/s4395747/lscombos_null.csv")
-
-ls_combos_sel <- read.csv("/90days/s4395747/lscombos_sel.csv")
-
-d_sel_del$delmu <- ls_combos_sel$delmu[d_sel_del$modelindex]
-d_sel_del$rwide <- ls_combos_sel$rwide[d_sel_del$modelindex]
-d_sel_del$pleiorate <- ls_combos_sel$pleiorate[d_sel_del$modelindex]
-d_sel_del$pleiocov <- ls_combos_sel$pleiocov[d_sel_del$modelindex]
-d_sel_del$locisigma <- ls_combos_sel$locisigma[d_sel_del$modelindex]
-d_sel_del$tau <- ls_combos_sel$tau[d_sel_del$modelindex]
-
-saveRDS(d_sel_del, "d_sel_del.RDS")
-
-
-
-d_null_del$delmu <- ls_combos_null$delmu[d_null_del$modelindex]
-d_null_del$rwide <- ls_combos_null$rwide[d_null_del$modelindex]
-d_null_del$pleiorate <- ls_combos_null$pleiorate[d_null_del$modelindex]
-d_null_del$pleiocov <- ls_combos_null$pleiocov[d_null_del$modelindex]
-d_null_del$locisigma <- ls_combos_null$locisigma[d_null_del$modelindex]
-d_null_del$tau <- 0.0
-
-saveRDS(d_null_del, "d_null_del.RDS")
-
-
-d_sel_del$modelindex <- d_sel_del$modelindex + 1024
-
-set.seed(873662137)
-mdl_sample <- sample(unique(d_muts_null$modelindex), 128)
-saveRDS(mdl_sample, "mdl_sample.RDS")
-
-mdl_sample <- readRDS("mdl_sample.RDS")
-d_null_del_sbst <- d_null_del[d_null_del$modelindex %in% mdl_sample,]
-
-# Combine the data sets:
-d_muts_del <- data.table::rbindlist(list(d_null_del, d_sel_del), use.names=T)
-
-# Arrange by seed and muts
-d_muts_del <- arrange(d_muts_del, seed, modelindex)
-
-saveRDS(d_muts_del, "d_muts_del.RDS")
-
-
-d_muts_del <- readRDS("d_muts_del.RDS")
-# Categorise
-
-d_muts_del$delmu.cat <- cut(d_muts_del$delmu, breaks = 3, labels = c("Low", "Medium", "High"))
-d_muts_del$locisigma.cat <- cut(d_muts_del$locisigma, breaks = 3, labels = c("Low", "Medium", "High")) 
-d_muts_del$pleiorate.cat <- cut(d_muts_del$pleiorate, breaks = 3, labels = c("Low", "Medium", "High")) 
-d_muts_del$pleiocov.cat <- cut(d_muts_del$pleiocov, breaks = 3, labels = c("Low", "Medium", "High")) 
-d_muts_del$rwide.cat <- cut(d_muts_del$rwide, breaks = 3, labels = c("Low", "Medium", "High")) 
-
-
-tau_bp <- c(-Inf, 0.1, 333.3, 666.6, Inf)
-
-d_muts_del$tau.cat <- cut(d_muts_del$tau, breaks = tau_bp, labels = c("Null", "High", "Medium", "Low")) 
-
-d_muts_del <- d_muts_del[d_muts_del$delmu <= 0.75 & d_muts_del$delmu >= 0.25,]
-
-d_muts_del$nullsel <- d_muts_del$tau.cat
-levels(d_muts_del$nullsel) <- c("Null", "Selection", "Selection", "Selection")
-
-
-levels(d_muts_del$tau.cat) <- c("Null", "Strong", "Medium", "Weak")
-levels(d_muts_del$locisigma.cat) <- c("Small", "Medium", "Large")
-
-d_null_del <- d_muts_del[d_muts_del$tau.cat == "Null",]
-d_sel_del <- d_muts_del[d_muts_del$tau.cat != "Null",]
-
-
-plot_delfreq <- ggplot(d_sel_del[d_sel_del$fitness > -.Machine$double.eps & d_sel_del$fitness < .Machine$double.eps,], aes(x = fitness)) +
-  facet_grid(locisigma.cat~tau.cat) +
-  geom_freqpoly(bins = 500, size = 0.6, linetype = "dotted") +
-  geom_freqpoly(bins = 500, size = 1, data = d_null_del[,-16], mapping = aes(
-    x = fitness
-  )) +
-  xlim(c(-0.000002, 0.000001)) +
-#  coord_cartesian(xlim = c(-0.00002, 0.00001)) + # Truncate at 15 to get a better view
-#  scale_y_continuous(breaks = c(seq(0, 200000, 50000)), labels = c(as.character(seq(0, 2, 0.5)))) +
-  theme_classic() +
-  labs(x = "Fitness effect size", y = expression(bold(Frequency~(x*"10"^"5")))) +
-  theme(axis.text.x = element_text(size = 16, margin = margin(t = 8), face = "bold"),
-        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
-        axis.title.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
-        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
-        text = element_text(size = 22))
-
-plot_delfreq
-
-
-library(gtable)
-library(grid)
-
-# Labels 
-labelT = "Strength of selection"
-labelR = "Additive effect size"
-
-# Get the ggplot grob
-plot_gtab <- ggplotGrob(plot_delfreq)
-
-# Get the positions of the strips in the gtable: t = top, l = left, ...
-posR <- subset(plot_gtab$layout, grepl("strip-r", name), select = t:r)
-posT <- subset(plot_gtab$layout, grepl("strip-t", name), select = t:r)
-
-# Add a new column to the right of current right strips, 
-# and a new row on top of current top strips
-width <- plot_gtab$widths[max(posR$r)]    # width of current right strips
-height <- plot_gtab$heights[min(posT$t)]  # height of current top strips
-
-plot_gtab <- gtable_add_cols(plot_gtab, width, max(posR$r))  
-plot_gtab <- gtable_add_rows(plot_gtab, height, min(posT$t)-1)
-
-# Construct the new strip grobs
-stripR <- gTree(name = "Strip_right", children = gList(
-  rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
-  textGrob(labelR, rot = -90, gp = gpar(fontsize = 22, col = "black", fontface = "bold"))))
-
-stripT <- gTree(name = "Strip_top", children = gList(
-  rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
-  textGrob(labelT, gp = gpar(fontsize = 22, col = "black", fontface = "bold"))))
-
-# Position the grobs in the gtable
-plot_gtab <- gtable_add_grob(plot_gtab, stripR, t = min(posR$t) + 1, l = max(posR$r) + 1, b = max(posR$b) + 1, name = "strip-right")
-plot_gtab <- gtable_add_grob(plot_gtab, stripT, t = min(posT$t), l = min(posT$l), r = max(posT$r), name = "strip-top")
-
-# Add small gaps between strips
-plot_gtab <- gtable_add_cols(plot_gtab, unit(1/5, "line"), max(posR$r))
-plot_gtab_delfreq <- gtable_add_rows(plot_gtab, unit(1/5, "line"), min(posT$t))
-
-ggsave(filename = "DelFX_9pan_ls.t.png", plot = plot_gtab_delfreq, width = 16, height = 6, dpi = 800)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-##########################################################################################
-# frequency of additive/ freq   del: determine neutrality of delmu
-
-
+# Import data 
 d_null_muts <- read.csv("/30days/s4395747/null_muts_fixed.csv", header = F)
 
 d_sel_muts <- read.csv("/30days/s4395747/sel_muts_fixed.csv", header = F)
@@ -774,7 +620,7 @@ saveRDS(d_muts_freq, "d_muts_freq.RDS")
 d_muts_freq <- readRDS("d_muts_freq.RDS")
 d_muts_freq <- d_muts_freq[d_muts_freq$freq < 1,]
 
-d_mut_meanfreqs <- d_muts_freq[,-c(1,3)] %>% # Exclude seed and type, average across those. Del is the proper categoryyyy
+d_mut_meanfreqs <- d_muts_freq[,-c(1,3)] %>% # Exclude seed and type, average across those. Del is the proper category
   group_by(modelindex, delmu, rwide, pleiorate, pleiocov, locisigma, tau, delmu.cat, 
            rwide.cat, pleiorate.cat, pleiocov.cat, locisigma.cat, tau.cat, del) %>%
   summarise_all(list(freq_mean = mean, freq_se = std.error))
@@ -787,12 +633,15 @@ d_mut_meanfreqs <- d_mut_meanfreqs  %>%
     values_from = c("freq_mean", "freq_se")
   )
 
+# Ratio of QTL mutations (del_0) to deleterious mutations (del_1)
 d_mut_meanfreqs$freqrat <- d_mut_meanfreqs$freq_mean_del_0 / d_mut_meanfreqs$freq_mean_del_1
 
 
 saveRDS(d_mut_meanfreqs, "d_mut_meanfreqs.RDS")
 
 d_mut_meanfreqs <- readRDS("d_mut_meanfreqs.RDS")
+
+# Plot
 
 plot_mut_freqs <- ggplot(d_mut_meanfreqs, aes(x = delmu, y = freqrat)) +
   geom_point() +
@@ -812,6 +661,9 @@ plot_mut_freqs
 
 ggsave("QTLdel_mut_freqs.png", plot_mut_freqs, height = 8, width = 12, dpi = 800)
 
+
+
+# Alternative view: QTL vs del rather than the ratio
 plot_mut_freq01 <- ggplot(d_mut_meanfreqs, aes(x = freq_mean_del_0, y = freq_mean_del_1)) +
   facet_grid(delmu.cat~.) +
   geom_point() +

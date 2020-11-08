@@ -1,0 +1,1 @@
+This folder contains a bunch of old figures. The final versions of figures are in /Thesis/Figures
