@@ -158,7 +158,7 @@ plot_vartime <- ggplot(dplot_varmean_time[dplot_varmean_time$COA.cat != "Other",
   scale_colour_manual(values = c("black", "deepskyblue", "red"))+
   scale_fill_manual(values = c("black", "deepskyblue", "red")) +
   scale_x_continuous(breaks = c(seq(50000, 150000, 10000)), labels = c(as.character(seq(0, 10, 1)))) +
-  labs(x = expression(bold(Generation~(x*"10"^"5"))), y = var_lab, colour = m_lab, fill = m_lab, tag = "A") +
+  labs(x = expression(bold(Generation~(x*"10"^"4"))), y = var_lab, colour = m_lab, fill = m_lab, tag = "A") +
   theme_classic() +
   theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
         axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
@@ -183,7 +183,7 @@ plot_covtime <- ggplot(dplot_varmean_time[dplot_varmean_time$COA.cat != "Other",
   scale_colour_manual(values = c("black", "deepskyblue", "red"))+
   scale_fill_manual(values = c("black", "deepskyblue", "red")) +
   scale_x_continuous(breaks = c(seq(50000, 150000, 10000)), labels = c(as.character(seq(0, 10, 1)))) +
-  labs(x = expression(bold(Generation~(x*"10"^"5"))), y = cov_lab, colour = m_lab, fill = m_lab, tag = "B") +
+  labs(x = expression(bold(Generation~(x*"10"^"4"))), y = cov_lab, colour = m_lab, fill = m_lab, tag = "B") +
   theme_classic() +
   theme(axis.text.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
         axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
