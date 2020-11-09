@@ -512,3 +512,13 @@ dmeans_muts_pc <- d_muts_stats[d_muts_stats$Po  == "Adapted", c(15, 12, 18:20)] 
 
 dmeans_muts_pr
 
+
+# Percentage of models that reach optimum
+
+
+d_combined$seedmod <- interaction(d_combined$seed, d_combined$modelindex)
+
+write.csv(d_combined[d_combined$atopt == 1 & d_combined$tau.cat == "Null", c(2:3, 20)], "seedmod_Po1_null.csv", row.names = F)
+write.csv(d_combined[d_combined$atopt == 1 & d_combined$tau.cat != "Null", c(2:3, 20)], "seedmod_Po1_sel.csv", row.names = F)
+
+

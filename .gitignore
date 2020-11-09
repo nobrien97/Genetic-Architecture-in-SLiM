@@ -52,6 +52,8 @@ src/Cluster_jobs/Speedtests/stabsel8000_speedtest/stabsel_recom_8T100L.slim
 src/R/pilot_runs/Pilot_Project/.RData
 src/R/pilot_runs/Pilot_Project/.Rhistory
 *.csv
+!seedmod_Po1_null.csv
+!seedmod_Po1_sel.csv
 src/R/final_runs/Nimrod/Simplified/AIM1/AIM-1_R/.RData
 src/R/final_runs/Nimrod/Simplified/AIM1/AIM-1_R/online_work.RData
 src/R/final_runs/Nimrod/Simplified/AIM1/JMP/d_null_1024.jmp
