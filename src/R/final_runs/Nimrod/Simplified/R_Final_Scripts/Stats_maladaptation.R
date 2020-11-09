@@ -87,7 +87,7 @@ chisq.posthoc.test(conttab_dist)
 
 # Variance linear model
 
-d_combined_stat$COA.cat <- factor(d_combined_stat$COA.cat, levels = c("Null", "Gaussian", "House-of-Cards", "Other"))
+d_combined_stat <- d_combined
 
 # Using robust SEs
 library(estimatr)
