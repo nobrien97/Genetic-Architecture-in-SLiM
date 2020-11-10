@@ -13,7 +13,7 @@ Code in the branch LS_D_R represents my final thesis, answering which architectu
 
 
 
-###############################################################################################################
+#######################################################################################
 AIM 1: The sampling distribution of complex neutral genetic architectures.
 Using simulations of neutral populations at varying levels of genetic diversity, I will quantify differences in genetic variation and covariation as a result of their genetic architecture. I will then be able to evaluate the random sampling distribution of G for the parameter space detailed in the research approach below. This will also help me test my simulations against known theoretical results in population and evolutionary quantitative genetics.  
 
