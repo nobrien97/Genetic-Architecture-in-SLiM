@@ -1,0 +1,1 @@
+Various scripts to run speed tests on Tinaroo, feeding SLiM worst case parameter combinations

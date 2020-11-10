@@ -1,0 +1,1 @@
+R scripts for running a pilot small data set on Tinaroo, and analysing that data
