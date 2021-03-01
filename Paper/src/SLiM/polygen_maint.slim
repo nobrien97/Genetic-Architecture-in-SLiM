@@ -1,0 +1,140 @@
+// Polygenic quantitative simulation for the maintenance of variation
+// (C) Nick O'Brien and OB Lab
+// Here we consider a single trait with a variable number of loci, population size, mutation rate, deleterious rate,
+// 
+
+
+// set up a simple neutral simulation
+initialize() {
+	if (!exists("slimgui")) {
+		setCfgParam("seed", getSeed());
+	}
+	else {
+		setSeed(asInteger(round(runif(1, 1, 2^62 - 1))));
+		setCfgParam("seed", getSeed());
+		catn("Actual seed: " + asInteger(seed));
+	}
+	
+	setCfgParam("mu", 8.045e-6); // Mutation rate averaged across five species from Table 1 Aston et al. 2017 
+	setCfgParam("Ne", 8000); // Population size
+	setCfgParam("del_mean", -0.8); // Mean used for the gamma distribution that deleterious mutations are pulled from
+	setCfgParam("del_shape", 0.2); // Shape parameter for gamma distribution used for deleterious mutations
+	setCfgParam("rwide", 1.241e-4); // Whole genome recombination rate
+	setCfgParam("nloci", 100); // Number of QTL positions along the chromosome - where QTL mutations can appear, sampled from sample(): Fixed at 100
+	setCfgParam("ndel", 100); // Number of deleterious sites 
+	setCfgParam("genomelength", 500); // Loci across the genome - some are deleterious, others QTL, others neutral
+	setCfgParam("locimu", 0.0); // Mean used for QTL mutation effect distribution pulls
+	setCfgParam("locisigma", 1.0); // Variance used for QTL effect pulls - the additive effect size distribution
+	setCfgParam("locidist", "n"); // Distribution used for locus distribution. "n" = normal, "g" = gamma
+	setCfgParam("lambda", 0.1); // Evolvability of loci: 0.0 = highly conserved, no mutation, 1.0 = evolvable, higher mutation rates
+	setCfgParam("tau", 10.0); // scalar for shape of fitness curve: smaller = narrower curve, greater selection pressure: need to be careful with values, they need to be relative to the mean phenotype after burn-in, and the initial distance from the optimum.
+	
+	setCfgParam("outpositions", 'out_stabsel_pos.csv'); // Output filename/path for locus positions
+	setCfgParam("outburn", 'out_stabsel_burnin.csv'); // Output burn-in heterozygosities
+	setCfgParam("outname", 'out_stabsel_means.csv'); // Output filename/path for the trait means/variance
+	setCfgParam("outopt", 'out_stabsel_opt.csv'); // Output filename/path for the trait optimum values for each run
+	setCfgParam("outnamemuts", 'out_stabsel_muts.csv'); //Output filename/path for the mutation information
+	
+	
+	setCfgParam("modelindex", 1); // Identifier for the combination of predictors used in latin hypercube: this is the row number in the lscombos.csv file
+	
+	initializeMutationRate(rep(mu, genomelength), ends = 1:genomelength);
+	
+	
+	
+	initializeMutationType("m1", 0.5, "f", 0.0); // Neutral, non-trait-affecting mutations
+	
+	//m2 mutation type: deleterious/background selection
+	initializeMutationType("m2", 0.5, "g", del_mean, del_shape);  // del_mean and del_shape are defined in the batch run script, or the cfg parameters
+	m2.color = "red";
+	
+	//m3 mutation type: QTL mutation
+	initializeMutationType("m3", 0.5, locidist, locimu, locisigma);
+	// m3.convertToSubstitution = F;
+	m3.color = "green";
+	
+	
+	// g1 genomic element type: uses m1 for all mutations
+	initializeGenomicElementType("g1", m1, 1.0);
+	
+	// uniform chromosome of length 100 kb with uniform recombination
+	initializeGenomicElement(g1, 0, genomelength);
+	initializeRecombinationRate(1e-8);
+}
+
+
+// Function definitions
+
+function (void) setCfgParam(s$ name, ifls value) {
+	if (!exists(name)) {
+		defineConstant(name, value);
+	}
+}
+
+
+// create a population of 500 individuals
+1 {
+	sim.addSubpop("p1", Ne);
+	
+	// Define locations of QTLs, deleterious loci, and neutral	 loci
+	lengthvec = 0:(genomelength - 1);
+	pos_QTL = sample(lengthvec, nloci); // Set the positions of our QTLs, from position 1 to the length of the chromosome;
+	del_pool = setDifference(lengthvec, pos_QTL); // Make sure we don't resample a QTL position for del loci
+	pos_del = sample(del_pool, ndel); // Set our deleterious loci positions
+	
+	sim.setValue("pos_QTL", pos_QTL); //store these positions in a sim value
+	sim.setValue("pos_del", pos_del);
+	
+	posfile = paste(modelindex, asString(seed), nloci, pos_QTL, ndel, pos_del, sep = ","); // Output information on where the QTLs are, and the recombination structure of the genome
+	
+	writeFile(outpositions, posfile, append = T);
+
+	// Calculate evolvability/mutation map
+	
+	mutEnds = 1:genomelength;
+	mutMap = float(genomelength);
+	mutMap = abs(mu * rnorm(genomelength, lambda, lambda*1.96));	
+	
+	sim.chromosome.setMutationRate(mutMap, mutEnds);
+	
+
+}
+
+// Mutations individually have no direct fitness effect, fitness is calculated on a trait basis
+fitness(m3) {
+	return 1.0;
+}
+
+
+// When a mutation appears, need to check if it occurs at a QTL or deleterious locus and set the mutation type
+mutation(m1) {
+	if (any(mut.position == sim.getValue("pos_QTL"))) { // If the mutation falls in any of our defined QTL loci within a region 
+		mut.setMutationType(m3);
+		mut.setSelectionCoeff(sim.mutationTypes[2].drawSelectionCoefficient());
+
+	}
+	else {
+		if (any(mut.position == sim.getValue("pos_del"))) {
+			mut.setMutationType(m2);
+			mut.setSelectionCoeff(sim.mutationTypes[1].drawSelectionCoefficient());
+
+		}
+	}
+	return T;
+}
+
+// Burn-in period
+1:50000 late() {
+	if (sim.generation % 500 != 0) // Grab a sample every 500 generations
+		return;
+		
+	meanH = paste(calcHeterozygosity(p1.genomes), sep=",");
+	VA = paste(calcVA(p1.individuals, sim.mutationTypes[2]));
+	Hfile = paste(sim.generation, asString(seed), modelindex, meanH, VA, sep=",");
+	writeFile(outburn, Hfile, append = T);
+}
+
+// output samples of 10 genomes periodically, all fixed mutations at end
+1000 late() { p1.outputSample(10); }
+2000 late() { p1.outputSample(10); }
+2000 late() { sim.outputFixedMutations(); }
