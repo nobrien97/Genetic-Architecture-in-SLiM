@@ -26,7 +26,7 @@ initialize() {
 	setCfgParam("locimu", 0.0); // Mean used for QTL mutation effect distribution pulls
 	setCfgParam("locisigma", 1.0); // Variance used for QTL effect pulls - the additive effect size distribution
 	setCfgParam("locidist", "n"); // Distribution used for locus distribution. "n" = normal, "g" = gamma
-	setCfgParam("lambda", 0.1); // Evolvability of loci: 0.0 = highly conserved, no mutation, 1.0 = evolvable, higher mutation rates
+	setCfgParam("mu_chunk", c(0.05, 0.1, 0.5, 0.35)); // Relative chunk sizes of each mutation 'zone': zero, low, medium, high mutation rates
 	setCfgParam("tau", 10.0); // scalar for shape of fitness curve: smaller = narrower curve, greater selection pressure: need to be careful with values, they need to be relative to the mean phenotype after burn-in, and the initial distance from the optimum.
 	
 	setCfgParam("outpositions", 'out_stabsel_pos.csv'); // Output filename/path for locus positions
@@ -38,7 +38,7 @@ initialize() {
 	
 	setCfgParam("modelindex", 1); // Identifier for the combination of predictors used in latin hypercube: this is the row number in the lscombos.csv file
 	
-	initializeMutationRate(rep(mu, genomelength), ends = 1:genomelength);
+	initializeMutationRate(mu);
 	
 	
 	
@@ -92,22 +92,25 @@ function (void) setCfgParam(s$ name, ifls value) {
 	writeFile(outpositions, posfile, append = T);
 
 	// Calculate evolvability/mutation map
-	// Forget about lambda - we can use mu_d instead
-	// Number of genes 
+	// Number of genes matters - need to consider length of genome vs number of genes
 	// Reflects networks: central nodes likely have to be 0, cause highly pleiotropic
-	// silent substitution rate should reflect id
-	// Fatness of tail is the parameter 
+	// silent substitution rate should reflect mu_d
+	// Fatness of tail is the parameter - the types of mutation
 	// ds is the outcome, the distribution of genes across conserved vs not is the parameter
 	// plot trait evolution over time
 	// Slightly neutral problem: under strictly neutral fixation = polymorphism of NS/S: MK test
 	// with small pops, polymorphic NS are inflated
 	// regulatory 
 	
-	mutEnds = 1:genomelength;
-	mutMap = float(genomelength);
-	mutMap = abs(mu * rnorm(genomelength, lambda, lambda*1.96));	
+	mutRates = c(mu*0.001, mu*0.01, mu*0.1, mu); // Example setup of different mutation rates
+	mutEnds = c(mu_chunk*genomelength);
+	for (i in seq(1, 3)) { // Don't need to do mutEnds[0], since it's already correct
+		mutEnds[i] = mutEnds[i-1] + mutEnds[i];
+	}
+	mutEnds = asInteger(mutEnds);
 	
-	sim.chromosome.setMutationRate(mutMap, mutEnds);
+	sim.chromosome.setMutationRate(mutRates, mutEnds);
+	catn("Mutation rate end: " + mutEnds + "; Mutation rate: " + mutRates);
 	
 
 }
@@ -144,6 +147,36 @@ mutation(m1) {
 	VA = paste(calcVA(p1.individuals, sim.mutationTypes[2]));
 	Hfile = paste(sim.generation, asString(seed), modelindex, meanH, VA, sep=",");
 	writeFile(outburn, Hfile, append = T);
+}
+
+
+// Selection period
+
+50001:150000 late() {
+	if (sim.generation % 500 != 0 | sim.generation == 50001) // calculate phenotypes at start and every 500 gens
+		return;
+		
+	// Calculate phenotype
+	inds = sim.subpopulations.individuals;
+	fixed = sim.substitutions;
+	sizem3 = size(fixed[fixed.mutationType == m3]);
+	fixedfx = sizem3 ? sum(fixed[fixed.mutationType == m3].selectionCoeff) else 0.0;
+	
+	for (ind in inds) {
+		muts = ind.genomes.mutationsOfType(m3);			// Get only trait effects
+		mutscount = size(muts);
+		
+		phenotype = (mutscount ? sum(muts.selectionCoeff) else 0.0);
+		phenotype = phenotype + fixedfx; // add fixed effects
+		ind.setValue("phenotype", phenotype);
+	}
+	
+	meanH = paste(calcHeterozygosity(p1.genomes), sep=",");
+	VA = paste(calcVA(p1.individuals, sim.mutationTypes[2]));
+	phenomean = mean(inds.getValue("phenotype"));
+	
+	Mfile = paste(sim.generation, asString(seed), modelindex, meanH, VA, phenomean, sep=",");
+
 }
 
 // output samples of 10 genomes periodically, all fixed mutations at end
