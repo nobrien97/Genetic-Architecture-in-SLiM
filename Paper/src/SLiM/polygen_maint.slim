@@ -73,6 +73,8 @@ function (void) setCfgParam(s$ name, ifls value) {
 
 
 // create a population of 500 individuals
+// Drosophila - deleterious mutation rate: Peter Keightley Eyre-Walker: with Ne estimate and genome size
+// Good estimate of how many deleterious mutations occur per site and gen, and distribution of effects
 1 {
 	sim.addSubpop("p1", Ne);
 	
@@ -90,6 +92,16 @@ function (void) setCfgParam(s$ name, ifls value) {
 	writeFile(outpositions, posfile, append = T);
 
 	// Calculate evolvability/mutation map
+	// Forget about lambda - we can use mu_d instead
+	// Number of genes 
+	// Reflects networks: central nodes likely have to be 0, cause highly pleiotropic
+	// silent substitution rate should reflect id
+	// Fatness of tail is the parameter 
+	// ds is the outcome, the distribution of genes across conserved vs not is the parameter
+	// plot trait evolution over time
+	// Slightly neutral problem: under strictly neutral fixation = polymorphism of NS/S: MK test
+	// with small pops, polymorphic NS are inflated
+	// regulatory 
 	
 	mutEnds = 1:genomelength;
 	mutMap = float(genomelength);
