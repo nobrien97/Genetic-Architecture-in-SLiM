@@ -1,7 +1,12 @@
-// Polygenic quantitative simulation for the maintenance of variation
-// (C) Nick O'Brien and OB Lab
-// Here we consider a single trait with a variable number of loci, population size, mutation rate, deleterious rate,
-// 
+/* Polygenic quantitative simulation for the maintenance of variation
+ (C) Nick O'Brien and OB Lab
+ Here we consider a single trait evolving through time via drift and stabilising selection, until reaching 
+ mutation-selection-drift balance. Genetic parameters/variables include mutation rate, population size, the nature of
+ deleterious mutations (distribution of effects), recombination rate, number of QTLs, QTL distribution of effects,
+ selection strength, and relative sizes of mutation rate hotspots/coldspots along the genome.
+*/
+
+
 
 
 // set up a simple neutral simulation
@@ -16,7 +21,7 @@ initialize() {
 	}
 	
 	setCfgParam("mu", 8.045e-6); // Mutation rate averaged across five species from Table 1 Aston et al. 2017 
-	setCfgParam("Ne", 8000); // Population size
+	setCfgParam("Ne", 100); // Population size
 	setCfgParam("del_mean", -0.8); // Mean used for the gamma distribution that deleterious mutations are pulled from
 	setCfgParam("del_shape", 0.2); // Shape parameter for gamma distribution used for deleterious mutations
 	setCfgParam("rwide", 1.241e-4); // Whole genome recombination rate
@@ -24,10 +29,11 @@ initialize() {
 	setCfgParam("ndel", 100); // Number of deleterious sites 
 	setCfgParam("genomelength", 500); // Loci across the genome - some are deleterious, others QTL, others neutral
 	setCfgParam("locimu", 0.0); // Mean used for QTL mutation effect distribution pulls
-	setCfgParam("locisigma", 1.0); // Variance used for QTL effect pulls - the additive effect size distribution
+	setCfgParam("locisigma", 10.0); // Variance used for QTL effect pulls - the additive effect size distribution
 	setCfgParam("locidist", "n"); // Distribution used for locus distribution. "n" = normal, "g" = gamma
 	setCfgParam("mu_chunk", c(0.05, 0.1, 0.5, 0.35)); // Relative chunk sizes of each mutation 'zone': zero, low, medium, high mutation rates
-	setCfgParam("tau", 10.0); // scalar for shape of fitness curve: smaller = narrower curve, greater selection pressure: need to be careful with values, they need to be relative to the mean phenotype after burn-in, and the initial distance from the optimum.
+	setCfgParam("tau", 1000); // scalar for shape of fitness curve: smaller = narrower curve, greater selection pressure: need to be careful with values, they need to be relative to the mean phenotype after burn-in, and the initial distance from the optimum.
+	setCfgParam("opt", 100); // Multiplier for how far away optimum phenotype should be from mean phenotype post-burnin
 	
 	setCfgParam("outpositions", 'out_stabsel_pos.csv'); // Output filename/path for locus positions
 	setCfgParam("outburn", 'out_stabsel_burnin.csv'); // Output burn-in heterozygosities
@@ -66,11 +72,37 @@ initialize() {
 // Function definitions
 
 function (void) setCfgParam(s$ name, ifls value) {
+// Automate defining constants for SLiMgui and slim command line
+
 	if (!exists(name)) {
 		defineConstant(name, value);
 	}
 }
 
+
+function (void) calcPhenotype(o<Individual> inds, o<Substitution> fixed) {
+// Calculate phenotypes for individuals based on their QTL effects - both segregating and substitutions
+
+	sizem3 = size(fixed[fixed.mutationType == m3]);
+	fixedfx = sizem3 ? sum(fixed[fixed.mutationType == m3].selectionCoeff) else 0.0;
+	
+	for (ind in inds) {
+		muts = ind.genomes.mutationsOfType(m3);			// Get only trait effects
+		mutscount = size(muts);
+		
+		phenotype = (mutscount ? sum(muts.selectionCoeff) else 0.0);
+		phenotype = phenotype + fixedfx; // add fixed effects
+		ind.setValue("phenotype", phenotype);
+	}
+}
+
+function (void) calcFitness(o<Individual> inds) {
+// Calculate fitness from phenotype. Make sure this is only called after CalcFitness() and after sim.setValue("optimum")!
+
+	phenotypes = inds.getValue("phenotype"); 
+	dists = phenotypes - sim.getValue("optimum");
+	inds.fitnessScaling = 0.01 + exp(-(dists^2) / (2*tau)^2);
+}
 
 // create a population of 500 individuals
 // Drosophila - deleterious mutation rate: Peter Keightley Eyre-Walker: with Ne estimate and genome size
@@ -112,7 +144,6 @@ function (void) setCfgParam(s$ name, ifls value) {
 	sim.chromosome.setMutationRate(mutRates, mutEnds);
 	catn("Mutation rate end: " + mutEnds + "; Mutation rate: " + mutRates);
 	
-
 }
 
 // Mutations individually have no direct fitness effect, fitness is calculated on a trait basis
@@ -139,7 +170,7 @@ mutation(m1) {
 }
 
 // Burn-in period
-1:50000 late() {
+1:49999 late() {
 	if (sim.generation % 500 != 0) // Grab a sample every 500 generations
 		return;
 		
@@ -152,31 +183,28 @@ mutation(m1) {
 
 // Selection period
 
-50001:150000 late() {
-	if (sim.generation % 500 != 0 | sim.generation == 50001) // calculate phenotypes at start and every 500 gens
-		return;
+50000:150000 late() {
 		
-	// Calculate phenotype
+	// Calculate phenotypes, write output, calculate fitness
 	inds = sim.subpopulations.individuals;
-	fixed = sim.substitutions;
-	sizem3 = size(fixed[fixed.mutationType == m3]);
-	fixedfx = sizem3 ? sum(fixed[fixed.mutationType == m3].selectionCoeff) else 0.0;
-	
-	for (ind in inds) {
-		muts = ind.genomes.mutationsOfType(m3);			// Get only trait effects
-		mutscount = size(muts);
-		
-		phenotype = (mutscount ? sum(muts.selectionCoeff) else 0.0);
-		phenotype = phenotype + fixedfx; // add fixed effects
-		ind.setValue("phenotype", phenotype);
+	calcPhenotype(inds, sim.substitutions);
+
+	if (sim.generation % 500 == 0) { // Write output every 500 gens
+		meanH = paste(calcHeterozygosity(p1.genomes), sep=",");
+		VA = paste(calcVA(p1.individuals, sim.mutationTypes[2]));
+		phenomean = mean(inds.getValue("phenotype"));
+		Mfile = paste(sim.generation, asString(seed), modelindex, meanH, VA, phenomean, sep=",");
+		writeFile(outname, Mfile, append = T);
 	}
 	
-	meanH = paste(calcHeterozygosity(p1.genomes), sep=",");
-	VA = paste(calcVA(p1.individuals, sim.mutationTypes[2]));
-	phenomean = mean(inds.getValue("phenotype"));
-	
-	Mfile = paste(sim.generation, asString(seed), modelindex, meanH, VA, phenomean, sep=",");
-
+	// Set the optimum as a fixed distance from post-burn-in population phenotype mean
+	if (sim.generation == 50000) {
+		optimum = opt * phenomean;
+		sim.setValue("optimum", optimum);
+	}
+	// Calculate fitness from phenotypes
+	else
+		calcFitness(inds);
 }
 
 // output samples of 10 genomes periodically, all fixed mutations at end
