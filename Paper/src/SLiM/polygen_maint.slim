@@ -203,47 +203,131 @@ mutation(m1) {
 }
 
 // Burn-in period
-1:49999 late() {
+1:50000 late() {
 	if (sim.generation % 500 != 0) // Grab a sample every 500 generations
 		return;
-		
-	meanH = paste(calcHeterozygosity(p1.genomes), sep=",");
-	VA = paste(calcVA(p1.individuals, sim.mutationTypes[2]));
-	Hfile = paste(sim.generation, asString(seed), modelindex, meanH, VA, sep=",");
-	writeFile(outburn, Hfile, append = T);
-}
-
-// Debug: print heterozygosity
-
-
-
-// Selection period
-
-50000:150000 late() {
-		
-	// Calculate phenotypes, write output, calculate fitness
 	inds = sim.subpopulations.individuals;
+	meanH = paste(calcHeterozygosity(inds.genomes), sep=",");
+	VA = paste(calcVA(inds, sim.mutationTypes[2]));	
 	calcPhenotype(inds, sim.substitutions);
-
-	if (sim.generation % 500 == 0) { // Write output every 500 gens
-		meanH = paste(calcHeterozygosity(p1.genomes), sep=",");
-		VA = paste(calcVA(p1.individuals, sim.mutationTypes[2]));
-		phenomean = mean(inds.getValue("phenotype"));
-		Mfile = paste(sim.generation, asString(seed), modelindex, meanH, VA, phenomean, sep=",");
-		writeFile(outname, Mfile, append = T);
-	}
+	phenomean = mean(inds.getValue("phenotype"));
+	Bfile = paste(sim.generation, asString(seed), modelindex, meanH, VA, phenomean, sep=",");
+	writeFile(outburn, Bfile, append = T);	
 	
 	// Set the optimum as a fixed distance from post-burn-in population phenotype mean
 	if (sim.generation == 50000) {
 		optimum = opt + phenomean;
 		sim.setValue("optimum", optimum);
+		OptFile = paste(asString(seed), modelindex, optimum, sep = ",");
+		writeFile(outopt, OptFile);
 	}
-	// Calculate fitness from phenotypes
-	else
-		calcFitness(inds);
+
+	
 }
 
-// output samples of 10 genomes periodically, all fixed mutations at end
-1000 late() { p1.outputSample(10); }
-2000 late() { p1.outputSample(10); }
-2000 late() { sim.outputFixedMutations(); }
+
+
+// Selection period
+
+50001:150000 late() {
+		
+	// Calculate phenotypes + fitness, write output
+	inds = sim.subpopulations.individuals;
+	calcPhenotype(inds, sim.substitutions);
+	calcFitness(inds);
+
+	if (sim.generation % 500 == 0) { // Write output every 500 gens
+		meanH = paste(calcHeterozygosity(p1.genomes), sep=",");
+		VA = paste(calcVA(p1.individuals, sim.mutationTypes[2]));
+		phenotypes = inds.getValue("phenotype");
+		phenomean = mean(phenotypes);
+		w = mean(inds.fitnessScaling);
+		dist = mean(abs(phenotypes - sim.getValue("optimum"))); // Absolute values so that means aren't biased towards 0 by drift 
+		Mfile = paste(sim.generation, asString(seed), modelindex, meanH, VA, phenomean, dist, w, sep=",");
+		writeFile(outname, Mfile, append = T);
+	}
+	
+	
+	
+	
+///////////////////////////////////////////////////////////////////////////////////////////////////////	
+// Allelic output: outputting effect sizes, types, frequencies etc.
+	// Every 25000 generations: we can do it more often probably, but testing required	
+	if (sim.generation % 25000 != 0)
+		return;
+	
+	
+	// Store vectors of unique mutations, sorted by the generation in which they originated
+	muts = sortBy(c(sim.mutations[sim.mutations.mutationType != m1]), "originGeneration");
+	
+	// same for substitutions
+	subs = sortBy(c(sim.substitutions[sim.substitutions.mutationType != m1]), "originGeneration");
+	
+	// Set up an empty output to store all our mutations' information for this generation
+	mutsLines = NULL;
+		
+	// Put information on these unique mutations into a separate mutations file	
+	
+	// Check if there are any substitutions, if not we need to fix the output lines	by not including the \n character at the end of the last mutation line. 
+	// This is because writeFile() automatically adds a \n character, so we'd end up with an extra empty line if we do write that way
+	
+	for (mut in muts) {
+		mutFreq = mean(sim.subpopulations.genomes.containsMutations(mut));
+		mutType = mut.mutationType.id;
+		mutValue = asString(mut.selectionCoeff);
+		
+		// Look into array operators to remove these if/else statements	
+		
+		if (size(subs)) {
+			mutsLine = paste(sim.generation, asString(seed), modelindex, mutType, mut.id, mut.position, mut.originGeneration, mut.Value, MutFreq, "N/A", "\n", sep = ",");
+			mutsLines = c(mutsLines, mutsLine);
+		}
+
+		else {
+			if (mut != muts[muts.size() - 1]) // If there are no substitutions and we're on the last mutation, add a new line character, otherwise don't
+				mutsLine = paste(sim.generation, asString(seed), modelindex, mutType, mut.id, mut.position, mut.originGeneration, mut.Value, MutFreq, "N/A", "\n", sep = ",");
+			else
+				mutsLine = paste(sim.generation, asString(seed), modelindex, mutType, mut.id, mut.position, mut.originGeneration, mut.Value, MutFreq, "N/A", "", sep = ",");
+
+			mutsLines = c(mutsLines, mutsLine);
+		}
+	}
+	
+	
+	
+	for (sub in subs) {
+		subFreq = 1.0;
+		subType = sub.mutationType.id;
+		subValue = asString(sub.selectionCoeff);
+		
+		// Look into array operators to remove these if/else statements
+		
+		if (sub != subs[subs.size() - 1])
+			subline = paste(sim.generation, asString(seed), modelindex, subType, sub.id, sub.position, sub.originGeneration, subValue, subFreq, sub.fixationGeneration, "\n" sep = ",");
+		else
+			subline = paste(sim.generation, asString(seed), modelindex, subType, sub.id, sub.position, sub.originGeneration, subValue, subFreq, sub.fixationGeneration, "" sep = ",");
+
+		mutsLines = c(mutsLines, subLine); // Add substitutions to mutation output
+	
+	}
+	
+	mutsFile = paste(mutsLines, ""); // n.b. does \b exist in eidos? Would make it easier
+	
+	// Write the mutations file
+	// Fail safe in case there are no mutations at some point and the for loop doesn't run
+	if (exists('mutsLine'))
+		writeFile(outnamemuts, mutsFile, append = T);
+	
+	
+	
+	
+	// End simulation
+	if (sim.generation == 150000)
+		sim.simulationFinished();
+
+	
+}
+
+
+
+
