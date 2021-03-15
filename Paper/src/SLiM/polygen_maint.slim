@@ -20,8 +20,12 @@ initialize() {
 		catn("Actual seed: " + asInteger(seed));
 	}
 	
+	
+	// Declare/define parameters if they haven't been by the command line arguments
+	// Values from literature are cited
+	// The realistic range of w^2 is 3-50, so 18 to 5000 for 2w^2, or 0.05556 to 0.0002 for 1/2w^2
 	setCfgParam("mu", 8.045e-6); // Mutation rate averaged across five species from Table 1 Aston et al. 2017 
-	setCfgParam("Ne", 100); // Population size
+	setCfgParam("Ne", 1000); // Population size
 	setCfgParam("del_mean", -0.8); // Mean used for the gamma distribution that deleterious mutations are pulled from
 	setCfgParam("del_shape", 0.2); // Shape parameter for gamma distribution used for deleterious mutations
 	setCfgParam("rwide", 1.241e-4); // Whole genome recombination rate
@@ -29,11 +33,11 @@ initialize() {
 	setCfgParam("ndel", 100); // Number of deleterious sites 
 	setCfgParam("genomelength", 500); // Loci across the genome - some are deleterious, others QTL, others neutral
 	setCfgParam("locimu", 0.0); // Mean used for QTL mutation effect distribution pulls
-	setCfgParam("locisigma", 10.0); // Variance used for QTL effect pulls - the additive effect size distribution
+	setCfgParam("locisigma", 1.0); // Variance used for QTL effect pulls - the additive effect size distribution
 	setCfgParam("locidist", "n"); // Distribution used for locus distribution. "n" = normal, "g" = gamma
-	setCfgParam("mu_chunk", c(0.05, 0.1, 0.5, 0.35)); // Relative chunk sizes of each mutation 'zone': zero, low, medium, high mutation rates
-	setCfgParam("tau", 1000); // scalar for shape of fitness curve: smaller = narrower curve, greater selection pressure: need to be careful with values, they need to be relative to the mean phenotype after burn-in, and the initial distance from the optimum.
-	setCfgParam("opt", 100); // Multiplier for how far away optimum phenotype should be from mean phenotype post-burnin
+	setCfgParam("mu_props", c(0.05, 0.1, 0.5, 0.35)); // Relative chunk sizes of each mutation 'zone': zero, low, medium, high mutation rates - randomised across genome
+	setCfgParam("width", 0.05556); // Width of the fitness curve: smaller = narrower curve, greater selection pressure: need to be careful with values, they need to be relative to the mean phenotype after burn-in, and the initial distance from the optimum. This should be precalculated as 1/2w^2, as in Lande 1976
+	setCfgParam("opt", 10); // How far away optimum phenotype should be from mean phenotype post-burnin: Kingsolver et al. 2001 suggests .01 to 10 phenotypic units
 	
 	setCfgParam("outpositions", 'out_stabsel_pos.csv'); // Output filename/path for locus positions
 	setCfgParam("outburn", 'out_stabsel_burnin.csv'); // Output burn-in heterozygosities
@@ -97,11 +101,30 @@ function (void) calcPhenotype(o<Individual> inds, o<Substitution> fixed) {
 }
 
 function (void) calcFitness(o<Individual> inds) {
-// Calculate fitness from phenotype. Make sure this is only called after CalcFitness() and after sim.setValue("optimum")!
-
+// Calculate fitness from phenotype. Make sure this is only called after CalcPhenotype() and after sim.setValue("optimum")!
 	phenotypes = inds.getValue("phenotype"); 
 	dists = phenotypes - sim.getValue("optimum");
-	inds.fitnessScaling = 0.01 + exp(-(dists^2) / (2*tau)^2);
+	inds.fitnessScaling = 0.01 + exp(-(dists^2) * width); // Fitness function comes from Lande 1976: width is 1/2w^2
+}
+
+
+function (void) createMutMap(f proportions) {
+	// Sample a specified amount of the genome for each constraint level, apply a mutation rate to them
+	
+	QTLmap = c(1:genomelength); // Initialise the map where we store our output
+
+	mutRates = c(mu*0.01, mu*0.1, mu, mu*2);
+
+	mutEnds = asInteger(mu_props*genomelength);
+
+	// Construct an equal-length vector of rates to match to the QTLs
+	
+	mutShuf = repEach(mutRates, mutEnds);
+
+	samples = sample(mutShuf, genomelength);  // Shuffle the rates
+		
+	
+	sim.chromosome.setMutationRate(samples, QTLmap);
 }
 
 // create a population of 500 individuals
@@ -134,8 +157,12 @@ function (void) calcFitness(o<Individual> inds) {
 	// with small pops, polymorphic NS are inflated
 	// regulatory 
 	
+/*	
+	// This code is for separate distinct chunks of mutation rates (no mixing)
+
 	mutRates = c(mu*0.001, mu*0.01, mu*0.1, mu); // Example setup of different mutation rates
-	mutEnds = c(mu_chunk*genomelength);
+	
+	mutEnds = c(mu_props*genomelength);
 	for (i in seq(1, 3)) { // Don't need to do mutEnds[0], since it's already correct
 		mutEnds[i] = mutEnds[i-1] + mutEnds[i];
 	}
@@ -143,7 +170,13 @@ function (void) calcFitness(o<Individual> inds) {
 	
 	sim.chromosome.setMutationRate(mutRates, mutEnds);
 	catn("Mutation rate end: " + mutEnds + "; Mutation rate: " + mutRates);
+
+*/	
+
+	// This code is for randomised mutation rates across the genome
 	
+	createMutMap(mu_props);
+
 }
 
 // Mutations individually have no direct fitness effect, fitness is calculated on a trait basis
@@ -180,6 +213,9 @@ mutation(m1) {
 	writeFile(outburn, Hfile, append = T);
 }
 
+// Debug: print heterozygosity
+
+
 
 // Selection period
 
@@ -199,7 +235,7 @@ mutation(m1) {
 	
 	// Set the optimum as a fixed distance from post-burn-in population phenotype mean
 	if (sim.generation == 50000) {
-		optimum = opt * phenomean;
+		optimum = opt + phenomean;
 		sim.setValue("optimum", optimum);
 	}
 	// Calculate fitness from phenotypes
