@@ -25,7 +25,7 @@ initialize() {
 	// Values from literature are cited
 	// The realistic range of w^2 is 3-50, so 18 to 5000 for 2w^2, or 0.05556 to 0.0002 for 1/2w^2
 	setCfgParam("mu", 8.045e-6); // Mutation rate averaged across five species from Table 1 Aston et al. 2017 
-	setCfgParam("Ne", 1000); // Population size
+	setCfgParam("Ne", 100); // Population size
 	setCfgParam("del_mean", -0.8); // Mean used for the gamma distribution that deleterious mutations are pulled from
 	setCfgParam("del_shape", 0.2); // Shape parameter for gamma distribution used for deleterious mutations
 	setCfgParam("rwide", 1.241e-4); // Whole genome recombination rate
@@ -279,15 +279,15 @@ mutation(m1) {
 		// Look into array operators to remove these if/else statements	
 		
 		if (size(subs)) {
-			mutsLine = paste(sim.generation, asString(seed), modelindex, mutType, mut.id, mut.position, mut.originGeneration, mut.Value, MutFreq, "N/A", "\n", sep = ",");
+			mutsLine = paste(sim.generation, asString(seed), modelindex, mutType, mut.id, mut.position, mut.originGeneration, mutValue, mutFreq, "N/A", "\n", sep = ",");
 			mutsLines = c(mutsLines, mutsLine);
 		}
 
 		else {
 			if (mut != muts[muts.size() - 1]) // If there are no substitutions and we're on the last mutation, add a new line character, otherwise don't
-				mutsLine = paste(sim.generation, asString(seed), modelindex, mutType, mut.id, mut.position, mut.originGeneration, mut.Value, MutFreq, "N/A", "\n", sep = ",");
+				mutsLine = paste(sim.generation, asString(seed), modelindex, mutType, mut.id, mut.position, mut.originGeneration, mutValue, mutFreq, "N/A", "\n", sep = ",");
 			else
-				mutsLine = paste(sim.generation, asString(seed), modelindex, mutType, mut.id, mut.position, mut.originGeneration, mut.Value, MutFreq, "N/A", "", sep = ",");
+				mutsLine = paste(sim.generation, asString(seed), modelindex, mutType, mut.id, mut.position, mut.originGeneration, mutValue, mutFreq, "N/A", "", sep = ",");
 
 			mutsLines = c(mutsLines, mutsLine);
 		}
@@ -303,9 +303,9 @@ mutation(m1) {
 		// Look into array operators to remove these if/else statements
 		
 		if (sub != subs[subs.size() - 1])
-			subline = paste(sim.generation, asString(seed), modelindex, subType, sub.id, sub.position, sub.originGeneration, subValue, subFreq, sub.fixationGeneration, "\n" sep = ",");
+			subLine = paste(sim.generation, asString(seed), modelindex, subType, sub.id, sub.position, sub.originGeneration, subValue, subFreq, sub.fixationGeneration, "\n", sep = ",");
 		else
-			subline = paste(sim.generation, asString(seed), modelindex, subType, sub.id, sub.position, sub.originGeneration, subValue, subFreq, sub.fixationGeneration, "" sep = ",");
+			subLine = paste(sim.generation, asString(seed), modelindex, subType, sub.id, sub.position, sub.originGeneration, subValue, subFreq, sub.fixationGeneration, "", sep = ",");
 
 		mutsLines = c(mutsLines, subLine); // Add substitutions to mutation output
 	
