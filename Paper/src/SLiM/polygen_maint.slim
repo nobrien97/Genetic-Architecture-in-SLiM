@@ -25,17 +25,19 @@ initialize() {
 	// Values from literature are cited
 	// The realistic range of w^2 is 3-50, so 18 to 5000 for 2w^2, or 0.05556 to 0.0002 for 1/2w^2
 	setCfgParam("mu", 8.045e-6); // Mutation rate averaged across five species from Table 1 Aston et al. 2017 
-	setCfgParam("Ne", 100); // Population size
+	setCfgParam("Ne", 1000 ); // Population size
 	setCfgParam("del_mean", -0.8); // Mean used for the gamma distribution that deleterious mutations are pulled from
 	setCfgParam("del_shape", 0.2); // Shape parameter for gamma distribution used for deleterious mutations
 	setCfgParam("rwide", 1.241e-4); // Whole genome recombination rate
-	setCfgParam("nloci", 100); // Number of QTL positions along the chromosome - where QTL mutations can appear, sampled from sample(): Fixed at 100
-	setCfgParam("ndel", 100); // Number of deleterious sites 
-	setCfgParam("genomelength", 500); // Loci across the genome - some are deleterious, others QTL, others neutral
+	setCfgParam("nloci", 3); // Number of QTL positions along the chromosome - where QTL mutations can appear, sampled from sample(): Fixed at 100
+	setCfgParam("genomelength", 4); // Loci across the genome - some are deleterious, others QTL, others neutral
 	setCfgParam("locimu", 0.0); // Mean used for QTL mutation effect distribution pulls
 	setCfgParam("locisigma", 1.0); // Variance used for QTL effect pulls - the additive effect size distribution
 	setCfgParam("locidist", "n"); // Distribution used for locus distribution. "n" = normal, "g" = gamma
-	setCfgParam("mu_props", c(0.05, 0.1, 0.5, 0.35)); // Relative chunk sizes of each mutation 'zone': zero, low, medium, high mutation rates - randomised across genome
+	setCfgParam("con_props", c(0.33, 0.33, 0.34)); // Proportion of genes that have low/medium/high substitution rate
+	setCfgParam("constraints", matrix(c(1.0, 2.0, 0.8,
+													5.0, 10.0, 1.0,
+													5.0, 20.0, 1.0), ncol = 3, byrow = T)); // Matrix of lambdas: neutral/deleterious/beneficial weights in columns, rows are low/medium/high sub rate
 	setCfgParam("width", 0.05556); // Width of the fitness curve: smaller = narrower curve, greater selection pressure: need to be careful with values, they need to be relative to the mean phenotype after burn-in, and the initial distance from the optimum. This should be precalculated as 1/2w^2, as in Lande 1976
 	setCfgParam("opt", 10); // How far away optimum phenotype should be from mean phenotype post-burnin: Kingsolver et al. 2001 suggests .01 to 10 phenotypic units
 	
@@ -52,7 +54,7 @@ initialize() {
 	
 	
 	
-	initializeMutationType("m1", 0.5, "f", 0.0); // Neutral, non-trait-affecting mutations
+	initializeMutationType("m1", 0.5, "f", 0.0); // Neutral, non-trait-affecting mutations: also a place-holder for all mutation types before we set them
 	
 	//m2 mutation type: deleterious/background selection
 	initializeMutationType("m2", 0.5, "g", del_mean, del_shape);  // del_mean and del_shape are defined in the batch run script, or the cfg parameters
@@ -68,7 +70,7 @@ initialize() {
 	initializeGenomicElementType("g1", m1, 1.0);
 	
 	// uniform chromosome of length 100 kb with uniform recombination
-	initializeGenomicElement(g1, 0, genomelength);
+	initializeGenomicElement(g1, 0, genomelength-1);
 	initializeRecombinationRate(1e-8);
 }
 
@@ -76,7 +78,7 @@ initialize() {
 // Function definitions
 
 function (void) setCfgParam(s$ name, ifls value) {
-// Automate defining constants for SLiMgui and slim command line
+	// Automate defining constants for SLiMgui and slim command line
 
 	if (!exists(name)) {
 		defineConstant(name, value);
@@ -85,7 +87,7 @@ function (void) setCfgParam(s$ name, ifls value) {
 
 
 function (void) calcPhenotype(o<Individual> inds, o<Substitution> fixed) {
-// Calculate phenotypes for individuals based on their QTL effects - both segregating and substitutions
+	// Calculate phenotypes for individuals based on their QTL effects - both segregating and substitutions
 
 	sizem3 = size(fixed[fixed.mutationType == m3]);
 	fixedfx = sizem3 ? sum(fixed[fixed.mutationType == m3].selectionCoeff) else 0.0;
@@ -101,31 +103,12 @@ function (void) calcPhenotype(o<Individual> inds, o<Substitution> fixed) {
 }
 
 function (void) calcFitness(o<Individual> inds) {
-// Calculate fitness from phenotype. Make sure this is only called after CalcPhenotype() and after sim.setValue("optimum")!
+	// Calculate fitness from phenotype. Make sure this is only called after CalcPhenotype() and after sim.setValue("optimum")!
 	phenotypes = inds.getValue("phenotype"); 
 	dists = phenotypes - sim.getValue("optimum");
 	inds.fitnessScaling = 0.01 + exp(-(dists^2) * width); // Fitness function comes from Lande 1976: width is 1/2w^2
 }
 
-
-function (void) createMutMap(f proportions) {
-	// Sample a specified amount of the genome for each constraint level, apply a mutation rate to them
-	
-	QTLmap = c(1:genomelength); // Initialise the map where we store our output
-
-	mutRates = c(mu*0.01, mu*0.1, mu, mu*2);
-
-	mutEnds = asInteger(mu_props*genomelength);
-
-	// Construct an equal-length vector of rates to match to the QTLs
-	
-	mutShuf = repEach(mutRates, mutEnds);
-
-	samples = sample(mutShuf, genomelength);  // Shuffle the rates
-		
-	
-	sim.chromosome.setMutationRate(samples, QTLmap);
-}
 
 // create a population of 500 individuals
 // Drosophila - deleterious mutation rate: Peter Keightley Eyre-Walker: with Ne estimate and genome size
@@ -133,49 +116,41 @@ function (void) createMutMap(f proportions) {
 1 {
 	sim.addSubpop("p1", Ne);
 	
-	// Define locations of QTLs, deleterious loci, and neutral	 loci
+	
+	// Define locations of QTLs, deleterious loci, and neutral loci
 	lengthvec = 0:(genomelength - 1);
 	pos_QTL = sample(lengthvec, nloci); // Set the positions of our QTLs, from position 1 to the length of the chromosome;
-	del_pool = setDifference(lengthvec, pos_QTL); // Make sure we don't resample a QTL position for del loci
-	pos_del = sample(del_pool, ndel); // Set our deleterious loci positions
+	
 	
 	sim.setValue("pos_QTL", pos_QTL); //store these positions in a sim value
-	sim.setValue("pos_del", pos_del);
 	
-	posfile = paste(modelindex, asString(seed), nloci, pos_QTL, ndel, pos_del, sep = ","); // Output information on where the QTLs are, and the recombination structure of the genome
+// Each gene needs to be put into a constraint bin: lambda low, med, high (given by the rows of Cfg param constraint
+// First, we shuffle the QTLs, then assign a proportion of them to each type according to Cfg param con_props
+// Assign to each type with a difference row of the matrix constraint
+
+// Store as sim value 0, 1, or 2, where these correspond to low/medium/high - grab these in mutation callback per mutation (seems slow?)
+	
+	con_genes = sample(lengthvec, genomelength); // Shuffle the QTL positions
+	sim.setValue("con_genes", con_genes); // store these constraint positions in a sim value for the mutation callback to reference
+	conEnds = asInteger(round(con_props * genomelength)); // Get the end positions for each proportion
+	// Define the genes that fall into conserved, neutral, evolving categories (lambda low med high)
+	
+	conEnds[size(conEnds)-1] = conEnds[size(conEnds)-1] + (genomelength - sum(conEnds)); // Make sure the last one is put to the very end so that all QTLs have a constraint value: !note! could be a source of error in proportions not being 100% precise
+	
+	conVal = repEach(c(0, 1, 2), conEnds);
+
+	con_dict = matrix(c(con_genes, conVal), ncol = genomelength, byrow = T);
+	// for each QTL, store a 0, 1, or 2, with numbers chosen based on constraint proportion parameter
+	
+	sim.setValue("con_dict", con_dict);
+	
+	// Save the dictionary? Could store it as a separate file, or not? Need to think about the best way to do that
+	
+	
+	posfile = paste(modelindex, asString(seed), nloci, pos_QTL, sep = ","); // Output information on where the QTLs are, and the recombination structure of the genome
 	
 	writeFile(outpositions, posfile, append = T);
-
-	// Calculate evolvability/mutation map
-	// Number of genes matters - need to consider length of genome vs number of genes
-	// Reflects networks: central nodes likely have to be 0, cause highly pleiotropic
-	// silent substitution rate should reflect mu_d
-	// Fatness of tail is the parameter - the types of mutation
-	// ds is the outcome, the distribution of genes across conserved vs not is the parameter
-	// plot trait evolution over time
-	// Slightly neutral problem: under strictly neutral fixation = polymorphism of NS/S: MK test
-	// with small pops, polymorphic NS are inflated
-	// regulatory 
 	
-/*	
-	// This code is for separate distinct chunks of mutation rates (no mixing)
-
-	mutRates = c(mu*0.001, mu*0.01, mu*0.1, mu); // Example setup of different mutation rates
-	
-	mutEnds = c(mu_props*genomelength);
-	for (i in seq(1, 3)) { // Don't need to do mutEnds[0], since it's already correct
-		mutEnds[i] = mutEnds[i-1] + mutEnds[i];
-	}
-	mutEnds = asInteger(mutEnds);
-	
-	sim.chromosome.setMutationRate(mutRates, mutEnds);
-	catn("Mutation rate end: " + mutEnds + "; Mutation rate: " + mutRates);
-
-*/	
-
-	// This code is for randomised mutation rates across the genome
-	
-	createMutMap(mu_props);
 
 }
 
@@ -185,20 +160,23 @@ fitness(m3) {
 }
 
 
-// When a mutation appears, need to check if it occurs at a QTL or deleterious locus and set the mutation type
+// When a mutation appears, need to check if it occurs at a QTL and set the mutation type according to constraint
 mutation(m1) {
-	if (any(mut.position == sim.getValue("pos_QTL"))) { // If the mutation falls in any of our defined QTL loci within a region 
-		mut.setMutationType(m3);
-		mut.setSelectionCoeff(sim.mutationTypes[2].drawSelectionCoefficient());
 
+// TODO: Tidy this up. Potentially use a for loop in gen 1 to set up a dictionary of keys (positions) and values (constraints) to speed this up
+	con_dict = sim.getValue("con_dict");	
+	dict_pos = match(mut.position, c(con_dict[0,])); // Get the position in the dictionary matrix of the mutation's location
+	gene_constraint = constraints[c(con_dict[1, dict_pos]),]; // Get the correct constraints for the gene
+	
+	if (any(mut.position == sim.getValue("pos_QTL"))) {
+		choice = sample(sim.mutationTypes, 1, weights = gene_constraint);
 	}
 	else {
-		if (any(mut.position == sim.getValue("pos_del"))) {
-			mut.setMutationType(m2);
-			mut.setSelectionCoeff(sim.mutationTypes[1].drawSelectionCoefficient());
-
-		}
+		choice = sample(sim.mutationTypes[0:1], 1, weights = gene_constraint[0:1]);
 	}
+	mut.setMutationType(choice);
+	mut.setSelectionCoeff(mut.mutationType.drawSelectionCoefficient());	
+
 	return T;
 }
 
@@ -220,9 +198,7 @@ mutation(m1) {
 		sim.setValue("optimum", optimum);
 		OptFile = paste(asString(seed), modelindex, optimum, sep = ",");
 		writeFile(outopt, OptFile);
-	}
-
-	
+	}	
 }
 
 
