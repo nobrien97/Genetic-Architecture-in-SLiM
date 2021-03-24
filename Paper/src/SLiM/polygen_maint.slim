@@ -46,7 +46,7 @@ initialize() {
 	setCfgParam("outname", 'out_stabsel_means.csv'); // Output filename/path for the trait means/variance
 	setCfgParam("outopt", 'out_stabsel_opt.csv'); // Output filename/path for the trait optimum values for each run
 	setCfgParam("outnamemuts", 'out_stabsel_muts.csv'); //Output filename/path for the mutation information
-	
+	setCfgParam("outdict", 'out_stabsel_dict.csv'); // Output filename/path for dictionary of genetic constraints
 	
 	setCfgParam("modelindex", 1); // Identifier for the combination of predictors used in latin hypercube: this is the row number in the lscombos.csv file
 	
@@ -145,11 +145,13 @@ function (void) calcFitness(o<Individual> inds) {
 	sim.setValue("con_dict", con_dict);
 	
 	// Save the dictionary? Could store it as a separate file, or not? Need to think about the best way to do that
-	
+	dictfile = paste(modelindex, asString(seed), c(con_dict[0,]), "%", c(con_dict[1,]), sep = ","); // % is so we easily know where to split it
 	
 	posfile = paste(modelindex, asString(seed), nloci, pos_QTL, sep = ","); // Output information on where the QTLs are, and the recombination structure of the genome
 	
 	writeFile(outpositions, posfile, append = T);
+	
+	writeFile(outdict, dictfile, append = T);
 	
 
 }
