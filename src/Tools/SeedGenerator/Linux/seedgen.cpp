@@ -12,13 +12,20 @@ using std::cout;
 #define required_argument 1
 #define optional_argument 2
 
+
+// Function to write the csv file using ofstream
 void write_csv(std::string filename, std::vector<int32_t> values, std::string header) {
     std::ofstream outfile(filename);
 
+    // Check if a header is supplied and if the first character is = to write the header properly
     if (header.size() && header != "") {
+        if (header[0] == '=') 
+            header.erase(header.begin());
         outfile << header << "\n";
     }
     
+    // For each generated seed, put it in an output file with a newline character, 
+    // unless it's the last value, in which case just the value itself
     for (int i = 0; i < values.size(); ++i) {
     if (i < values.size() - 1) {
         outfile << values[i] << "\n";
@@ -30,7 +37,7 @@ void write_csv(std::string filename, std::vector<int32_t> values, std::string he
     outfile.close();
 }
 
-
+// Help function for displaying options
 void doHelp(char* appname) {
     std::fprintf(stdout,
     "Uniformly Distributed Seed Generator\n"
@@ -46,7 +53,7 @@ void doHelp(char* appname) {
     "-v             Turn on verbose mode.\n"    
     "\n"
     "-t NAME        Choose a header name. Defaults to 'Seed'. Enter nothing to have no header.\n"
-    "               Example: -t Number\n"
+    "               Example: -t=Number OR -tNumber\n"
     "\n"
     "-d FILEPATH    Specify a filepath and name for the generated seeds to be saved. Defaults to ./seeds.csv.\n"
     "               Example: -d ~/Desktop/seeds.csv\n"
@@ -59,8 +66,7 @@ void doHelp(char* appname) {
 
 int main(int argc, char* argv[]) {
     
-
-    int optionindex = 0;
+    // struct of long names for options
 
     const struct option longopts[] =
     {
@@ -77,12 +83,13 @@ int main(int argc, char* argv[]) {
     int n_samples = 10;
     bool debug = false;
     std::string headername = "Seed";
-
+    int optionindex = 0;
     int options; 
 
+    // Get commandline options and set variables to their associated entries
     while (options != -1) {
 
-        options = getopt_long(argc, argv, "n:d:hvt:", longopts, &optionindex);
+        options = getopt_long(argc, argv, "n:d:hvt::", longopts, &optionindex);
 
         switch (options) {
             case 'n':
@@ -102,7 +109,10 @@ int main(int argc, char* argv[]) {
                 continue;
 
             case 't':
-                headername = optarg;
+                if (optarg)
+                    headername = optarg;
+                else
+                    headername = "";
                 continue;
 
             case -1:
@@ -110,19 +120,24 @@ int main(int argc, char* argv[]) {
             }
         }
 
-
+    // Use /dev/random to generate a seed for the Mersenne Twister
     std::random_device mersseed;
+
+    // Test output if we're using the verbose command
     if(debug) {
         cout << "/dev/random seed for Mersenne Twister: " << mersseed() << "\n"
              << "Number of seeds =  " << n_samples << "\n"
              << "File written to: " << filename << endl;
     }
 
+    // Initialise MT generator and the distribution to pull from
     std::mt19937 generator(mersseed());
     std::uniform_int_distribution<int32_t> distribution(1, INT32_MAX - 1);
 
+    // Initialise vector for generated numbers
     std::vector<int32_t> seeds;
 
+    // Generate seeds and fill vector
     for (int i = 0; i < n_samples; ++i) {
         int32_t gen = distribution(generator);
         seeds.emplace_back(gen);
