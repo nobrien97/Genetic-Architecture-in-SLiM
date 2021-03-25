@@ -40,10 +40,10 @@ void doHelp(char* appname) {
     "\n"
     "-h     Print this help manual.\n"
     "\n"
-    "-n N   Generate N random samples.\n"
+    "-n N   Generate N random samples. Defaults to 10.\n"
     "\n"
     "-v     Turn on verbose mode.\n"    
-    "-d FILEPATH    Specify a filepath and name for the generated seeds to be saved.\n"
+    "-d FILEPATH    Specify a filepath and name for the generated seeds to be saved. Defaults to ./seeds.csv.\n"
     "Example: -d ~/Desktop/seeds.csv\n"
     "\n",
     appname,
