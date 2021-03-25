@@ -4,7 +4,6 @@
 #include <string>
 #include <vector>
 #include <getopt.h>
-#include <chrono>
 
 using std::endl;
 using std::cout;
@@ -43,6 +42,7 @@ void doHelp(char* appname) {
     "\n"
     "-n N   Generate N random samples.\n"
     "\n"
+    "-v     Turn on verbose mode.\n"    
     "-d FILEPATH    Specify a filepath and name for the generated seeds to be saved.\n"
     "Example: -d ~/Desktop/seeds.csv\n"
     "\n",
@@ -62,17 +62,19 @@ int main(int argc, char* argv[]) {
         { "destination",    no_argument,        0,  'd' },
         { "nsamples",       required_argument,  0,  'n' },
         { "help",           no_argument,        0,  'h' },
+        { "verbose",        no_argument,        0,  'v' },
         {0,0,0,0}
     };
 
     std::string filename;
     int n_samples;
+    bool debug = false;
 
-   int options; 
+    int options; 
 
     while (options != -1) {
 
-        options = getopt_long(argc, argv, "n:d:h", longopts, &optionindex);
+        options = getopt_long(argc, argv, "n:d:hv", longopts, &optionindex);
 
         switch (options) {
             case 'n':
@@ -87,6 +89,10 @@ int main(int argc, char* argv[]) {
                 doHelp(argv[0]);
                 return 1;
 
+            case 'v':
+                debug = true;
+                continue;
+
             case -1:
                 break;
             }
@@ -94,7 +100,11 @@ int main(int argc, char* argv[]) {
 
 
     std::random_device mersseed;
-    cout << mersseed() << endl;
+    if(debug) {
+        cout << "/dev/random seed for Mersenne Twister: " << mersseed() << "\n"
+             << "Number of seeds =  " << n_samples << "\n"
+             << "File written to: " << filename << endl;
+    }
 
     std::mt19937 generator(mersseed());
     std::uniform_int_distribution<int32_t> distribution(1, INT32_MAX - 1);
