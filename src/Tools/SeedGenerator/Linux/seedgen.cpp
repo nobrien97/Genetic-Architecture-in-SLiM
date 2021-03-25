@@ -10,11 +10,12 @@ using std::cout;
 
 #define no_argument 0
 #define required_argument 1
+#define optional_argument 2
 
-void write_csv(std::string filename, std::vector<int32_t> values, std::string header = "Seed") {
+void write_csv(std::string filename, std::vector<int32_t> values, std::string header) {
     std::ofstream outfile(filename);
 
-    if (header.size()) {
+    if (header.size() && header != "") {
         outfile << header << "\n";
     }
     
@@ -38,13 +39,17 @@ void doHelp(char* appname) {
     "Usage: %s [OPTION]...\n"
     "Example: %s -h\n"
     "\n"
-    "-h     Print this help manual.\n"
+    "-h             Print this help manual.\n"
     "\n"
-    "-n N   Generate N random samples. Defaults to 10.\n"
+    "-n N           Generate N random samples. Defaults to 10.\n"
     "\n"
-    "-v     Turn on verbose mode.\n"    
+    "-v             Turn on verbose mode.\n"    
+    "\n"
+    "-t NAME        Choose a header name. Defaults to 'Seed'. Enter nothing to have no header.\n"
+    "               Example: -t Number\n"
+    "\n"
     "-d FILEPATH    Specify a filepath and name for the generated seeds to be saved. Defaults to ./seeds.csv.\n"
-    "Example: -d ~/Desktop/seeds.csv\n"
+    "               Example: -d ~/Desktop/seeds.csv\n"
     "\n",
     appname,
     appname
@@ -63,6 +68,7 @@ int main(int argc, char* argv[]) {
         { "nsamples",       required_argument,  0,  'n' },
         { "help",           no_argument,        0,  'h' },
         { "verbose",        no_argument,        0,  'v' },
+        { "top",            optional_argument,  0,  't' },
         {0,0,0,0}
     };
 
@@ -70,12 +76,13 @@ int main(int argc, char* argv[]) {
     std::string filename = "./seeds.csv";
     int n_samples = 10;
     bool debug = false;
+    std::string headername = "Seed";
 
     int options; 
 
     while (options != -1) {
 
-        options = getopt_long(argc, argv, "n:d:hv", longopts, &optionindex);
+        options = getopt_long(argc, argv, "n:d:hvt:", longopts, &optionindex);
 
         switch (options) {
             case 'n':
@@ -92,6 +99,10 @@ int main(int argc, char* argv[]) {
 
             case 'v':
                 debug = true;
+                continue;
+
+            case 't':
+                headername = optarg;
                 continue;
 
             case -1:
@@ -117,7 +128,7 @@ int main(int argc, char* argv[]) {
         seeds.emplace_back(gen);
     }
 
-    write_csv(filename, seeds);
+    write_csv(filename, seeds, headername);
 
     return 0;
 }
