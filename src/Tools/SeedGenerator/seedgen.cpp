@@ -66,8 +66,9 @@ int main(int argc, char* argv[]) {
         {0,0,0,0}
     };
 
-    std::string filename;
-    int n_samples;
+// Initialise variables with defaults if values are not supplied
+    std::string filename = "./seeds.csv";
+    int n_samples = 10;
     bool debug = false;
 
     int options; 
