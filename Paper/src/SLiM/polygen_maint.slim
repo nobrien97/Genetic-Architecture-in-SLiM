@@ -25,10 +25,10 @@ initialize() {
 	// Values from literature are cited
 	// The realistic range of w^2 is 3-50, so 18 to 5000 for 2w^2, or 0.05556 to 0.0002 for 1/2w^2
 	setCfgParam("mu", 8.045e-6); // Mutation rate averaged across five species from Table 1 Aston et al. 2017 
-	setCfgParam("Ne", 1000 ); // Population size
+	setCfgParam("Ne", 8000 ); // Population size
 	setCfgParam("del_mean", -0.8); // Mean used for the gamma distribution that deleterious mutations are pulled from
 	setCfgParam("del_shape", 0.2); // Shape parameter for gamma distribution used for deleterious mutations
-	setCfgParam("rwide", 1.241e-4); // Whole genome recombination rate
+	setCfgParam("rwide", 0.5);//1.241e-4); // Whole genome recombination rate
 	setCfgParam("nloci", 3); // Number of QTL positions along the chromosome - where QTL mutations can appear, sampled from sample(): Fixed at 100
 	setCfgParam("genomelength", 4); // Loci across the genome - some are deleterious, others QTL, others neutral
 	setCfgParam("locimu", 0.0); // Mean used for QTL mutation effect distribution pulls
@@ -152,8 +152,6 @@ function (void) calcFitness(o<Individual> inds) {
 	writeFile(outpositions, posfile, append = T);
 	
 	writeFile(outdict, dictfile, append = T);
-	
-
 }
 
 // Mutations individually have no direct fitness effect, fitness is calculated on a trait basis
@@ -167,7 +165,7 @@ mutation(m1) {
 
 // TODO: Tidy this up. Potentially use a for loop in gen 1 to set up a dictionary of keys (positions) and values (constraints) to speed this up
 	con_dict = sim.getValue("con_dict");	
-	dict_pos = match(mut.position, c(con_dict[0,])); // Get the position in the dictionary matrix of the mutation's location
+	dict_pos = match(mut.position, con_dict[0,]); // Get the position in the dictionary matrix of the mutation's location
 	gene_constraint = constraints[c(con_dict[1, dict_pos]),]; // Get the correct constraints for the gene
 	
 	if (any(mut.position == sim.getValue("pos_QTL"))) {
@@ -196,11 +194,108 @@ mutation(m1) {
 	
 	// Set the optimum as a fixed distance from post-burn-in population phenotype mean
 	if (sim.generation == 50000) {
-		optimum = opt + phenomean;
+		if (abs(phenomean) == phenomean)
+			optimum = opt + phenomean; // Change this to take into account negative starting values
+		else 
+			optimum = opt - phenomean;
+			
+		catn("Optimum is: " + optimum);
 		sim.setValue("optimum", optimum);
 		OptFile = paste(asString(seed), modelindex, optimum, sep = ",");
 		writeFile(outopt, OptFile);
 	}	
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////	
+// Allelic output: outputting effect sizes, types, frequencies etc.
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+50000:150000 late() {
+
+	// Every 25000 generations: we can do it more often probably, but testing required	
+	if (sim.generation % 25000 != 0)
+		return;
+	
+	
+	// Store vectors of unique mutations, sorted by the generation in which they originated
+	muts = sortBy(c(sim.mutations[sim.mutations.mutationType != m1]), "originGeneration");
+	
+	// same for substitutions
+	subs = sortBy(c(sim.substitutions[sim.substitutions.mutationType != m1]), "originGeneration");
+	
+	// Set up an empty output to store all our mutations' information for this generation
+	mutsLines = NULL;
+		
+	// Put information on these unique mutations into a separate mutations file	
+	
+	// Check if there are any substitutions, if not we need to fix the output lines	by not including the \n character at the end of the last mutation line. 
+	// This is because writeFile() automatically adds a \n character, so we'd end up with an extra empty line if we do write that way
+	
+	condict = sim.getValue("con_dict");	
+	
+	for (mut in muts) {
+		mutFreq = mean(sim.subpopulations.genomes.containsMutations(mut));
+		mutType = mut.mutationType.id;
+		mutValue = asString(mut.selectionCoeff);
+		dictPos = match(mut.position, condict[0,]); // Get the position of the mutation in our dictonary of gene constraints
+		mutCon = condict[1, dictPos]; // Store the row number of the genetic constraint (low, medium, high constraint)
+		
+		// Look into array operators to remove these if/else statements	
+		
+		if (size(subs)) {
+			mutsLine = paste(sim.generation, asString(seed), modelindex, mutType, mut.id, mut.position, mutCon, mut.originGeneration, mutValue, mutFreq, "N/A", sep = ",");
+			mutsLine = paste0(mutsLine, "\n");
+			mutsLines = paste0(mutsLines, mutsLine);
+		}
+
+		else {
+			if (mut != muts[muts.size() - 1]) { // If there are no substitutions and we're on the last mutation, add a new line character, otherwise don't
+				mutsLine = paste(sim.generation, asString(seed), modelindex, mutType, mut.id, mut.position, mutCon, mut.originGeneration, mutValue, mutFreq, "N/A", sep = ",");
+				mutsLine = paste0(mutsLine, "\n");
+				}
+				
+			else {
+				mutsLine = paste(sim.generation, asString(seed), modelindex, mutType, mut.id, mut.position, mutCon, mut.originGeneration, mutValue, mutFreq, "N/A", sep = ",");
+				mutsLine = paste0(mutsLine, ""); // Unsure if necessary, but givent hat \n is a character we should keep char length consistent
+				}
+
+			mutsLines = paste0(mutsLines, mutsLine);
+		}
+	}
+	
+	
+	
+	for (sub in subs) {
+		subFreq = 1.0;
+		subType = sub.mutationType.id;
+		subValue = asString(sub.selectionCoeff);
+		dictPos = match(sub.position, condict[0,]);
+		subCon = condict[1, dictPos];
+
+		
+		// Look into array operators to remove these if/else statements
+		
+		if (sub != subs[subs.size() - 1]) {
+			subLine = paste(sim.generation, asString(seed), modelindex, subType, sub.id, sub.position, subCon, sub.originGeneration, subValue, subFreq, sub.fixationGeneration, sep = ",");
+			subLine = paste0(subLine, "\n");
+			}
+			
+		else {
+			subLine = paste(sim.generation, asString(seed), modelindex, subType, sub.id, sub.position, subCon, sub.originGeneration, subValue, subFreq, sub.fixationGeneration, sep = ",");
+			subLine = paste0(subLine, "");
+			}
+
+		mutsLines = paste0(mutsLines, subLine); // Add substitutions to mutation output
+	
+	}
+	
+//	mutsFile = paste(mutsLines, sep = "");
+	
+	// Write the mutations file
+	// Fail safe in case there are no mutations at some point and the for loop doesn't run
+	if (exists('mutsLine') | exists('subLine'))
+		writeFile(outnamemuts, mutsLines, append = T);
+
 }
 
 
@@ -224,79 +319,6 @@ mutation(m1) {
 		Mfile = paste(sim.generation, asString(seed), modelindex, meanH, VA, phenomean, dist, w, sep=",");
 		writeFile(outname, Mfile, append = T);
 	}
-	
-	
-	
-	
-///////////////////////////////////////////////////////////////////////////////////////////////////////	
-// Allelic output: outputting effect sizes, types, frequencies etc.
-	// Every 25000 generations: we can do it more often probably, but testing required	
-	if (sim.generation % 25000 != 0)
-		return;
-	
-	
-	// Store vectors of unique mutations, sorted by the generation in which they originated
-	muts = sortBy(c(sim.mutations[sim.mutations.mutationType != m1]), "originGeneration");
-	
-	// same for substitutions
-	subs = sortBy(c(sim.substitutions[sim.substitutions.mutationType != m1]), "originGeneration");
-	
-	// Set up an empty output to store all our mutations' information for this generation
-	mutsLines = NULL;
-		
-	// Put information on these unique mutations into a separate mutations file	
-	
-	// Check if there are any substitutions, if not we need to fix the output lines	by not including the \n character at the end of the last mutation line. 
-	// This is because writeFile() automatically adds a \n character, so we'd end up with an extra empty line if we do write that way
-	
-	for (mut in muts) {
-		mutFreq = mean(sim.subpopulations.genomes.containsMutations(mut));
-		mutType = mut.mutationType.id;
-		mutValue = asString(mut.selectionCoeff);
-		
-		// Look into array operators to remove these if/else statements	
-		
-		if (size(subs)) {
-			mutsLine = paste(sim.generation, asString(seed), modelindex, mutType, mut.id, mut.position, mut.originGeneration, mutValue, mutFreq, "N/A", "\n", sep = ",");
-			mutsLines = c(mutsLines, mutsLine);
-		}
-
-		else {
-			if (mut != muts[muts.size() - 1]) // If there are no substitutions and we're on the last mutation, add a new line character, otherwise don't
-				mutsLine = paste(sim.generation, asString(seed), modelindex, mutType, mut.id, mut.position, mut.originGeneration, mutValue, mutFreq, "N/A", "\n", sep = ",");
-			else
-				mutsLine = paste(sim.generation, asString(seed), modelindex, mutType, mut.id, mut.position, mut.originGeneration, mutValue, mutFreq, "N/A", "", sep = ",");
-
-			mutsLines = c(mutsLines, mutsLine);
-		}
-	}
-	
-	
-	
-	for (sub in subs) {
-		subFreq = 1.0;
-		subType = sub.mutationType.id;
-		subValue = asString(sub.selectionCoeff);
-		
-		// Look into array operators to remove these if/else statements
-		
-		if (sub != subs[subs.size() - 1])
-			subLine = paste(sim.generation, asString(seed), modelindex, subType, sub.id, sub.position, sub.originGeneration, subValue, subFreq, sub.fixationGeneration, "\n", sep = ",");
-		else
-			subLine = paste(sim.generation, asString(seed), modelindex, subType, sub.id, sub.position, sub.originGeneration, subValue, subFreq, sub.fixationGeneration, "", sep = ",");
-
-		mutsLines = c(mutsLines, subLine); // Add substitutions to mutation output
-	
-	}
-	
-	mutsFile = paste(mutsLines, ""); // n.b. does \b exist in eidos? Would make it easier
-	
-	// Write the mutations file
-	// Fail safe in case there are no mutations at some point and the for loop doesn't run
-	if (exists('mutsLine'))
-		writeFile(outnamemuts, mutsFile, append = T);
-	
-	
 	
 	
 	// End simulation
