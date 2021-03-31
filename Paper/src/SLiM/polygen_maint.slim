@@ -29,17 +29,17 @@ initialize() {
 	setCfgParam("del_mean", -0.8); // Mean used for the gamma distribution that deleterious mutations are pulled from
 	setCfgParam("del_shape", 0.2); // Shape parameter for gamma distribution used for deleterious mutations
 	setCfgParam("rwide", 0.5);//1.241e-4); // Whole genome recombination rate
-	setCfgParam("nloci", 3); // Number of QTL positions along the chromosome - where QTL mutations can appear, sampled from sample(): Fixed at 100
-	setCfgParam("genomelength", 4); // Loci across the genome - some are deleterious, others QTL, others neutral
+	setCfgParam("nloci", 66); // Number of QTL positions along the chromosome - where QTL mutations can appear, sampled from sample(): Fixed at 100
+	setCfgParam("genomelength", 99); // Loci across the genome - some are deleterious, others QTL, others neutral
 	setCfgParam("locimu", 0.0); // Mean used for QTL mutation effect distribution pulls
 	setCfgParam("locisigma", 1.0); // Variance used for QTL effect pulls - the additive effect size distribution
 	setCfgParam("locidist", "n"); // Distribution used for locus distribution. "n" = normal, "g" = gamma
 	setCfgParam("con_props", c(0.33, 0.33, 0.34)); // Proportion of genes that have low/medium/high substitution rate
-	setCfgParam("constraints", matrix(c(1.0, 2.0, 0.8,
+	setCfgParam("constraints", matrix(c(1.0, 1.0, 1.0,
 													5.0, 10.0, 1.0,
-													5.0, 20.0, 1.0), ncol = 3, byrow = T)); // Matrix of lambdas: neutral/deleterious/beneficial weights in columns, rows are low/medium/high sub rate
+													50.0, 100.0, 1.0), ncol = 3, byrow = T)); // Matrix of lambdas: neutral/deleterious/beneficial weights in columns, rows are low/medium/high sub rate
 	setCfgParam("width", 0.05556); // Width of the fitness curve: smaller = narrower curve, greater selection pressure: need to be careful with values, they need to be relative to the mean phenotype after burn-in, and the initial distance from the optimum. This should be precalculated as 1/2w^2, as in Lande 1976
-	setCfgParam("opt", 10); // How far away optimum phenotype should be from mean phenotype post-burnin: Kingsolver et al. 2001 suggests .01 to 10 phenotypic units
+	setCfgParam("opt", 100); // How far away optimum phenotype should be from mean phenotype post-burnin: Kingsolver et al. 2001 suggests .01 to 10 phenotypic units
 	
 	setCfgParam("outpositions", 'out_stabsel_pos.csv'); // Output filename/path for locus positions
 	setCfgParam("outburn", 'out_stabsel_burnin.csv'); // Output burn-in heterozygosities
@@ -237,6 +237,7 @@ mutation(m1) {
 		mutFreq = mean(sim.subpopulations.genomes.containsMutations(mut));
 		mutType = mut.mutationType.id;
 		mutValue = asString(mut.selectionCoeff);
+		mutFit = mut.selectionCoeff * (mut.mutationType.id == 2) + mutValue;
 		dictPos = match(mut.position, condict[0,]); // Get the position of the mutation in our dictonary of gene constraints
 		mutCon = condict[1, dictPos]; // Store the row number of the genetic constraint (low, medium, high constraint)
 		
