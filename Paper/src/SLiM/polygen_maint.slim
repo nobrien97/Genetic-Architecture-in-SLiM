@@ -25,7 +25,7 @@ initialize() {
 	// Values from literature are cited
 	// The realistic range of w^2 is 3-50, so 18 to 5000 for 2w^2, or 0.05556 to 0.0002 for 1/2w^2
 	setCfgParam("mu", 8.045e-6); // Mutation rate averaged across five species from Table 1 Aston et al. 2017 
-	setCfgParam("Ne", 8000 ); // Population size
+	setCfgParam("Ne", 1000 ); // Population size
 	setCfgParam("del_mean", -0.8); // Mean used for the gamma distribution that deleterious mutations are pulled from
 	setCfgParam("del_shape", 0.2); // Shape parameter for gamma distribution used for deleterious mutations
 	setCfgParam("rwide", 0.5);//1.241e-4); // Whole genome recombination rate
@@ -39,6 +39,8 @@ initialize() {
 													5.0, 10.0, 1.0,
 													50.0, 100.0, 1.0), ncol = 3, byrow = T)); // Matrix of lambdas: neutral/deleterious/beneficial weights in columns, rows are low/medium/high sub rate
 	setCfgParam("width", 0.05556); // Width of the fitness curve: smaller = narrower curve, greater selection pressure: need to be careful with values, they need to be relative to the mean phenotype after burn-in, and the initial distance from the optimum. This should be precalculated as 1/2w^2, as in Lande 1976
+	
+// TODO: Set this to a large valvue, adjust width also to have a longer adaptation period: measure the distribution of effects for adaptation!!!!	
 	setCfgParam("opt", 100); // How far away optimum phenotype should be from mean phenotype post-burnin: Kingsolver et al. 2001 suggests .01 to 10 phenotypic units
 	
 	setCfgParam("outpositions", 'out_stabsel_pos.csv'); // Output filename/path for locus positions
@@ -163,7 +165,6 @@ fitness(m3) {
 // When a mutation appears, need to check if it occurs at a QTL and set the mutation type according to constraint
 mutation(m1) {
 
-// TODO: Tidy this up. Potentially use a for loop in gen 1 to set up a dictionary of keys (positions) and values (constraints) to speed this up
 	con_dict = sim.getValue("con_dict");	
 	dict_pos = match(mut.position, con_dict[0,]); // Get the position in the dictionary matrix of the mutation's location
 	gene_constraint = constraints[c(con_dict[1, dict_pos]),]; // Get the correct constraints for the gene
@@ -189,13 +190,12 @@ mutation(m1) {
 	VA = paste(calcVA(inds, sim.mutationTypes[2]));	
 	calcPhenotype(inds, sim.substitutions);
 	phenomean = mean(inds.getValue("phenotype"));
-	Bfile = paste(sim.generation, asString(seed), modelindex, meanH, VA, phenomean, sep=",");
-	writeFile(outburn, Bfile, append = T);	
+
 	
-	// Set the optimum as a fixed distance from post-burn-in population phenotype mean
+	// Set the optimum as a fixed distance from post-burn-in population phenotype mean, and do our write to the standard phenomean output, rather than burn-in
 	if (sim.generation == 50000) {
 		if (abs(phenomean) == phenomean)
-			optimum = opt + phenomean; // Change this to take into account negative starting values
+			optimum = opt + phenomean; 
 		else 
 			optimum = opt - phenomean;
 			
@@ -203,12 +203,27 @@ mutation(m1) {
 		sim.setValue("optimum", optimum);
 		OptFile = paste(asString(seed), modelindex, optimum, sep = ",");
 		writeFile(outopt, OptFile);
+		
+		w = mean(inds.fitnessScaling);
+		dist = abs(phenomean - optimum); // Absolute values so that means aren't biased towards 0 by drift 
+		Mfile = paste(sim.generation, asString(seed), modelindex, meanH, VA, phenomean, dist, w, sep=",");
+		writeFile(outname, Mfile, append = T);
+	
 	}	
+	else {
+		Bfile = paste(sim.generation, asString(seed), modelindex, meanH, VA, phenomean, sep=",");
+		writeFile(outburn, Bfile, append = T);	
+	}
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////	
 // Allelic output: outputting effect sizes, types, frequencies etc.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// TODO: Add a calculation for fitness in context of environment: https://biology.stackexchange.com/questions/21453/fishers-geometric-model-for-dummies
+// Chi = r*sqrt(n/2z)
+// r is the effect size, n is number of traits, z is distance to the optimum on average
 
 50000:150000 late() {
 
@@ -222,6 +237,8 @@ mutation(m1) {
 	
 	// same for substitutions
 	subs = sortBy(c(sim.substitutions[sim.substitutions.mutationType != m1]), "originGeneration");
+		
+	dist = abs(mean(p1.individuals.getValue("phenotype")) - sim.getValue("optimum"));
 	
 	// Set up an empty output to store all our mutations' information for this generation
 	mutsLines = NULL;
@@ -237,26 +254,26 @@ mutation(m1) {
 		mutFreq = mean(sim.subpopulations.genomes.containsMutations(mut));
 		mutType = mut.mutationType.id;
 		mutValue = asString(mut.selectionCoeff);
-		mutFit = mut.selectionCoeff * (mut.mutationType.id == 2) + mutValue;
+		mutChi = mut.selectionCoeff * sqrt(1/(2*dist));
 		dictPos = match(mut.position, condict[0,]); // Get the position of the mutation in our dictonary of gene constraints
 		mutCon = condict[1, dictPos]; // Store the row number of the genetic constraint (low, medium, high constraint)
 		
 		// Look into array operators to remove these if/else statements	
 		
 		if (size(subs)) {
-			mutsLine = paste(sim.generation, asString(seed), modelindex, mutType, mut.id, mut.position, mutCon, mut.originGeneration, mutValue, mutFreq, "N/A", sep = ",");
+			mutsLine = paste(sim.generation, asString(seed), modelindex, mutType, mut.id, mut.position, mutCon, mut.originGeneration, mutValue, mutChi, mutFreq, "N/A", sep = ",");
 			mutsLine = paste0(mutsLine, "\n");
 			mutsLines = paste0(mutsLines, mutsLine);
 		}
 
 		else {
 			if (mut != muts[muts.size() - 1]) { // If there are no substitutions and we're on the last mutation, add a new line character, otherwise don't
-				mutsLine = paste(sim.generation, asString(seed), modelindex, mutType, mut.id, mut.position, mutCon, mut.originGeneration, mutValue, mutFreq, "N/A", sep = ",");
+				mutsLine = paste(sim.generation, asString(seed), modelindex, mutType, mut.id, mut.position, mutCon, mut.originGeneration, mutValue, mutChi, mutFreq, "N/A", sep = ",");
 				mutsLine = paste0(mutsLine, "\n");
 				}
 				
 			else {
-				mutsLine = paste(sim.generation, asString(seed), modelindex, mutType, mut.id, mut.position, mutCon, mut.originGeneration, mutValue, mutFreq, "N/A", sep = ",");
+				mutsLine = paste(sim.generation, asString(seed), modelindex, mutType, mut.id, mut.position, mutCon, mut.originGeneration, mutValue, mutChi, mutFreq, "N/A", sep = ",");
 				mutsLine = paste0(mutsLine, ""); // Unsure if necessary, but givent hat \n is a character we should keep char length consistent
 				}
 
@@ -270,6 +287,7 @@ mutation(m1) {
 		subFreq = 1.0;
 		subType = sub.mutationType.id;
 		subValue = asString(sub.selectionCoeff);
+		subChi = sub.selectionCoeff * sqrt(1/(2*dist));
 		dictPos = match(sub.position, condict[0,]);
 		subCon = condict[1, dictPos];
 
@@ -277,12 +295,12 @@ mutation(m1) {
 		// Look into array operators to remove these if/else statements
 		
 		if (sub != subs[subs.size() - 1]) {
-			subLine = paste(sim.generation, asString(seed), modelindex, subType, sub.id, sub.position, subCon, sub.originGeneration, subValue, subFreq, sub.fixationGeneration, sep = ",");
+			subLine = paste(sim.generation, asString(seed), modelindex, subType, sub.id, sub.position, subCon, sub.originGeneration, subValue, subChi, subFreq, sub.fixationGeneration, sep = ",");
 			subLine = paste0(subLine, "\n");
 			}
 			
 		else {
-			subLine = paste(sim.generation, asString(seed), modelindex, subType, sub.id, sub.position, subCon, sub.originGeneration, subValue, subFreq, sub.fixationGeneration, sep = ",");
+			subLine = paste(sim.generation, asString(seed), modelindex, subType, sub.id, sub.position, subCon, sub.originGeneration, subValue, subChi, subFreq, sub.fixationGeneration, sep = ",");
 			subLine = paste0(subLine, "");
 			}
 

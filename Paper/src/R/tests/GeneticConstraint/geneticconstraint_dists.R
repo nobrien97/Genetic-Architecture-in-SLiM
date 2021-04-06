@@ -273,5 +273,6 @@ plot_ex_Tfix
 
 source("/mnt/z/Documents/GitHub/Genetic-Architecture-in-SLiM/Paper/src/R/includes/plot_function.R")
 
-plot_maker(d_muts_ex[!is.na(d_muts_ex$Tfix) & d_muts_ex$mutType == 3,], type = "d", x="Tfix", colour="constraint")
+plot_maker(d_muts_ex[!is.na(d_muts_ex$Tfix) & d_muts_ex$mutType == 3,], type = "d", x="Tfix", xlab = 
+             "Time to fixation (generations)", colour.lab = "Genetic Constraint", colour="constraint")
 
