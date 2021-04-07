@@ -276,3 +276,31 @@ source("/mnt/z/Documents/GitHub/Genetic-Architecture-in-SLiM/Paper/src/R/include
 plot_maker(d_muts_ex[!is.na(d_muts_ex$Tfix) & d_muts_ex$mutType == 3,], type = "d", x="Tfix", xlab = 
              "Time to fixation (generations)", colour.lab = "Genetic Constraint", colour="constraint")
 
+
+# Extreme values w/ large initial distance to the optimum 
+
+setwd("/mnt/z/Documents/GitHub/Genetic-Architecture-in-SLiM/Paper/data/tests/GeneticConstraint/faropt/")
+
+d_burnmeans_far <- read.csv("out_stabsel_burnin.csv", header = F)
+
+names(d_burnmeans_far) <- c("gen", "seed", "modelindex", "meanH", "VA", "phenomean")
+
+d_means_far <- read.csv("out_stabsel_means.csv", header = F)
+
+names(d_means_far) <- c("gen", "seed", "modelindex", "meanH", "VA", "phenomean", "dist", "mean_w")
+
+d_muts_far <- read.csv("out_stabsel_muts.csv", header = F) # Ignore extra empty column (fixed in next version of script)
+
+names(d_muts_far) <- c("gen", "seed", "modelindex", "mutType", "mutID", "position", "constraint", "originGen", "value", "Freq", "fixGen")
+
+d_muts_far$constraint <- as.factor(d_muts_far$constraint)
+
+levels(d_muts_far$constraint) <- c("Low", "Medium", "High")
+
+d_muts_far$Tfix <- NA
+
+d_muts_far[d_muts_far$fixGen != "N/A",]$Tfix <- as.integer(d_muts_far[d_muts_far$fixGen != "N/A",]$fixGen) - d_muts_far[d_muts_far$fixGen != "N/A",]$originGen  # Time to fixation
+
+
+
+
