@@ -2,16 +2,29 @@
 
 
 library(tidyverse)
+library(colorspace)
 
 # Excessively ugly functions with lots of repeated code, epic
 
-plot_maker <- function(dat, type = c("d", "l"), x, y, xlab, ylab, group, colour, group.lab, colour.lab, leg.enabled, savename) {
+plot_maker <- function(dat, type = c("d", "l"), x, y, xlab, ylab, group, colour, group.lab, colour.lab, leg.enabled, scale.col = NULL, dens.count = NULL, savename) {
   if (missing(type))
     return("Please choose a figure type")
   else {
+    
     # Create a list/enum struct of plot types to offload to the correct plot function
     type <- match.arg(type)
     argv <- as.list(match.call(expand.dots = TRUE)[-1]) # argv minus the function name
+    
+    # If we haven't set a value for the scale color parameter, choose a default (colorspace::scale_color_discrete_sequential())
+    if (is.null(scale.col)) {
+      argv$scale.col <- "ds"
+    }
+    
+    # If we haven't set a value for the density using counts vs regular density estimates, 
+    # set to false if we are drawing a density plot
+    if (is.null(dens.count) & type == "d") {
+      argv$dens.count <- FALSE
+    }
     
     # Then check if we have a filename and use that to select which arguments to keep for the plot method
     if (!missing(savename)) {
@@ -21,11 +34,17 @@ plot_maker <- function(dat, type = c("d", "l"), x, y, xlab, ylab, group, colour,
     else
       argv_feed <- argv[-match(type, argv)]
     
-      
+    # If we aren't drawing a density plot, and for some reason we've set a dens.count value manually, remove it  
+    if (type != "d" & !is.null(argv_feed$dens.count)) {
+      argv_feed <- argv_feed[-match(dens.count, argv_feed)]
+    }
+    
+
     switch (type,
       d = do.call(density_plot, argv_feed), # Get rid of the type argument
       l = do.call(line_plot, argv_feed)
     )
+    
       
   }
   if (!missing(savename)) {
@@ -38,7 +57,7 @@ plot_maker <- function(dat, type = c("d", "l"), x, y, xlab, ylab, group, colour,
 
 # Plot a density plot
 
-density_plot <- function(dat, x, xlab="x", group, colour, group.lab = group, colour.lab = colour, leg.enabled=TRUE) {
+density_plot <- function(dat, x, xlab="x", group, colour, group.lab = group, colour.lab = colour, leg.enabled=TRUE, scale.col, dens.count) {
   
   if (missing(group) & missing(colour)) {
    gg_temp <- ggplot(data = dat, 
@@ -61,6 +80,12 @@ density_plot <- function(dat, x, xlab="x", group, colour, group.lab = group, col
       labs(x = xlab, y = "Density", colour = colour.lab)
 
   }
+  # If we've decided to use the count method for density drawing, use that instead of regular density
+  if (dens.count == TRUE) {
+    gg_temp <- gg_temp + aes(y = after_stat(count)) +
+      labs(y = "Density (Adjusted by count)")
+  }
+  
   gg_temp <- gg_temp +  
     theme_classic() +
     theme(axis.text.x = element_text(size = 16, margin = margin(t = 8), face = "bold"),
@@ -71,6 +96,11 @@ density_plot <- function(dat, x, xlab="x", group, colour, group.lab = group, col
                          legend.key.width = unit(1.6, "cm"),
                          legend.title.align = 0.5,
                          panel.spacing.y = unit(1, "lines"))
+  
+  # Switch statement controlling colour options
+  switch (scale.col,
+    ds = { gg_temp <- gg_temp + scale_color_discrete_sequential() }
+  )
   
   if (leg.enabled == FALSE)
     gg_temp <- gg_temp + theme(legend.position = "none")
@@ -83,7 +113,7 @@ density_plot <- function(dat, x, xlab="x", group, colour, group.lab = group, col
 
 # Plot a line graph
 
-line_plot <- function(dat, x, y, xlab="x", ylab="y", group, colour, group.lab = group, colour.lab = colour, leg.enabled = TRUE) {
+line_plot <- function(dat, x, y, xlab="x", ylab="y", group, colour, group.lab = group, colour.lab = colour, leg.enabled = TRUE, scale.col) {
   if (missing(group) & missing(colour)) {
     gg_temp <- ggplot(data = dat, 
            aes_string(x = x, y = y)) +
@@ -117,9 +147,11 @@ line_plot <- function(dat, x, y, xlab="x", ylab="y", group, colour, group.lab = 
   if (leg.enabled == FALSE)
     gg_temp <- gg_temp + theme(legend.position = "none")
   
+  # Switch statement controlling colour options
+  switch (scale.col,
+          ds = { gg_temp <- gg_temp + scale_color_discrete_sequential() }
+  )
+  
   gg_temp
   
 }
-
-
-# Plot an 

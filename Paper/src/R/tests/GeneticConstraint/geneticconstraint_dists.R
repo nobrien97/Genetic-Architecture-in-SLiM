@@ -302,5 +302,11 @@ d_muts_far$Tfix <- NA
 d_muts_far[d_muts_far$fixGen != "N/A",]$Tfix <- as.integer(d_muts_far[d_muts_far$fixGen != "N/A",]$fixGen) - d_muts_far[d_muts_far$fixGen != "N/A",]$originGen  # Time to fixation
 
 
+source("/mnt/z/Documents/GitHub/Genetic-Architecture-in-SLiM/Paper/src/R/includes/plot_function.R")
+
+plot_maker(d_muts_far[!is.na(d_muts_far$Tfix) & d_muts_far$mutType == 3 & d_muts_far$gen == 150000,], type = "d", x="value", xlab = 
+             "Additive effect size", colour.lab = "Genetic Constraint", colour="constraint")
 
 
+plot_maker(d_means_far, type = "l", x = "gen", y = "phenomean", xlab = 
+             "Time (generations)", ylab = "Mean phenotype", group = "seed", leg.enabled = F)
