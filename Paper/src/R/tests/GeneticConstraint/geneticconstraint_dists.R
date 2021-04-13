@@ -310,3 +310,137 @@ plot_maker(d_muts_far[!is.na(d_muts_far$Tfix) & d_muts_far$mutType == 3 & d_muts
 
 plot_maker(d_means_far, type = "l", x = "gen", y = "phenomean", xlab = 
              "Time (generations)", ylab = "Mean phenotype", group = "seed", leg.enabled = F)
+
+
+
+
+
+
+# New Shape: This run had a more extreme distribution of bkg sel fitness effects (more deleterious),
+# a wider fitness function, 30 QTLs in a genome of 40 loci, and an optimum 30 phenotypic units away
+# from the burn-in phenotype.
+# In addition, the test ran for only 50000 generations and means were captured every 100 generations
+# with mutations every 1000 generations to capture the adaptive walk
+# muts also has the standardised effect size, Chi = r* sqrt(n/2z) where n is number of traits, z is 
+# average distance to optimum, and r is effect size
+
+setwd("/mnt/z/Documents/GitHub/Genetic-Architecture-in-SLiM/Paper/data/tests/GeneticConstraint/NewShape/")
+
+d_burnmeans <- read.csv("out_stabsel_burnin.csv", header = F)
+
+names(d_burnmeans) <- c("gen", "seed", "modelindex", "meanH", "VA", "phenomean")
+
+d_means <- read.csv("out_stabsel_means.csv", header = F)
+
+names(d_means) <- c("gen", "seed", "modelindex", "meanH", "VA", "phenomean", "dist", "mean_w")
+
+d_muts <- read.csv("out_stabsel_muts.csv", header = F) # Ignore extra empty column (fixed in next version of script)
+
+names(d_muts) <- c("gen", "seed", "modelindex", "mutType", "mutID", "position", "constraint", "originGen", "value", "chi", "Freq", "fixGen")
+
+d_muts$constraint <- as.factor(d_muts$constraint)
+
+levels(d_muts$constraint) <- c("Low", "Medium", "High")
+
+d_muts$Tfix <- NA
+
+d_muts[d_muts$fixGen != "N/A",]$Tfix <- as.integer(d_muts[d_muts$fixGen != "N/A",]$fixGen) - d_muts[d_muts$fixGen != "N/A",]$originGen  # Time to fixation
+
+
+source("/mnt/z/Documents/GitHub/Genetic-Architecture-in-SLiM/Paper/src/R/includes/plot_function.R")
+
+plot_maker(d_muts[!is.na(d_muts$Tfix) & d_muts$mutType == 3 & d_muts$gen == 100000,], type = "d", x="value", xlab = 
+             "Additive effect size", colour.lab = "Genetic Constraint", colour="constraint")
+
+
+# Took about 1000 generations for all replicates to adapt
+
+plot_maker(d_means[d_means$gen < 55000,], type = "l", x = "gen", y = "phenomean", xlab = 
+             "Time (generations)", ylab = "Mean phenotype", group = "seed", leg.enabled = F)
+
+plot_maker(d_muts[!is.na(d_muts$Tfix) & d_muts$mutType == 3 & d_muts$gen == 51000,], type = "d", x="value", xlab = 
+             "Additive effect size", colour.lab = "Genetic Constraint", colour="constraint")
+
+plot_maker(d_muts[!is.na(d_muts$Tfix) & d_muts$mutType == 3 & d_muts$gen == 51000,], type = "d", x="chi", xlab = 
+             "Standardised effect size", colour.lab = "Genetic Constraint", colour="constraint", pal = "Peach", savename = 
+             "gencon_fixations_dens.png")
+
+
+plot_maker(d_muts[!is.na(d_muts$Tfix) & d_muts$mutType == 3 & d_muts$gen == 51000,], type = "h", x="chi", xlab = 
+             "Standardised effect size", colour.lab = "Genetic Constraint", colour="constraint", pal = "Magenta", savename =
+             "gencon_fixations_hist.png")
+
+
+plot_maker(d_muts[!is.na(d_muts$Tfix) & d_muts$mutType == 3 & d_muts$gen == 51000,], type = "d", x="chi", xlab = 
+             "Standardised effect size", colour.lab = "Genetic Constraint", colour="constraint", pal = "Magenta", dens.count = T,
+           savename = "gencon_fixations_denscount.png")
+
+
+plot_maker(d_muts[!is.na(d_muts$Tfix) & d_muts$mutType == 3 & d_muts$gen == 51000 & d_muts$seed == unique(d_muts$seed)[2],], type = "d", x="chi", xlab = 
+             "Standardised effect size", colour.lab = "Genetic Constraint", colour="constraint", pal = "Peach")
+
+
+
+# New Shape Sigma 10: Exactly as above, but with locisigma = 10: more variable additive effects
+
+setwd("/mnt/z/Documents/GitHub/Genetic-Architecture-in-SLiM/Paper/data/tests/GeneticConstraint/NewShape_sigma10/")
+
+d_burnmeans <- read.csv("out_stabsel_burnin.csv", header = F)
+
+names(d_burnmeans) <- c("gen", "seed", "modelindex", "meanH", "VA", "phenomean")
+
+d_means <- read.csv("out_stabsel_means.csv", header = F)
+
+names(d_means) <- c("gen", "seed", "modelindex", "meanH", "VA", "phenomean", "dist", "mean_w")
+
+d_muts <- read.csv("out_stabsel_muts.csv", header = F) # Ignore extra empty column (fixed in next version of script)
+
+names(d_muts) <- c("gen", "seed", "modelindex", "mutType", "mutID", "position", "constraint", "originGen", "value", "chi", "Freq", "fixGen")
+
+d_muts$constraint <- as.factor(d_muts$constraint)
+
+levels(d_muts$constraint) <- c("Low", "Medium", "High")
+
+d_muts$Tfix <- NA
+
+d_muts[d_muts$fixGen != "N/A",]$Tfix <- as.integer(d_muts[d_muts$fixGen != "N/A",]$fixGen) - d_muts[d_muts$fixGen != "N/A",]$originGen  # Time to fixation
+
+
+source("/mnt/z/Documents/GitHub/Genetic-Architecture-in-SLiM/Paper/src/R/includes/plot_function.R")
+
+plot_maker(d_muts[!is.na(d_muts$Tfix) & d_muts$mutType == 3 & d_muts$gen == 100000,], type = "d", x="value", xlab = 
+             "Additive effect size", colour.lab = "Genetic Constraint", colour="constraint")
+
+
+# Took about 1000 generations for all replicates to adapt
+
+plot_maker(d_means[d_means$gen < 55000,], type = "l", x = "gen", y = "phenomean", xlab = 
+             "Time (generations)", ylab = "Mean phenotype", group = "seed", leg.enabled = F)
+
+plot_maker(d_muts[!is.na(d_muts$Tfix) & d_muts$mutType == 3 & d_muts$gen == 51000,], type = "d", x="value", xlab = 
+             "Additive effect size", colour.lab = "Genetic Constraint", colour="constraint", pal = "Sunset")
+
+plot_maker(d_muts[!is.na(d_muts$Tfix) & d_muts$mutType == 3 & d_muts$gen == 51000,], type = "d", x="chi", xlab = 
+             "Standardised effect size", colour.lab = "Genetic Constraint", colour="constraint", pal = "Peach", savename = 
+             "gencon_fixations_dens.png")
+
+
+plot_maker(d_muts[!is.na(d_muts$Tfix) & d_muts$mutType == 3 & d_muts$gen == 51000,], type = "h", x="chi", xlab = 
+             "Standardised effect size", colour.lab = "Genetic Constraint", colour="constraint", pal = "Magenta", savename =
+             "gencon_fixations_hist.png")
+
+
+plot_maker(d_muts[!is.na(d_muts$Tfix) & d_muts$mutType == 3 & d_muts$gen == 51000,], type = "d", x="chi", xlab = 
+             "Standardised effect size", colour.lab = "Genetic Constraint", colour="constraint", pal = "Magenta", dens.count = T,
+           savename = "gencon_fixations_denscount.png")
+
+
+plot_maker(d_muts[!is.na(d_muts$Tfix) & d_muts$mutType == 3 & d_muts$gen == 51000,], type = "d", x="abs(chi)", xlab = 
+             "Standardised effect size", colour.lab = "Genetic Constraint", colour="constraint", pal = "Magenta")
+
+
+
+
+
+
+

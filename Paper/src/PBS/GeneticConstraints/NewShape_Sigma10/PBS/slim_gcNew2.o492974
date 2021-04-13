@@ -1,0 +1,511 @@
+
+R version 3.5.0 (2018-04-23) -- "Joy in Playing"
+Copyright (C) 2018 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> ##############################################################################################################
+> #  Test of the genetic constraints system: 24 replicates, stabilising selection, 4 genes, 3 QTLs
+> ##############################################################################################################
+> 
+> 
+> #  Parallel script modified from SLiM-Extras example R script, info at
+> #  the SLiM-Extras repository at https://github.com/MesserLab/SLiM-Extras.
+> 
+> # Environment variables
+> 
+> USER <- Sys.getenv('USER')
+> 
+> # Parallelisation libraries 
+> 
+> library(foreach)
+> library(doParallel)
+> library(future)
+> 
+> 
+> seeds <- read.csv(paste0("/home/",USER,"/SLiM/Scripts/Tools/SeedGen/seeds_sub.csv"), header = T)
+> 
+> 
+> cl <- makeCluster(future::availableCores())
+> registerDoParallel(cl)
+> 
+> #Run SLiM
+> 
+> foreach(i=seeds$Seed) %dopar% {
++ 	# Use string manipulation functions to configure the command line args, feeding from a data frame of seeds
++ 	# then run SLiM with system(),
++     	slim_out <- system(sprintf("/home/$USER/SLiM/slim -s %s /home/$USER/SLiM/Scripts/Tests/GeneticConstraints/NewShapeTest2/slim/polygen_maint.slim", as.character(i), intern=T))
++   }
+// Initial random seed:
+747821116
+
+// RunInitializeCallbacks():
+// Initial random seed:
+2042318457
+
+// RunInitializeCallbacks():
+// Initial random seed:
+990054207
+
+// RunInitializeCallbacks():
+// Initial random seed:
+1416806324
+
+// RunInitializeCallbacks():
+// Initial random seed:
+1684714609
+
+// RunInitializeCallbacks():
+// Initial random seed:
+1206851275
+
+// RunInitializeCallbacks():
+// Initial random seed:
+1385447792
+
+// RunInitializeCallbacks():
+// Initial random seed:
+760916215
+
+// RunInitializeCallbacks():
+// Initial random seed:
+1613230093
+
+// RunInitializeCallbacks():
+// Initial random seed:
+1939712840
+
+// RunInitializeCallbacks():
+// Initial random seed:
+1876281008
+
+// RunInitializeCallbacks():
+// Initial random seed:
+826691028
+
+// RunInitializeCallbacks():
+// Initial random seed:
+424099224
+
+// RunInitializeCallbacks():
+// Initial random seed:
+903470255
+
+// RunInitializeCallbacks():
+// Initial random seed:
+140935303
+
+// Initial random seed:
+1768608038
+
+// RunInitializeCallbacks():
+// RunInitializeCallbacks():
+// Initial random seed:
+2131134706
+
+// RunInitializeCallbacks():
+// Initial random seed:
+323452618
+
+// RunInitializeCallbacks():
+// Initial random seed:
+1531622187
+
+// RunInitializeCallbacks():
+// Initial random seed:
+79843871
+
+// RunInitializeCallbacks():
+// Initial random seed:
+126957627
+
+// RunInitializeCallbacks():
+// Initial random seed:
+1921027994
+
+// RunInitializeCallbacks():
+// Initial random seed:
+370670572
+
+// RunInitializeCallbacks():
+// Initial random seed:
+1723898586
+
+// RunInitializeCallbacks():
+initializeMutationRate(8.045e-06);
+initializeMutationRate(8.045e-06);
+initializeMutationRate(8.045e-06);
+initializeMutationRate(8.045e-06);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationRate(8.045e-06);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(2, 0.5, "g", -1, 10);
+initializeMutationType(2, 0.5, "g", -1, 10);
+initializeMutationType(2, 0.5, "g", -1, 10);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(2, 0.5, "g", -1, 10);
+initializeMutationRate(8.045e-06);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(2, 0.5, "g", -1, 10);
+initializeMutationRate(8.045e-06);
+initializeMutationRate(8.045e-06);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(2, 0.5, "g", -1, 10);
+initializeMutationType(2, 0.5, "g", -1, 10);
+initializeMutationRate(8.045e-06);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(2, 0.5, "g", -1, 10);
+initializeMutationRate(8.045e-06);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(2, 0.5, "g", -1, 10);
+initializeMutationRate(8.045e-06);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(2, 0.5, "g", -1, 10);
+initializeMutationRate(8.045e-06);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(2, 0.5, "g", -1, 10);
+initializeMutationType(3, 0.5, "n", 0, 10);
+initializeMutationType(3, 0.5, "n", 0, 10);
+initializeMutationType(3, 0.5, "n", 0, 10);
+initializeMutationRate(8.045e-06);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(2, 0.5, "g", -1, 10);
+initializeMutationType(3, 0.5, "n", 0, 10);
+initializeMutationRate(8.045e-06);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(2, 0.5, "g", -1, 10);
+initializeMutationType(3, 0.5, "n", 0, 10);
+initializeMutationRate(8.045e-06);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(2, 0.5, "g", -1, 10);
+initializeGenomicElementType(1, m1, 1);
+initializeMutationType(3, 0.5, "n", 0, 10);
+initializeGenomicElementType(1, m1, 1);
+initializeGenomicElementType(1, m1, 1);
+initializeGenomicElementType(1, m1, 1);
+initializeGenomicElement(g1, 0, 39);
+initializeGenomicElement(g1, 0, 39);
+initializeGenomicElement(g1, 0, 39);
+initializeRecombinationRate(0.5);
+initializeRecombinationRate(0.5);
+initializeGenomicElement(g1, 0, 39);
+initializeRecombinationRate(0.5);
+initializeMutationRate(8.045e-06);
+initializeMutationType(1, 0.5, "f", 0);
+initializeRecombinationRate(0.5);
+initializeMutationType(2, 0.5, "g", -1, 10);
+initializeMutationType(3, 0.5, "n", 0, 10);
+initializeGenomicElementType(1, m1, 1);
+initializeGenomicElement(g1, 0, 39);
+initializeRecombinationRate(0.5);
+initializeMutationType(2, 0.5, "g", -1, 10);
+initializeMutationType(3, 0.5, "n", 0, 10);
+initializeGenomicElementType(1, m1, 1);
+initializeGenomicElement(g1, 0, 39);
+initializeRecombinationRate(0.5);
+initializeMutationRate(8.045e-06);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(2, 0.5, "g", -1, 10);
+initializeMutationType(3, 0.5, "n", 0, 10);
+initializeGenomicElementType(1, m1, 1);
+initializeGenomicElement(g1, 0, 39);
+initializeRecombinationRate(0.5);
+initializeGenomicElementType(1, m1, 1);
+initializeGenomicElement(g1, 0, 39);
+initializeRecombinationRate(0.5);
+initializeGenomicElementType(1, m1, 1);
+initializeGenomicElement(g1, 0, 39);
+initializeRecombinationRate(0.5);
+initializeMutationType(3, 0.5, "n", 0, 10);
+initializeGenomicElementType(1, m1, 1);
+initializeGenomicElement(g1, 0, 39);
+initializeRecombinationRate(0.5);
+initializeMutationRate(8.045e-06);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(2, 0.5, "g", -1, 10);
+initializeMutationType(3, 0.5, "n", 0, 10);
+initializeMutationType(3, 0.5, "n", 0, 10);
+initializeMutationType(3, 0.5, "n", 0, 10);
+initializeGenomicElementType(1, m1, 1);
+initializeGenomicElementType(1, m1, 1);
+initializeGenomicElementType(1, m1, 1);
+initializeGenomicElement(g1, 0, 39);
+initializeGenomicElement(g1, 0, 39);
+initializeRecombinationRate(0.5);
+initializeGenomicElement(g1, 0, 39);
+initializeRecombinationRate(0.5);
+initializeRecombinationRate(0.5);
+initializeMutationRate(8.045e-06);
+initializeMutationType(3, 0.5, "n", 0, 10);
+initializeMutationType(1, 0.5, "f", 0);
+initializeGenomicElementType(1, m1, 1);
+initializeGenomicElement(g1, 0, 39);
+initializeMutationType(2, 0.5, "g", -1, 10);
+initializeRecombinationRate(0.5);
+initializeMutationType(3, 0.5, "n", 0, 10);
+initializeGenomicElementType(1, m1, 1);
+initializeGenomicElement(g1, 0, 39);
+initializeRecombinationRate(0.5);
+initializeMutationRate(8.045e-06);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(2, 0.5, "g", -1, 10);
+initializeMutationRate(8.045e-06);
+initializeMutationType(3, 0.5, "n", 0, 10);
+initializeMutationType(1, 0.5, "f", 0);
+initializeMutationType(3, 0.5, "n", 0, 10);
+initializeGenomicElementType(1, m1, 1);
+initializeMutationType(2, 0.5, "g", -1, 10);
+initializeGenomicElement(g1, 0, 39);
+initializeRecombinationRate(0.5);
+initializeGenomicElementType(1, m1, 1);
+initializeGenomicElement(g1, 0, 39);
+initializeMutationType(3, 0.5, "n", 0, 10);
+initializeRecombinationRate(0.5);
+initializeGenomicElementType(1, m1, 1);
+initializeGenomicElement(g1, 0, 39);
+initializeRecombinationRate(0.5);
+initializeMutationType(3, 0.5, "n", 0, 10);
+initializeGenomicElementType(1, m1, 1);
+initializeGenomicElement(g1, 0, 39);
+initializeRecombinationRate(0.5);
+initializeMutationType(3, 0.5, "n", 0, 10);
+initializeMutationType(3, 0.5, "n", 0, 10);
+initializeMutationRate(8.045e-06);
+initializeGenomicElementType(1, m1, 1);
+initializeMutationType(1, 0.5, "f", 0);
+initializeGenomicElement(g1, 0, 39);
+initializeGenomicElementType(1, m1, 1);
+initializeRecombinationRate(0.5);
+initializeMutationType(2, 0.5, "g", -1, 10);
+initializeGenomicElement(g1, 0, 39);
+initializeMutationRate(8.045e-06);
+initializeRecombinationRate(0.5);
+initializeMutationRate(8.045e-06);
+initializeMutationType(3, 0.5, "n", 0, 10);
+initializeMutationType(1, 0.5, "f", 0);
+initializeGenomicElementType(1, m1, 1);
+initializeMutationType(2, 0.5, "g", -1, 10);
+initializeMutationType(1, 0.5, "f", 0);
+initializeGenomicElement(g1, 0, 39);
+initializeRecombinationRate(0.5);
+initializeMutationType(2, 0.5, "g", -1, 10);
+initializeMutationType(3, 0.5, "n", 0, 10);
+initializeGenomicElementType(1, m1, 1);
+initializeMutationType(3, 0.5, "n", 0, 10);
+initializeGenomicElement(g1, 0, 39);
+initializeRecombinationRate(0.5);
+initializeGenomicElementType(1, m1, 1);
+initializeGenomicElement(g1, 0, 39);
+initializeRecombinationRate(0.5);
+
+// Starting run at generation <start>:
+1 
+
+
+// Starting run at generation <start>:
+1 
+
+
+// Starting run at generation <start>:
+1 
+
+
+// Starting run at generation <start>:
+1 
+
+
+// Starting run at generation <start>:
+1 
+
+
+// Starting run at generation <start>:
+1 
+
+
+// Starting run at generation <start>:
+1 
+
+
+// Starting run at generation <start>:
+1 
+
+
+// Starting run at generation <start>:
+1 
+
+
+// Starting run at generation <start>:
+1 
+
+
+// Starting run at generation <start>:
+1 
+
+
+// Starting run at generation <start>:
+1 
+
+
+// Starting run at generation <start>:
+1 
+
+
+// Starting run at generation <start>:
+1 
+
+
+// Starting run at generation <start>:
+1 
+
+
+// Starting run at generation <start>:
+1 
+
+
+// Starting run at generation <start>:
+1 
+
+
+// Starting run at generation <start>:
+1 
+
+
+// Starting run at generation <start>:
+1 
+
+
+// Starting run at generation <start>:
+1 
+
+
+// Starting run at generation <start>:
+1 
+
+
+// Starting run at generation <start>:
+1 
+
+
+// Starting run at generation <start>:
+1 
+
+
+// Starting run at generation <start>:
+1 
+
+Optimum is: 30.0922
+Optimum is: 47.3326
+Optimum is: 42.8232
+Optimum is: 30.0712
+Optimum is: 37.9308
+Optimum is: 40.3681
+Optimum is: 38.0124
+Optimum is: 41.1008
+Optimum is: 37.7616
+Optimum is: 47.4782
+Optimum is: 34.8782
+Optimum is: 34.3688
+Optimum is: 34.8272
+Optimum is: 43.7452
+Optimum is: 32.9468
+Optimum is: 45.8662
+Optimum is: 31.4415
+Optimum is: 44.4107
+Optimum is: 30.1248
+Optimum is: 53.0116
+Optimum is: 39.6514
+Optimum is: 37.8989
+Optimum is: 39.617
+Optimum is: 35.8246
+[[1]]
+[1] 0
+
+[[2]]
+[1] 0
+
+[[3]]
+[1] 0
+
+[[4]]
+[1] 0
+
+[[5]]
+[1] 0
+
+[[6]]
+[1] 0
+
+[[7]]
+[1] 0
+
+[[8]]
+[1] 0
+
+[[9]]
+[1] 0
+
+[[10]]
+[1] 0
+
+[[11]]
+[1] 0
+
+[[12]]
+[1] 0
+
+[[13]]
+[1] 0
+
+[[14]]
+[1] 0
+
+[[15]]
+[1] 0
+
+[[16]]
+[1] 0
+
+[[17]]
+[1] 0
+
+[[18]]
+[1] 0
+
+[[19]]
+[1] 0
+
+[[20]]
+[1] 0
+
+[[21]]
+[1] 0
+
+[[22]]
+[1] 0
+
+[[23]]
+[1] 0
+
+[[24]]
+[1] 0
+
+> stopCluster(cl)
+> 
+> 
+1 hours, 13 minutes, and 26 seconds elapsed.

@@ -1,0 +1,30 @@
+#!/bin/bash -l
+#PBS -q workq
+#PBS -A qris-uq
+#PBS -N slim_gcNew2
+#PBS -l walltime=16:00:00
+#PBS -l select=1:ncpus=24:mem=120G
+
+cd $TMPDIR
+
+module load R/3.5.0
+
+SECONDS=0
+
+R --file=/home/$USER/SLiM/Scripts/Tests/GeneticConstraints/NewShapeTest2/R/constraints_sublaunch.R
+
+cat /$TMPDIR/out_stabsel_means.csv >> /30days/$USER/out_stabsel_means.csv
+
+cat /$TMPDIR/out_stabsel_muts.csv >> /30days/$USER/out_stabsel_muts.csv
+
+cat /$TMPDIR/out_stabsel_burnin.csv >> /30days/$USER/out_stabsel_burnin.csv
+
+cat /$TMPDIR/out_stabsel_opt.csv >> /30days/$USER/out_stabsel_opt.csv
+
+cat /$TMPDIR/out_stabsel_dict.csv >> /30days/$USER/out_stabsel_dict.csv
+
+cat /$TMPDIR/out_stabsel_pos.csv >> /30days/$USER/out_stabsel_pos.csv
+
+DURATION=$SECONDS
+
+echo "$(($DURATION / 3600)) hours, $((($DURATION / 60) % 60)) minutes, and $(($DURATION % 60)) seconds elapsed."

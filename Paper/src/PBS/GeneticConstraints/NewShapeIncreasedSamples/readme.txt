@@ -1,0 +1,2 @@
+Similar to NewShape, but in a Job Array with each node doing either 24 replicates of locisigma = 1 or locisigma = 10
+In addition, sampling is increased to once every 100 generations for mutation output, and every 20 generations for phenotypes

@@ -1,0 +1,1 @@
+Same test as NewShape but with locisigma = 10
