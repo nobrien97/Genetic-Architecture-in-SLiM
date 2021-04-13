@@ -14,6 +14,81 @@ bins_fd <- function(vec) {
 }
 
 
+# Function to handle facets
+
+facetHandler <- function(plt, facet) {
+  switch (facet[length(facet)],
+          v = { plt <- plt + facet_grid(reformulate(".", facet[1])) },
+          h = { plt <- plt + facet_grid(reformulate(facet[1], ".")) },
+          hv = { plt <- plt + facet_grid(reformulate(facet[1], facet[2])) }
+  )
+  plt
+}
+
+# Function to handle labelling facets
+
+facetLabelHandler <- function(plt, facet, facet.lab) {
+  # Code courtesy of: https://stackoverflow.com/a/37292665/13586824
+
+  switch (facet[length(facet)],
+    h = { 
+      # Labels 
+      labelT = facet.lab
+      # Get the ggplot grob
+      plot_gtab <- ggplotGrob(plt)
+      # Get the positions of the strips in the gtable: t = top, l = left, ...
+      posT <- subset(plot_gtab$layout, grepl("strip-t", name), select = t:r)
+      # and a new row on top of current top strips
+      height <- plot_gtab$heights[min(posT$t)]  # height of current top strips
+      plot_gtab <- gtable_add_rows(plot_gtab, height, min(posT$t)-1)
+      # Construct the new strip grobs
+      stripT <- gTree(name = "Strip_top", children = gList(
+        rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
+        textGrob(labelT, gp = gpar(fontsize = 22, col = "black", fontface = "bold"))))
+      # Position the grobs in the gtable
+      plot_gtab <- gtable_add_grob(plot_gtab, stripT, t = min(posT$t), l = min(posT$l), r = max(posT$r), name = "strip-top")
+      # Add small gaps between strips
+      plot_gtab <- gtable_add_rows(plot_gtab, unit(1/5, "line"), min(posT$t))
+    },
+    
+    v = {
+      labelR = facet.lab
+      plot_gtab <- ggplotGrob(plt)
+      posR <- subset(plot_gtab$layout, grepl("strip-r", name), select = t:r)
+      width <- plot_gtab$widths[max(posR$r)]    # width of current right strips
+      plot_gtab <- gtable_add_cols(plot_gtab, width, max(posR$r))  
+      stripR <- gTree(name = "Strip_right", children = gList(
+        rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
+        textGrob(labelR, rot = -90, gp = gpar(fontsize = 22, col = "black", fontface = "bold"))))
+      plot_gtab <- gtable_add_grob(plot_gtab, stripR, t = min(posR$t), l = max(posR$r) + 1, b = max(posR$b), name = "strip-right")
+      plot_gtab <- gtable_add_cols(plot_gtab, unit(1/5, "line"), max(posR$r))
+      },
+    hv = {
+      labelT = facet.lab[1]
+      labelR = facet.lab[2]
+      plot_gtab <- ggplotGrob(plt)
+      posR <- subset(plot_gtab$layout, grepl("strip-r", name), select = t:r)
+      posT <- subset(plot_gtab$layout, grepl("strip-t", name), select = t:r)
+      width <- plot_gtab$widths[max(posR$r)]  
+      height <- plot_gtab$heights[min(posT$t)]  
+      plot_gtab <- gtable_add_cols(plot_gtab, width, max(posR$r))  
+      plot_gtab <- gtable_add_rows(plot_gtab, height, min(posT$t)-1)
+      stripR <- gTree(name = "Strip_right", children = gList(
+        rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
+        textGrob(labelR, rot = -90, gp = gpar(fontsize = 12, col = "black", fontface = "bold"))))
+      stripT <- gTree(name = "Strip_top", children = gList(
+        rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
+        textGrob(labelT, gp = gpar(fontsize = 12, col = "black", fontface = "bold"))))
+      plot_gtab <- gtable_add_grob(plot_gtab, stripR, t = min(posR$t) + 1, l = max(posR$r) + 1, b = max(posR$b) + 1, name = "strip-right")
+      plot_gtab <- gtable_add_grob(plot_gtab, stripT, t = min(posT$t), l = min(posT$l), r = max(posT$r), name = "strip-top")
+      plot_gtab <- gtable_add_cols(plot_gtab, unit(1/5, "line"), max(posR$r))
+      plot_gtab_vartime_d.ls.s <- gtable_add_rows(plot_gtab, unit(1/5, "line"), min(posT$t))
+    }
+  )
+    plot_gtab
+}
+
+
 
 # Excessively ugly functions with lots of repeated code, epic
 
@@ -107,11 +182,9 @@ density_plot <- function(dat, x, xlab="x", group, colour, facet, facet.lab, grou
   
   # Facet value is a vector of two components: a variable name, and the 
   # direction of the facet (horizontal or vertical)
+  # if you want both hor and vert, you can specify var.name, hv
   if (!missing(facet)) {
-   switch (facet[2],
-      v = { gg_temp <- gg_temp + facet_grid(reformulate(".", facet[1])) },
-      h = { gg_temp <- gg_temp + facet_grid(reformulate(facet[1], ".")) }
-    )
+   gg_temp <- facetHandler(gg_temp, facet)
   }
   
   gg_temp <- gg_temp +  
@@ -150,7 +223,6 @@ density_plot <- function(dat, x, xlab="x", group, colour, facet, facet.lab, grou
                    DarkMint = { gg_temp <- gg_temp + scale_color_discrete_sequential(palette = "DarkMint") },
                    Sunset = { gg_temp <- gg_temp + scale_color_discrete_sequential(palette = "Sunset") },
                    Magenta = { gg_temp <- gg_temp + scale_color_discrete_sequential(palette = "Magenta") }
-                   
     )}
       
   )
@@ -161,64 +233,9 @@ density_plot <- function(dat, x, xlab="x", group, colour, facet, facet.lab, grou
   # Add labels for the facets: https://stackoverflow.com/a/37292665/13586824
   } else {
     if (!missing(facet)) {
-      if (facet[2] == "h") {
-        
-        # Labels 
-        labelT = facet.lab
-        
-        # Get the ggplot grob
-        plot_gtab <- ggplotGrob(gg_temp)
-        
-        # Get the positions of the strips in the gtable: t = top, l = left, ...
-        posT <- subset(plot_gtab$layout, grepl("strip-t", name), select = t:r)
-        
-        # Add a new column to the right of current right strips, 
-        # and a new row on top of current top strips
-        height <- plot_gtab$heights[min(posT$t)]  # height of current top strips
-        
-        plot_gtab <- gtable_add_rows(plot_gtab, height, min(posT$t)-1)
-        
-        # Construct the new strip grobs
-        
-        stripT <- gTree(name = "Strip_top", children = gList(
-          rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
-          textGrob(labelT, gp = gpar(fontsize = 22, col = "black", fontface = "bold"))))
-        
-        # Position the grobs in the gtable
-        plot_gtab <- gtable_add_grob(plot_gtab, stripT, t = min(posT$t), l = min(posT$l), r = max(posT$r), name = "strip-top")
-        
-        # Add small gaps between strips
-        plot_gtab <- gtable_add_rows(plot_gtab, unit(1/5, "line"), min(posT$t))
-        
-        } else {
-        # Labels 
-        labelR = facet.lab
-        
-        # Get the ggplot grob
-        plot_gtab <- ggplotGrob(gg_temp)
-        
-        # Get the positions of the strips in the gtable: t = top, l = left, ...
-        posR <- subset(plot_gtab$layout, grepl("strip-r", name), select = t:r)
-        
-        # Add a new column to the right of current right strips, 
-        # and a new row on top of current top strips
-        width <- plot_gtab$widths[max(posR$r)]    # width of current right strips
-        
-        plot_gtab <- gtable_add_cols(plot_gtab, width, max(posR$r))  
-        
-        # Construct the new strip grobs
-        stripR <- gTree(name = "Strip_right", children = gList(
-          rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
-          textGrob(labelR, rot = -90, gp = gpar(fontsize = 22, col = "black", fontface = "bold"))))
-        
-        # Position the grobs in the gtable
-        plot_gtab <- gtable_add_grob(plot_gtab, stripR, t = min(posR$t), l = max(posR$r) + 1, b = max(posR$b), name = "strip-right")
-        
-        # Add small gaps between strips
-        plot_gtab <- gtable_add_cols(plot_gtab, unit(1/5, "line"), max(posR$r))
-        
-        } 
-      plot_gtab
+      facetLabelHandler(gg_temp, facet, facet.lab)
+    } else {
+      gg_temp
     }
   }
 }
@@ -226,7 +243,7 @@ density_plot <- function(dat, x, xlab="x", group, colour, facet, facet.lab, grou
 
 # Plot a histogram
 
-hist_plot <- function(dat, x, xlab="x", group, colour, group.lab = group, colour.lab = colour, leg.enabled=TRUE, scale.col, pal) {
+hist_plot <- function(dat, x, xlab="x", group, colour, group.lab = group, facet, facet.lab, colour.lab = colour, leg.enabled=TRUE, leg.pos, scale.col, pal) {
   # Freedman-Diaconis rule for number of histogram bins
   
   h <- bins_fd(dat[,x])
@@ -252,6 +269,11 @@ hist_plot <- function(dat, x, xlab="x", group, colour, group.lab = group, colour
       labs(x = xlab, y = "Frequency", fill = colour.lab)
     
   }
+  
+  if (!missing(facet)) {
+    gg_temp <- facetHandler(gg_temp, facet)
+  }
+  
 
   gg_temp <- gg_temp +  
     theme_classic() +
@@ -261,6 +283,7 @@ hist_plot <- function(dat, x, xlab="x", group, colour, group.lab = group, colour
           plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
           text = element_text(size = 22),
           legend.key.width = unit(1.6, "cm"),
+          legend.position = leg.pos,
           legend.title.align = 0.5,
           panel.spacing.y = unit(1, "lines"))
   
@@ -293,10 +316,17 @@ hist_plot <- function(dat, x, xlab="x", group, colour, group.lab = group, colour
           
   )
   
-  if (leg.enabled == FALSE)
+  if (leg.enabled == FALSE) {
     gg_temp <- gg_temp + theme(legend.position = "none")
-  
-  gg_temp
+    gg_temp
+    # Add labels for the facets: https://stackoverflow.com/a/37292665/13586824
+  } else {
+    if (!missing(facet)) {
+      facetLabelHandler(gg_temp, facet, facet.lab)
+    } else {
+      gg_temp
+    }
+  }
 }
 
 

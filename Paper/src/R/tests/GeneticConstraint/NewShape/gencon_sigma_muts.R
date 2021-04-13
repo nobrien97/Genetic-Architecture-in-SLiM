@@ -55,8 +55,7 @@ plot_maker(d_muts[!is.na(d_muts$Tfix) & d_muts$mutType == 3 & d_muts$gen == 8000
            facet = c("sigma", "v"), facet.lab = "Additive effect size distribution", 
            xlab = "Additive effect size", colour.lab = "Genetic Constraint",
            leg.pos = "bottom",
-           colour="constraint", pal = "Magenta",
-           savename = "gencon_fixations_dens_sigma.png")
+           colour="constraint", pal = "Magenta")
 
 plot_maker(d_muts[!is.na(d_muts$Tfix) & d_muts$mutType == 3 & d_muts$gen == 80000,], type = "d", x="chi", 
            facet = c("sigma", "v"), facet.lab = "Additive effect size distribution", 
@@ -80,9 +79,24 @@ plot_maker(d_muts[!is.na(d_muts$Tfix) & d_muts$mutType == 3 & d_muts$gen == 8000
            savename = "gencon_fixations_dens_absstdsigma.png")
 
 
+# Facets won't work well, the scales are really different (could use scales = free but then it's confusing)
+plot_maker(d_muts[!is.na(d_muts$Tfix) & d_muts$mutType == 3 & d_muts$gen == 80000,], type = "h", x="chi",
+           xlab = "Standardised effect size", colour.lab = "Genetic Constraint", 
+           facet = c("sigma", "v"), facet.lab = "Additive effect size distribution",
+           leg.pos = "bottom",
+           colour="constraint", pal = "Magenta",
+           savename = "gencon_fixations_hist_stdsigma.png")
 
-plot_maker(d_muts[!is.na(d_muts$Tfix) & d_muts$mutType == 3 & d_muts$gen == 80000,], type = "h", x="chi", xlab = 
-             "Standardised effect size", colour.lab = "Genetic Constraint", colour="constraint", pal = "Magenta", 
-           savename = "gencon_fixations_hist.png")
+
+plot_maker(d_muts[!is.na(d_muts$Tfix) & d_muts$mutType == 3 & d_muts$gen == 80000 & d_muts$sigma == levels(d_muts$sigma)[1],], type = "h", x="chi",
+           xlab = "Standardised effect size", colour.lab = "Genetic Constraint", 
+           leg.pos = "bottom",
+           colour="constraint", pal = "Magenta",
+           savename = "gencon_fixations_hist_stdsigma1.png")
 
 
+plot_maker(d_muts[!is.na(d_muts$Tfix) & d_muts$mutType == 3 & d_muts$gen == 80000 & d_muts$sigma == levels(d_muts$sigma)[2],], type = "h", x="chi",
+           xlab = "Standardised effect size", colour.lab = "Genetic Constraint", 
+           leg.pos = "bottom",
+           colour="constraint", pal = "Magenta",
+           savename = "gencon_fixations_hist_stdsigma10.png")
