@@ -13,6 +13,11 @@ d_means <- read.csv("out_stabsel_means.csv", header = F)
 
 names(d_means) <- c("gen", "seed", "modelindex", "meanH", "VA", "phenomean", "dist", "mean_w")
 
+d_means$sigma <- as.factor(d_means$modelindex)
+
+levels(d_means$sigma) <- c("\u03c3 = 1", "\u03c3 = 10")
+
+
 d_muts <- read.csv("out_stabsel_muts.csv", header = F) # Ignore extra empty column (fixed in next version of script)
 
 names(d_muts) <- c("gen", "seed", "modelindex", "mutType", "mutID", "position", "constraint", "originGen", "value", "chi", "Freq", "fixGen")
@@ -25,6 +30,10 @@ d_muts$Tfix <- NA
 
 d_muts[d_muts$fixGen != "N/A",]$Tfix <- as.integer(d_muts[d_muts$fixGen != "N/A",]$fixGen) - d_muts[d_muts$fixGen != "N/A",]$originGen  # Time to fixation
 
+d_muts$sigma <- as.factor(d_muts$modelindex)
+
+levels(d_muts$sigma) <- c("\u03c3 = 1", "\u03c3 = 10")
+
 
 source("/mnt/z/Documents/GitHub/Genetic-Architecture-in-SLiM/Paper/src/R/includes/plot_function.R")
 
@@ -36,8 +45,11 @@ plot_maker(d_muts[!is.na(d_muts$Tfix) & d_muts$mutType == 3 & d_muts$gen == 8500
 
 # Took about 1000 generations for all replicates to adapt
 
-test_plot <- plot_maker(d_means, type = "l", x = "gen", y = "phenomean", xlab = 
-             "Time (generations)", ylab = "Mean phenotype", group = "seed", colour = "as.factor(modelindex)", leg.enabled = F)
+plot_maker(d_means, type = "l", x = "gen", y = "phenomean", xlab = 
+             "Time (generations)", ylab = "Mean phenotype", group = "seed", 
+             facet = c("sigma", "h"), facet.lab = "Additive effect size distribution", leg.enabled = F,
+           pal = "highlight",
+           savename = "gencon_phenoadaptation_sigma.png", sav.w = 20, sav.h = 10)
 
 
 
@@ -100,3 +112,65 @@ plot_maker(d_muts[!is.na(d_muts$Tfix) & d_muts$mutType == 3 & d_muts$gen == 8000
            leg.pos = "bottom",
            colour="constraint", pal = "Magenta",
            savename = "gencon_fixations_hist_stdsigma10.png")
+
+
+# Use gganimate to plot these changing over time
+library(gganimate)
+library(transformr)
+
+p <- plot_maker(d_muts[!is.na(d_muts$Tfix) & d_muts$mutType == 3 & d_muts$modelindex == 1 & d_muts$gen < 77500,], type = "d", x="chi", 
+         #  facet = c("sigma", "v"), facet.lab = "Additive effect size distribution", 
+           xlab = "Standardised effect size", colour.lab = "Genetic Constraint",
+           leg.pos = "bottom",
+           colour="constraint", pal = "Magenta")
+
+p_anim <- p + transition_time(gen) +
+      labs(title = "Generation: {frame_time}") +
+      view_follow()
+animate(p_anim, duration = 10, fps = 30, width = 720, height = 720, renderer = av_renderer())
+anim_save("gencon_fix_dens_sigma1.mp4", last_animation())
+
+
+p10 <- plot_maker(d_muts[!is.na(d_muts$Tfix) & d_muts$mutType == 3 & d_muts$modelindex == 2 & d_muts$gen < 77500,], type = "d", x="chi", 
+                       #  facet = c("sigma", "v"), facet.lab = "Additive effect size distribution", 
+                       xlab = "Standardised effect size", colour.lab = "Genetic Constraint",
+                       leg.pos = "bottom",
+                       colour="constraint", pal = "Magenta")
+
+
+p10_anim <- p10 + transition_time(gen) +
+  labs(title = "Generation: {frame_time}") +
+  view_follow(fixed_x = c(NA, 250))
+animate(p10_anim, duration = 10, fps = 30, width = 720, height = 720, renderer = av_renderer())
+anim_save("gencon_fix_dens_sigma10.mp4", last_animation())
+
+
+
+
+p_hist_s1 <- plot_maker(d_muts[!is.na(d_muts$Tfix) & d_muts$mutType == 3 & d_muts$gen < 77500 & d_muts$sigma == levels(d_muts$sigma)[1],], type = "h", x="chi",
+           xlab = "Standardised effect size", colour.lab = "Genetic Constraint", 
+           leg.pos = "bottom",
+           colour="constraint", pal = "Magenta")
+
+
+p_hist_s1_anim <- p_hist_s1 + transition_time(gen) +
+  labs(title = "Generation: {frame_time}") +
+  view_follow(fixed_x = c(NA, 30))
+animate(p_hist_s1_anim, duration = 10, fps = 30, width = 720, height = 720, renderer = av_renderer())
+anim_save("gencon_fix_hist_sigma1.mp4", last_animation())
+
+
+
+
+p_hist_s10 <- plot_maker(d_muts[!is.na(d_muts$Tfix) & d_muts$mutType == 3 & d_muts$gen < 77500 & d_muts$sigma == levels(d_muts$sigma)[2],], type = "h", x="chi",
+                        xlab = "Standardised effect size", colour.lab = "Genetic Constraint", 
+                        leg.pos = "bottom",
+                        colour="constraint", pal = "Magenta")
+
+
+p_hist_s10_anim <- p_hist_s10 + transition_time(gen) +
+  labs(title = "Generation: {frame_time}") +
+  view_follow(fixed_x = c(-10, 100))
+animate(p_hist_s10_anim, duration = 10, fps = 30, width = 720, height = 720, renderer = av_renderer())
+anim_save("gencon_fix_hist_sigma10.mp4", last_animation())
+

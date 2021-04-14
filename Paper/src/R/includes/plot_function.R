@@ -1,10 +1,11 @@
 # Collection of useful functions for visualising data using ggplot, wrapped within an interface function plot_maker
 
 
-library(tidyverse)
-library(colorspace)
-library(gtable)
-library(grid)
+require(tidyverse)
+require(colorspace)
+require(gtable)
+require(grid)
+require(gghighlight)
 
 
 # Function to implement Freedman-Diacon is rule (calc number of bins for histogram): https://aneuraz.github.io/snippetR/posts/2018-10-02-ideal-number-of-bins-for-histograms/
@@ -92,7 +93,7 @@ facetLabelHandler <- function(plt, facet, facet.lab) {
 
 # Excessively ugly functions with lots of repeated code, epic
 
-plot_maker <- function(dat, type = c("d", "l", "h"), x, y, xlab, ylab, group, colour, facet, facet.lab, group.lab, colour.lab, leg.enabled = TRUE, leg.pos = NULL, scale.col = NULL, pal = NULL, dens.count = NULL, savename) {
+plot_maker <- function(dat, type = c("d", "l", "h"), x, y, xlab, ylab, group, colour, facet, facet.lab, group.lab, colour.lab, leg.enabled = TRUE, leg.pos = NULL, scale.col = NULL, pal = NULL, dens.count = NULL, savename, sav.w, sav.h) {
   if (missing(type))
     return("Please choose a figure type")
   else {
@@ -131,6 +132,16 @@ plot_maker <- function(dat, type = c("d", "l", "h"), x, y, xlab, ylab, group, co
     if (type != "d" & !is.null(argv_feed$dens.count)) {
       argv_feed <- argv_feed[-match(dens.count, argv_feed)]
     }
+    
+    # get rid of save size parameters
+    if (!missing(sav.w)) {
+      argv_feed <- argv_feed[-match(sav.w, argv_feed)]
+    }
+    if (!missing(sav.h)) {
+      argv_feed <- argv_feed[-match(sav.h, argv_feed)]
+    }
+    
+    
     switch (type,
       d = { plt <- do.call(density_plot, argv_feed) }, # Get rid of the type argument
       l = { plt <- do.call(line_plot, argv_feed) },
@@ -139,11 +150,18 @@ plot_maker <- function(dat, type = c("d", "l", "h"), x, y, xlab, ylab, group, co
     
       
   }
+  if (missing(sav.h))
+    sav.h = 15
+  
+  if (missing(sav.w))
+    sav.w = 15
+  
   if (!missing(savename)) {
-    ggsave(savename, plt, width = 15, height = 15)
+    ggsave(savename, plt, width = sav.w, height = sav.h)
   } 
 
-  grid.draw(plt)  
+  grid.draw(plt) 
+  return(plt)
     
 }
 
@@ -227,16 +245,14 @@ density_plot <- function(dat, x, xlab="x", group, colour, facet, facet.lab, grou
       
   )
   
-  if (leg.enabled == FALSE) {
+  if (leg.enabled == FALSE) 
     gg_temp <- gg_temp + theme(legend.position = "none")
-    gg_temp
+  
   # Add labels for the facets: https://stackoverflow.com/a/37292665/13586824
+  if (!missing(facet)) {
+    facetLabelHandler(gg_temp, facet, facet.lab)
   } else {
-    if (!missing(facet)) {
-      facetLabelHandler(gg_temp, facet, facet.lab)
-    } else {
-      gg_temp
-    }
+    gg_temp
   }
 }
 
@@ -316,23 +332,21 @@ hist_plot <- function(dat, x, xlab="x", group, colour, group.lab = group, facet,
           
   )
   
-  if (leg.enabled == FALSE) {
+  if (leg.enabled == FALSE) 
     gg_temp <- gg_temp + theme(legend.position = "none")
-    gg_temp
-    # Add labels for the facets: https://stackoverflow.com/a/37292665/13586824
+  
+  # Add labels for the facets: https://stackoverflow.com/a/37292665/13586824
+  if (!missing(facet)) {
+    facetLabelHandler(gg_temp, facet, facet.lab)
   } else {
-    if (!missing(facet)) {
-      facetLabelHandler(gg_temp, facet, facet.lab)
-    } else {
-      gg_temp
-    }
+    gg_temp
   }
 }
 
 
 # Plot a line graph
 
-line_plot <- function(dat, x, y, xlab="x", ylab="y", group, colour, group.lab = group, colour.lab = colour, leg.enabled = TRUE, scale.col, pal) {
+line_plot <- function(dat, x, y, xlab="x", ylab="y", group, colour, facet, facet.lab, group.lab = group, colour.lab = colour, leg.pos, leg.enabled = TRUE, scale.col, pal) {
   if (missing(group) & missing(colour)) {
     gg_temp <- ggplot(data = dat, 
            aes_string(x = x, y = y)) +
@@ -352,6 +366,46 @@ line_plot <- function(dat, x, y, xlab="x", ylab="y", group, colour, group.lab = 
       labs(x = xlab, y = ylab, colour = colour.lab)
 
   }
+  
+  
+  # Switch statement controlling colour options: Yes I hate this too, but scale_color_discrete_sequential 
+  # can't find the object pal (defined as an argument in plot_maker) to directly compare colours:
+  # Error in (function (n, h = 260, c = 80, l = c(30, 90), power = 1.5, gamma = NULL,  : 
+  # object 'pal' not found
+  
+  switch (scale.col,
+          ds = { 
+            switch (pal,
+                    Grays = { gg_temp <- gg_temp + scale_colour_discrete_sequential(palette = "Grays") },
+                    Purples = { gg_temp <- gg_temp + scale_colour_discrete_sequential(palette = "Purples") },
+                    Blues = { gg_temp <- gg_temp + scale_colour_discrete_sequential(palette = "Blues 2") },
+                    Greens = { gg_temp <- gg_temp + scale_colour_discrete_sequential(palette = "Greens 2") },
+                    Emrld = { gg_temp <- gg_temp + scale_colour_discrete_sequential(palette = "Emrld") },
+                    Batlow = { gg_temp <- gg_temp + scale_colour_discrete_sequential(palette = "Batlow") },
+                    Hawaii = { gg_temp <- gg_temp + scale_colour_discrete_sequential(palette = "Hawaii") },
+                    BuPu = { gg_temp <- gg_temp + scale_colour_discrete_sequential(palette = "BuPu") },
+                    Peach = { gg_temp <- gg_temp + scale_colour_discrete_sequential(palette = "Peach") },
+                    Heat = { gg_temp <- gg_temp + scale_colour_discrete_sequential(palette = "Heat") },
+                    Inferno = { gg_temp <- gg_temp + scale_colour_discrete_sequential(palette = "Inferno") },
+                    DarkMint = { gg_temp <- gg_temp + scale_colour_discrete_sequential(palette = "DarkMint") },
+                    Sunset = { gg_temp <- gg_temp + scale_colour_discrete_sequential(palette = "Sunset") },
+                    Magenta = { gg_temp <- gg_temp + scale_colour_discrete_sequential(palette = "Magenta") },
+                    # highlights a couple of lines to track them easier
+                    highlight = {
+                      seedchoice <- sample(unique(as.factor(dat$seed)), 2)
+                      gg_temp <- gg_temp + gghighlight(seed == as.factor(seedchoice[1]) | seed == as.factor(seedchoice[2]), calculate_per_facet = T, use_direct_label = F) +
+                        scale_colour_manual(values = c("CC6666", "66CC99"))
+                    }
+                    
+            )}
+          
+  )
+  
+  
+  if (!missing(facet)) {
+    gg_temp <- facetHandler(gg_temp, facet)
+  }
+  
   gg_temp <- gg_temp + 
     theme_classic() +
     theme(axis.text.x = element_text(size = 16, margin = margin(t = 8), face = "bold"),
@@ -361,16 +415,20 @@ line_plot <- function(dat, x, y, xlab="x", ylab="y", group, colour, group.lab = 
                              text = element_text(size = 22),
                              legend.key.width = unit(1.6, "cm"),
                              legend.title.align = 0.5,
+                             legend.position = leg.pos,
                              panel.spacing.y = unit(1, "lines"))
   
-  if (leg.enabled == FALSE)
+  
+  
+  
+  
+  if (leg.enabled == FALSE) 
     gg_temp <- gg_temp + theme(legend.position = "none")
-  
-  # Switch statement controlling colour options
-  switch (scale.col,
-          ds = { gg_temp <- gg_temp + scale_color_discrete_sequential() }
-  )
-  
-  gg_temp
-  
+
+    # Add labels for the facets: https://stackoverflow.com/a/37292665/13586824
+    if (!missing(facet)) {
+      facetLabelHandler(gg_temp, facet, facet.lab)
+    } else {
+      gg_temp
+  }
 }
