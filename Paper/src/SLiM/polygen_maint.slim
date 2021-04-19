@@ -25,7 +25,7 @@ initialize() {
 	// Values from literature are cited
 	// The realistic range of w^2 is 3-50, so 18 to 5000 for 2w^2, or 0.05556 to 0.0002 for 1/2w^2
 	setCfgParam("mu", 8.045e-6); // Mutation rate averaged across five species from Table 1 Aston et al. 2017 
-	setCfgParam("Ne", 8000 ); // Population size
+	setCfgParam("Ne", 80 ); // Population size
 	setCfgParam("del_mean", -1); // Mean used for the gamma distribution that deleterious mutations are pulled from
 	setCfgParam("del_shape", 10); // Shape parameter for gamma distribution used for deleterious mutations
 	setCfgParam("rwide", 0.5);//1.241e-4); // Whole genome recombination rate
@@ -174,6 +174,10 @@ function (void) calcFitness(o<Individual> inds) {
 	sim.rescheduleScriptBlock(s1, start = 1, end = burnTime);
 	sim.rescheduleScriptBlock(s2, start = burnTime, end = (burnTime + testTime));
 	sim.rescheduleScriptBlock(s3, start = (burnTime + 1), end = (burnTime + testTime));
+	
+	
+	// Set delta difference value
+	sim.setValue("lastDist", 0.0);
 
 }
 
@@ -378,7 +382,9 @@ s3 2 late() {
 		phenomean = mean(phenotypes);
 		w = mean(inds.fitnessScaling);
 		dist = mean(abs(phenotypes - sim.getValue("optimum"))); // Absolute values so that means aren't biased towards 0 by drift 
-		Mfile = paste(sim.generation, asString(seed), modelindex, meanH, VA, phenomean, dist, w, sep=",");
+		delta = dist - sim.getValue("lastDist");
+		sim.setValue("lastDist", dist);
+		Mfile = paste(sim.generation, asString(seed), modelindex, meanH, VA, phenomean, dist, w, delta, sep=",");
 		writeFile(outname, Mfile, append = T);
 	}
 	

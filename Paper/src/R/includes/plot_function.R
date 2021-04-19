@@ -7,6 +7,13 @@ require(gtable)
 require(grid)
 require(gghighlight)
 
+# Basic std error function
+
+std.err <- function(d) {
+  sd(d)/sqrt(length(d))
+}
+
+
 
 # Function to implement Freedman-Diacon is rule (calc number of bins for histogram): https://aneuraz.github.io/snippetR/posts/2018-10-02-ideal-number-of-bins-for-histograms/
 

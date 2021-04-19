@@ -1,0 +1,92 @@
+Daniel/Jan/Nick Meeting Week of April 19th
+
+Topics to consider:
+- New model: single trait, modelled on a per-locus basis
+	- Similar premise to before: most interested in looking at interactions between bkg sel and recombination during and following adaptation
+	- Also tracking trajectories of allelic distributions during and following adaptation
+	- Investigating population genetics statistics/parameters (Watterson's Theta, Tajima's D etc.) in a quantitative framework
+	- 1D Geometric model
+- Genetic Constraint
+	- Trying to mimic the classic 'neutral theory' graph (https://www.blackwellpublishing.com/ridley/images/neutral_theory.jpg), changing the proportions of each section (del, neutral, beneficial)
+		- Doing this by changing the weighting of different mutation types at each locus (when mutations are sampled, weights for each type are applied to sample a particular type)
+			- We have mutations that are only neutral (m1), only deleterious (m2), and also QTL mutations (m3), that could be any of the three, depending on environmental context 
+- Characterising distributions over time: which statistics to use to capture a distribution's shape? Kurtosis? 
+	- Standardised effect size (standardised by distance from the phenotypic optimum)
+		x = r * sqrt(n/2z)
+			where r = additive effect size, n = number of traits, and z = mean distance to the optimum
+- Background Selection: Implementation
+	- Frequency is chosen according to gene constraint: if a gene is highly constrained, we have a lower rate of potentially beneficial QTLs, and a higher rate of bkg sel
+	- This means Bkg Sel is still tied to QTL mutation rate unfortunately
+	- An alternative is having a separate bkg rate which also applies a multiplier to the mutation rate: so mutation rate is increased to 'make up' for the lower QTL mutation rate
+		- This kind of works against the genetic constraint question however, and the general 'mutation rate' stays the same, but the genetic constraint differs
+	- A second alternative is to introduce a deleterious mutation/s at a certain point in the simulation in some location (this could be chosen to be linked to a QTL, or not)
+		- I think this might work better as a direct test for the effects of bkg selection
+- Recombination: Chromosomal inversions - tied to certain mutations?
+- This paper: https://academic.oup.com/genetics/article-abstract/206/1/389/6064225?redirectedFrom=fulltext
+	- This is something Daniel and I will be working our way through to identify in which ways we should verify our model
+	- It's quite mathematically dense, so we might need some help navigating through some of that and finding the biological interpretation
+
+
+
+
+
+SLiM implementation of genetic constraint:
+
+
+	setCfgParam("con_props", c(0.33, 0.33, 0.34)); // Proportion of genes that have low/medium/high substitution rate
+	setCfgParam("constraints", matrix(c(1.0, 1.0, 1.0,
+										5.0, 10.0, 1.0,
+										50.0, 100.0, 1.0), ncol = 3, byrow = T)); // Matrix of lambdas: neutral/deleterious/beneficial weights in columns, rows are low/medium/high sub rate
+
+										
+Two parameters: 
+	'con_props' describes the proportion of the genome that are constrained in a certain way (low constraint, medium, high - this can be extended to as many as is needed)
+				
+	'constraints' describes what each of those constraint levels do to proportions of mutations: each row corresponds to a constraint level, with each column specifying the relative 
+	weight of a mutation type (in order m1, m2, m3) to a random sampler. So in this example, mutations in highly constrained genes are 50 times more likely to produce a neutral mutation than a 
+	QTL/trait mutation, and they are 100 times more likely to produce purely-deleterious mutations than QTLs. Compare this to low-constraint, where each mutation type is equally likely.
+	
+
+
+// Store as sim value 0, 1, or 2, where these correspond to low/medium/high - grab these in mutation callback per mutation
+	
+	con_genes = sample(lengthvec, genomelength); // Shuffle the QTL positions
+	sim.setValue("con_genes", con_genes); // store these constraint positions in a sim value for the mutation callback to reference
+	conEnds = asInteger(round(con_props * genomelength)); // Get the end positions for each proportion
+	
+	// Define the genes that fall into conserved, neutral, evolving categories (lambda low med high)
+	conEnds[size(conEnds)-1] = conEnds[size(conEnds)-1] + (genomelength - sum(conEnds)); // Make sure the last one is put to the very end so that all QTLs have a constraint value: !note! could be a source of error in proportions not being 100% precise
+	
+	
+	// for each QTL, store a 0, 1, or 2, with numbers chosen based on constraint proportion parameter
+
+	conVal = repEach(c(0, 1, 2), conEnds);
+	con_dict = matrix(c(con_genes, conVal), ncol = genomelength, byrow = T);
+	
+	sim.setValue("con_dict", con_dict);
+	
+This code chunk occurs in generation 1, applying a genetic constraint level to each gene, allocated randomly according to the con_props parameter.
+
+
+
+
+mutation(m1) {
+
+	con_dict = sim.getValue("con_dict");	
+	dict_pos = match(mut.position, con_dict[0,]); // Get the position in the dictionary matrix of the mutation's location
+	gene_constraint = constraints[c(con_dict[1, dict_pos]),]; // Get the correct constraints for the gene
+	
+	if (any(mut.position == sim.getValue("pos_QTL"))) {
+		choice = sample(sim.mutationTypes, 1, weights = gene_constraint);
+	}
+	else {
+		choice = sample(sim.mutationTypes[0:1], 1, weights = gene_constraint[0:1]);
+	}
+	mut.setMutationType(choice);
+	mut.setSelectionCoeff(mut.mutationType.drawSelectionCoefficient());	
+
+	return T;
+}
+
+The only mutations naturally generated are m1s (neutral). When a mutation arises, we check its position to see if it is a QTL or not, and what level of constraint is applied.
+Then we randomly sample an appropriate mutation type based on the gene_constraint weightings. If the mutation has occurred at a non-QTL gene, it only samples either an m1 or m2 mutation (neutral/deleterious)

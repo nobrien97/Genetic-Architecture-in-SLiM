@@ -147,7 +147,7 @@ anim_save("gencon_fix_dens_sigma10.mp4", last_animation())
 
 
 
-p_hist_s1 <- plot_maker(d_muts[!is.na(d_muts$Tfix) & d_muts$mutType == 3 & d_muts$gen < 77500 & d_muts$sigma == levels(d_muts$sigma)[1],], type = "h", x="chi",
+p_hist_s1 <- plot_maker(d_muts[!is.na(d_muts$Tfix) & d_muts$mutType == 3 & d_muts$sigma == levels(d_muts$sigma)[1],], type = "h", x="chi",
            xlab = "Standardised effect size", colour.lab = "Genetic Constraint", 
            leg.pos = "bottom",
            colour="constraint", pal = "Magenta")
@@ -156,13 +156,13 @@ p_hist_s1 <- plot_maker(d_muts[!is.na(d_muts$Tfix) & d_muts$mutType == 3 & d_mut
 p_hist_s1_anim <- p_hist_s1 + transition_time(gen) +
   labs(title = "Generation: {frame_time}") +
   view_follow(fixed_x = c(NA, 30))
-animate(p_hist_s1_anim, duration = 10, fps = 30, width = 720, height = 720, renderer = av_renderer())
+animate(p_hist_s1_anim, duration = 10, fps = 60, width = 720, height = 720, renderer = av_renderer())
 anim_save("gencon_fix_hist_sigma1.mp4", last_animation())
 
 
 
 
-p_hist_s10 <- plot_maker(d_muts[!is.na(d_muts$Tfix) & d_muts$mutType == 3 & d_muts$gen < 77500 & d_muts$sigma == levels(d_muts$sigma)[2],], type = "h", x="chi",
+p_hist_s10 <- plot_maker(d_muts[!is.na(d_muts$Tfix) & d_muts$mutType == 3 & d_muts$sigma == levels(d_muts$sigma)[2],], type = "h", x="chi",
                         xlab = "Standardised effect size", colour.lab = "Genetic Constraint", 
                         leg.pos = "bottom",
                         colour="constraint", pal = "Magenta")
@@ -171,6 +171,131 @@ p_hist_s10 <- plot_maker(d_muts[!is.na(d_muts$Tfix) & d_muts$mutType == 3 & d_mu
 p_hist_s10_anim <- p_hist_s10 + transition_time(gen) +
   labs(title = "Generation: {frame_time}") +
   view_follow(fixed_x = c(-10, 100))
-animate(p_hist_s10_anim, duration = 10, fps = 30, width = 720, height = 720, renderer = av_renderer())
+animate(p_hist_s10_anim, duration = 10, fps = 60, width = 720, height = 720, renderer = av_renderer())
 anim_save("gencon_fix_hist_sigma10.mp4", last_animation())
+
+
+# Plot the delta distance over time
+
+loopseq <- seq(1, length(unique(d_means$gen)))
+
+d_means$distdiff <- 0
+d_means <- d_means %>% arrange(seed, gen)
+for (seed in unique(d_means$seed)) {
+  for (index in unique(d_means$modelindex)) {
+    for (g in loopseq) {
+      if (g == 1) {
+        next
+      } else {
+      d_means[d_means$modelindex == index & d_means$seed == seed & d_means$gen == unique(d_means$gen)[g],]$distdiff <- 
+        d_means[d_means$modelindex == index & d_means$seed == seed & d_means$gen == unique(d_means$gen)[g],]$dist - 
+        d_means[d_means$modelindex == index & d_means$seed == seed & d_means$gen == unique(d_means$gen)[g-1],]$dist
+      }
+    }
+  }
+}
+
+
+d_distdiffs_means <- d_means %>% 
+  group_by(gen, sigma) %>%
+  summarise(meanH = mean(meanH),
+            seH = std.err(meanH),
+            meanVA = mean(VA),
+            seVA = std.err(VA),
+            meanPheno = mean(phenomean),
+            sePheno = std.err(phenomean),
+            meanDist = mean(dist),
+            seDist = std.err(dist),
+            meanDelta = mean(distdiff),
+            seDelta = std.err(distdiff),
+            meanw = mean(mean_w),
+            sew = std.err(mean_w))
+
+
+
+p_phenos <- ggplot(d_distdiffs_means, aes(x = gen, y = meanPheno)) +
+  geom_ribbon(aes(ymax = meanPheno + sePheno, ymin = meanPheno - sePheno), fill = "grey70") +
+  geom_line() +
+  theme_classic() +
+  facet_grid(. ~ sigma) +
+  
+  labs(x = "Generation", y = "Mean phenotype") +
+  theme(axis.text.x = element_text(size = 16, margin = margin(t = 8), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        text = element_text(size = 22),
+        panel.spacing.y = unit(1, "lines"))
+
+# Labels 
+labelT = "Additive effect size distribution, N(0, \u03c3)"
+# Get the ggplot grob
+plot_gtab <- ggplotGrob(p_phenos)
+# Get the positions of the strips in the gtable: t = top, l = left, ...
+posT <- subset(plot_gtab$layout, grepl("strip-t", name), select = t:r)
+# and a new row on top of current top strips
+height <- plot_gtab$heights[min(posT$t)]  # height of current top strips
+plot_gtab <- gtable_add_rows(plot_gtab, height, min(posT$t)-1)
+# Construct the new strip grobs
+stripT <- gTree(name = "Strip_top", children = gList(
+  rectGrob(gp = gpar(col = NA, lwd = 3.0, col = "black")),
+  textGrob(labelT, gp = gpar(fontsize = 22, col = "black", fontface = "bold"))))
+# Position the grobs in the gtable
+plot_gtab <- gtable_add_grob(plot_gtab, stripT, t = min(posT$t), l = min(posT$l), r = max(posT$r), name = "strip-top")
+# Add small gaps between strips
+plot_gtab <- gtable_add_rows(plot_gtab, unit(1/5, "line"), min(posT$t))
+
+grid.draw(plot_gtab)
+ggsave("phenotime.png", plot_gtab, width = 20, height = 10)
+
+p_dist_diff_sigma1 <- ggplot(d_distdiffs_means[d_distdiffs_means$sigma == levels(d_distdiffs_means$sigma)[1],], aes(x = gen, y = meanDelta)) +
+  geom_ribbon(aes(ymax = meanDelta + seDelta, ymin = meanDelta - seDelta), fill = "grey70") +
+  geom_path() +
+  transition_reveal(gen) +
+  view_zoom_manual(0, c(1, 9), ease = "linear", wrap = F,
+            xmin = c(75000, 75200, 80100),
+            xmax = c(75200, 80100, 85000),
+            ymin = c(-3.5, -2, -2),
+            ymax = c(0.2, 2, 2)
+  ) +
+  theme_classic() +
+  labs(x = "Generation", y = "\u0394 Distance to the\nphenotypic optimum") +
+  theme(axis.text.x = element_text(size = 16, margin = margin(t = 8), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        text = element_text(size = 22),
+        panel.spacing.y = unit(1, "lines"))
+
+p_dist_diff_sigma1
+animate(p_dist_diff_sigma1, duration = 10, fps = 60, width = 720, height = 720, renderer = av_renderer())
+anim_save("deltaDiff_sigma1.mp4", last_animation())
+
+
+
+
+p_dist_diff_sigma10 <- ggplot(d_distdiffs_means[d_distdiffs_means$sigma == levels(d_distdiffs_means$sigma)[2],], aes(x = gen, y = meanDelta)) +
+  geom_ribbon(aes(ymax = meanDelta + seDelta, ymin = meanDelta - seDelta), fill = "grey70") +
+  geom_path() +
+  transition_reveal(gen) +
+  view_zoom_manual(0, c(1, 9), ease = "linear", wrap = F,
+            xmin = c(75000, 75200, 80100),
+            xmax = c(75200, 80100, 85000),
+            ymin = c(-25, -2, -2),
+            ymax = c(-20, 2, 2)
+  ) +
+  theme_classic() +
+  labs(x = "Generation", y = "\u0394 Distance to the\nphenotypic optimum") +
+  theme(axis.text.x = element_text(size = 16, margin = margin(t = 8), face = "bold"),
+        axis.title.y = element_text(margin = margin(r = 10), face = "bold", family = "Lucida Sans Unicode"),
+        axis.title.x = element_text(size = 22, margin = margin(t = 10), face = "bold"),
+        plot.title = element_text(margin = margin(t = 20), face = "bold", hjust = 0.5),
+        text = element_text(size = 22),
+        panel.spacing.y = unit(1, "lines"))
+
+p_dist_diff_sigma10
+animate(p_dist_diff_sigma10, duration = 10, fps = 60, width = 720, height = 720, renderer = av_renderer())
+anim_save("deltaDiff_sigma10.mp4", last_animation())
+
+
 
