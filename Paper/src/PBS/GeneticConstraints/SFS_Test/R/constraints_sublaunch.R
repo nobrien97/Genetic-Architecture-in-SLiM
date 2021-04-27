@@ -37,7 +37,7 @@ registerDoParallel(cl)
 foreach(i=seeds$Seed) %dopar% {
 	# Use string manipulation functions to configure the command line args, feeding from a data frame of seeds
 	# then run SLiM with system(),
-    	slim_out <- system(sprintf("/home/$USER/SLiM/slim -s %s -d locisigma=%f -d modelindex=%i /home/$USER/SLiM/Scripts/Tests/GeneticConstraints/SFS_test/slim/polygen_maint.slim", as.character(i), lsigma, ARR_INDEX, intern=T))
+    	slim_out <- system(sprintf("/home/$USER/SLiM/slim -s %s -d locisigma=%f -d modelindex=%i /home/$USER/SLiM/Scripts/Tests/GeneticConstraints/SFS_Test/slim/polygen_maint.slim", as.character(i), lsigma, ARR_INDEX, intern=T))
   }
 stopCluster(cl)
 
