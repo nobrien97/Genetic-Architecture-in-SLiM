@@ -1,0 +1,1 @@
+Goal: To test my implementation of site frequency spectrum data collection in SLiM
