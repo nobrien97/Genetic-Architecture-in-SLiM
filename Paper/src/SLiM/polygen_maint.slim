@@ -19,7 +19,7 @@ initialize() {
 		setCfgParam("seed", getSeed());
 		catn("Actual seed: " + asInteger(seed));
 	}
-	
+	setCfgParam("debug", F); // Verbose debug outputs straight to stdout
 	
 	// Declare/define parameters if they haven't been by the command line arguments
 	// Values from literature are cited
@@ -163,6 +163,12 @@ function (void) calcFitness(o<Individual> inds, fi$ optimum) {
 	
 	writeFile(outDict, dictfile, append = T);
 	
+if (debug == T) {
+	catn("Genic constraints written!\nLow constraint: " + size(conVal[conVal == 0]) + 
+	"\nMedium constraint: " + size(conVal[conVal == 1]) + "\nHigh constraint: " + size(conVal[conVal == 2]));
+}	
+	
+	
 		// Define constants for plotting heterozygosity (diagnostics)
 	if (printH == T) {
 		sim.setValue("h2_history", NULL);
@@ -267,9 +273,7 @@ s1 2 late() {
 // Allelic output: outputting effect sizes, types, frequencies etc.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// TODO: Add a calculation for fitness in context of environment: https://biology.stackexchange.com/questions/21453/fishers-geometric-model-for-dummies
-// Chi = r*sqrt(n/2z)
-// r is the effect size, n is number of traits, z is distance to the optimum on average
+// Also includes counts for Size Frequency Spectrum
 
 s2 3 late() {
 
@@ -295,9 +299,11 @@ s2 3 late() {
 	// This is because writeFile() automatically adds a \n character, so we'd end up with an extra empty line if we do write that way
 	
 	condict = sim.getValue("con_dict");	
+	genom = sim.subpopulations.genomes;
 	
 	for (mut in muts) {
-		mutFreq = mean(sim.subpopulations.genomes.containsMutations(mut));
+		mutFreq = mean(genom.containsMutations(mut));
+		mutCount = size(size(genom[genom.containsMutations(mut)]));
 		mutType = mut.mutationType.id;
 		mutValue = asString(mut.selectionCoeff);
 		mutChi = mut.selectionCoeff * sqrt(1/(2*dist));
@@ -307,19 +313,19 @@ s2 3 late() {
 		// Look into array operators to remove these if/else statements	
 		
 		if (size(subs)) {
-			mutsLine = paste(sim.generation, asString(seed), modelindex, mutType, mut.id, mut.position, mutCon, mut.originGeneration, mutValue, mutChi, mutFreq, "N/A", sep = ",");
+			mutsLine = paste(sim.generation, asString(seed), modelindex, mutType, mut.id, mut.position, mutCon, mut.originGeneration, mutValue, mutChi, mutFreq, mutCount, "N/A", sep = ",");
 			mutsLine = paste0(mutsLine, "\n");
 			mutsLines = paste0(mutsLines, mutsLine);
 		}
 
 		else {
 			if (mut != muts[muts.size() - 1]) { // If there are no substitutions and we're on the last mutation, add a new line character, otherwise don't
-				mutsLine = paste(sim.generation, asString(seed), modelindex, mutType, mut.id, mut.position, mutCon, mut.originGeneration, mutValue, mutChi, mutFreq, "N/A", sep = ",");
+				mutsLine = paste(sim.generation, asString(seed), modelindex, mutType, mut.id, mut.position, mutCon, mut.originGeneration, mutValue, mutChi, mutFreq, mutCount, "N/A", sep = ",");
 				mutsLine = paste0(mutsLine, "\n");
 				}
 				
 			else {
-				mutsLine = paste(sim.generation, asString(seed), modelindex, mutType, mut.id, mut.position, mutCon, mut.originGeneration, mutValue, mutChi, mutFreq, "N/A", sep = ",");
+				mutsLine = paste(sim.generation, asString(seed), modelindex, mutType, mut.id, mut.position, mutCon, mut.originGeneration, mutValue, mutChi, mutFreq, mutCount, "N/A", sep = ",");
 				mutsLine = paste0(mutsLine, ""); // Unsure if necessary, but givent hat \n is a character we should keep char length consistent
 				}
 
@@ -328,7 +334,7 @@ s2 3 late() {
 	}
 	
 	
-	
+	subCount = size(Ne*2);
 	for (sub in subs) {
 		subFreq = 1.0;
 		subType = sub.mutationType.id;
@@ -341,12 +347,12 @@ s2 3 late() {
 		// Look into array operators to remove these if/else statements
 		
 		if (sub != subs[subs.size() - 1]) {
-			subLine = paste(sim.generation, asString(seed), modelindex, subType, sub.id, sub.position, subCon, sub.originGeneration, subValue, subChi, subFreq, sub.fixationGeneration, sep = ",");
+			subLine = paste(sim.generation, asString(seed), modelindex, subType, sub.id, sub.position, subCon, sub.originGeneration, subValue, subChi, subFreq, subCount, sub.fixationGeneration, sep = ",");
 			subLine = paste0(subLine, "\n");
 			}
 			
 		else {
-			subLine = paste(sim.generation, asString(seed), modelindex, subType, sub.id, sub.position, subCon, sub.originGeneration, subValue, subChi, subFreq, sub.fixationGeneration, sep = ",");
+			subLine = paste(sim.generation, asString(seed), modelindex, subType, sub.id, sub.position, subCon, sub.originGeneration, subValue, subChi, subFreq, subCount, sub.fixationGeneration, sep = ",");
 			subLine = paste0(subLine, "");
 			}
 
@@ -361,36 +367,6 @@ s2 3 late() {
 	if (exists('mutsLine') | exists('subLine'))
 		writeFile(outMuts, mutsLines, append = T);
 
-
-//////////////////////////////////////////////////////////////////////////////////
-// Allele Frequency spectrum
-/////////////////////////////////////////////////////////////////////////////////
-
-inds = sim.subpopulations.individuals;
-muts_m3 = inds.genomes.mutationsOfType(m3);
-ids = c(sim.mutationsOfType(m3).id, sim.substitutions[sim.substitutions.mutationType == m3].id);
-sfsLines = NULL;
-subscount = Ne*2; // Substitutions always have count equal to number of genomes
-
-if (size(ids) != 0) {
-for (unique_mut in ids) {
-	sizeSFS = size(muts_m3[muts_m3.id == unique_mut]);
-// Total count of that mutation across all genomes: if the id comes from a segregating mutation, calculate count, otherwise treat as a substitution
-	count = sizeSFS ? sizeSFS else subscount;
-	sfsLine = paste(sim.generation, asString(seed), modelindex, unique_mut, count, sep = ","); 
-
-// Check if we're at the last iteration and need to add a \n or not
-
-	if (unique_mut != ids[size(ids) - 1])
-		sfsLines = paste0(sfsLines, sfsLine, "\n");
-
-	else 
-		sfsLines = paste0(sfsLines, sfsLine);
-
-}
-	writeFile(outSFS, sfsLines, append = T);
-
-}
 
 }
 

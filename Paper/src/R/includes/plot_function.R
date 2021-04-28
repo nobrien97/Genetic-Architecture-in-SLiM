@@ -399,7 +399,7 @@ line_plot <- function(dat, x, y, xlab="x", ylab="y", group, colour, facet, facet
                     Magenta = { gg_temp <- gg_temp + scale_colour_discrete_sequential(palette = "Magenta") },
                     # highlights a couple of lines to track them easier
                     highlight = {
-                      seedchoice <- sample(unique(as.factor(dat$seed)), 2)
+                      seedchoice <- sample(unique(as.factor(dat$seed)), 1)
                       gg_temp <- gg_temp + gghighlight(seed == as.factor(seedchoice[1]) | seed == as.factor(seedchoice[2]), calculate_per_facet = T, use_direct_label = F) +
                         scale_colour_manual(values = c("CC6666", "66CC99"))
                     }
