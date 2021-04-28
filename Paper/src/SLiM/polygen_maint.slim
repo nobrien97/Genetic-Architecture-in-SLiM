@@ -56,7 +56,6 @@ initialize() {
 	setCfgParam("outOpt", 'out_stabsel_opt.csv'); // Output filename/path for the trait optimum values for each run
 	setCfgParam("outMuts", 'out_stabsel_muts.csv'); //Output filename/path for the mutation information
 	setCfgParam("outDict", 'out_stabsel_dict.csv'); // Output filename/path for dictionary of genetic constraints
-	setCfgParam("outSFS", 'out_stabsel_sfs.csv'); // Output filename/path for SFS data
 	
 	setCfgParam("modelindex", 1); // Identifier for the combination of predictors used in latin hypercube: this is the row number in the lscombos.csv file
 	
@@ -310,27 +309,14 @@ s2 3 late() {
 		dictPos = match(mut.position, condict[0,]); // Get the position of the mutation in our dictonary of gene constraints
 		mutCon = condict[1, dictPos]; // Store the row number of the genetic constraint (low, medium, high constraint)
 		
-		// Look into array operators to remove these if/else statements	
+		// Removed if/else statements: This will result in blank lines in the output file, which we need to remove after the file is done being written with sed '/^$/d'
+		// In a job array this might not work because the sed command will happen on each node, and when you glue them together there'll be no newline on the last entry,
+		// so a couple will stick together. In that case, will have to run sed separately following the file being stuck together
 		
-		if (size(subs)) {
-			mutsLine = paste(sim.generation, asString(seed), modelindex, mutType, mut.id, mut.position, mutCon, mut.originGeneration, mutValue, mutChi, mutFreq, mutCount, "N/A", sep = ",");
-			mutsLine = paste0(mutsLine, "\n");
-			mutsLines = paste0(mutsLines, mutsLine);
-		}
+		mutsLine = paste(sim.generation, asString(seed), modelindex, mutType, mut.id, mut.position, mutCon, mut.originGeneration, mutValue, mutChi, mutFreq, mutCount, "N/A", sep = ",");
+		mutsLine = paste0(mutsLine, "\n");
+		mutsLines = paste0(mutsLines, mutsLine);
 
-		else {
-			if (mut != muts[muts.size() - 1]) { // If there are no substitutions and we're on the last mutation, add a new line character, otherwise don't
-				mutsLine = paste(sim.generation, asString(seed), modelindex, mutType, mut.id, mut.position, mutCon, mut.originGeneration, mutValue, mutChi, mutFreq, mutCount, "N/A", sep = ",");
-				mutsLine = paste0(mutsLine, "\n");
-				}
-				
-			else {
-				mutsLine = paste(sim.generation, asString(seed), modelindex, mutType, mut.id, mut.position, mutCon, mut.originGeneration, mutValue, mutChi, mutFreq, mutCount, "N/A", sep = ",");
-				mutsLine = paste0(mutsLine, ""); // Unsure if necessary, but givent hat \n is a character we should keep char length consistent
-				}
-
-			mutsLines = paste0(mutsLines, mutsLine);
-		}
 	}
 	
 	
@@ -343,25 +329,13 @@ s2 3 late() {
 		dictPos = match(sub.position, condict[0,]);
 		subCon = condict[1, dictPos];
 
+		subLine = paste(sim.generation, asString(seed), modelindex, subType, sub.id, sub.position, subCon, sub.originGeneration, subValue, subChi, subFreq, subCount, sub.fixationGeneration, sep = ",");
+		subLine = paste0(subLine, "\n");
 		
-		// Look into array operators to remove these if/else statements
-		
-		if (sub != subs[subs.size() - 1]) {
-			subLine = paste(sim.generation, asString(seed), modelindex, subType, sub.id, sub.position, subCon, sub.originGeneration, subValue, subChi, subFreq, subCount, sub.fixationGeneration, sep = ",");
-			subLine = paste0(subLine, "\n");
-			}
-			
-		else {
-			subLine = paste(sim.generation, asString(seed), modelindex, subType, sub.id, sub.position, subCon, sub.originGeneration, subValue, subChi, subFreq, subCount, sub.fixationGeneration, sep = ",");
-			subLine = paste0(subLine, "");
-			}
-
 		mutsLines = paste0(mutsLines, subLine); // Add substitutions to mutation output
 	
 	}
-	
-//	mutsFile = paste(mutsLines, sep = "");
-	
+		
 	// Write the mutations file
 	// Fail safe in case there are no mutations at some point and the for loop doesn't run
 	if (exists('mutsLine') | exists('subLine'))
@@ -423,7 +397,7 @@ s4 4 late() {
 	
 	
 	// End simulation
-	if (sim.generation == 150000)
+	if (sim.generation == (burnTime + stabTime + testTime))
 		sim.simulationFinished();
 
 	
