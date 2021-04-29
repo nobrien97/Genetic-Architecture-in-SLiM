@@ -40,11 +40,11 @@ cl <- makeCluster(future::availableCores())
 registerDoParallel(cl)
 
 #Run SLiM
-foreach(i=combos$modelindex) %:%
+foreach(i=1:nrow(combos)) %:%
   foreach(j=seeds$Seed) %dopar% {
 	# Use string manipulation functions to configure the command line args, feeding from a data frame of seeds
 	# then run SLiM with system(),
-    	slim_out <- system(sprintf("/home/$USER/SLiM/slim -s %s -d locisigma=%f -d rwide=%f -d con_props=%s -d modelindex=%i /home/$USER/SLiM/Scripts/Tests/GeneticConstraints/Apr2021-LS_LMHgc_r/slim/polygen_maint.slim", as.character(j), combos[i,]$locisigma, combos[i,]$rwide, combos[i,]$gencon, as.integer(i), intern=T))
+    	slim_out <- system(sprintf("/home/$USER/SLiM/slim -s %s -d locisigma=%f -d rwide=%f -d con_props=%s -d modelindex=%i /home/$USER/SLiM/Scripts/Tests/GeneticConstraints/Apr2021-LS_LMHgc_r/slim/polygen_maint.slim", as.character(j), combos[i,]$locisigma, combos[i,]$rwide, combos[i,]$gencon, combos[i,]$modelindex, intern=T))
   }
 stopCluster(cl)
 
