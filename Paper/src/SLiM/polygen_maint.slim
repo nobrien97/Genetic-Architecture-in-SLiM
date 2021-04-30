@@ -186,6 +186,7 @@ if (debug == T) {
 	
 	// Set delta difference value
 	sim.setValue("lastDist", 0.0);
+	sim.setValue("lastw", 0.0);
 
 }
 
@@ -389,9 +390,11 @@ s4 4 late() {
 		phenomean = mean(phenotypes);
 		w = mean(inds.fitnessScaling);
 		dist = mean(abs(phenotypes - opt)); // Absolute values so that means aren't biased towards 0 by drift 
-		delta = dist - sim.getValue("lastDist");
+		deltaPheno = dist - sim.getValue("lastDist");
 		sim.setValue("lastDist", dist);
-		Mfile = paste(sim.generation, asString(seed), modelindex, meanH, VA, phenomean, dist, w, delta, sep=",");
+		deltaw = w - sim.getValue("lastw");
+		sim.setValue("lastw", w);
+		Mfile = paste(sim.generation, asString(seed), modelindex, meanH, VA, phenomean, dist, w, deltaPheno, deltaw, sep=",");
 		writeFile(outName, Mfile, append = T);
 	}
 	

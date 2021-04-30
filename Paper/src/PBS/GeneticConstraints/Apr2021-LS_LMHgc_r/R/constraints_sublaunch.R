@@ -1,4 +1,4 @@
-##############################################################################################################
+ ##############################################################################################################
 #  Genetic Constraint run: 48 replicates, stabilising selection, 40 genes, 30 QTLs, recom, locisigma, gen con
 ##############################################################################################################
 
@@ -23,10 +23,6 @@ seeds <- read.csv(paste0("/home/",USER,"/SLiM/Scripts/Tests/GeneticConstraints/A
 combos <- read.csv(paste0("/home/",USER,"/SLiM/Scripts/Tests/GeneticConstraints/Apr2021-LS_LMHgc_r/R/combos.csv"), header = T)
 
 # Set which runs to do according to node
-
-switch (object,
-  case = action
-)
 
 switch (ARR_INDEX,
   { combos <- combos[1:5,] },
