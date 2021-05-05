@@ -314,7 +314,7 @@ s2 3 late() {
 		// In a job array this might not work because the sed command will happen on each node, and when you glue them together there'll be no newline on the last entry,
 		// so a couple will stick together. In that case, will have to run sed separately following the file being stuck together
 		
-		mutsLine = paste(sim.generation, asString(seed), modelindex, mutType, mut.id, mut.position, mutCon, mut.originGeneration, mutValue, mutChi, mutFreq, mutCount, "N/A", sep = ",");
+		mutsLine = paste(sim.generation, asString(seed), modelindex, mutType, mut.id, mut.position, mutCon, mut.originGeneration, mutValue, mutChi, mutFreq, mutCount, "NA", sep = ",");
 		mutsLine = paste0(mutsLine, "\n");
 		mutsLines = paste0(mutsLines, mutsLine);
 
