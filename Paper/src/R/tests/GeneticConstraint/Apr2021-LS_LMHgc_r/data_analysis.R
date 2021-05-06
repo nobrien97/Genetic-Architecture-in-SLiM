@@ -22,14 +22,14 @@ d_means$sigma <- as.factor(d_means$sigma)
 
 levels(d_means$sigma) <- c("\u03c3 = 1", "\u03c3 = 10")
 
-d_means$gencon <- 0
+d_means$constraint <- 0
 
-d_means[d_means$modelindex %in% c(1, 2, 7, 8, 13, 14),]$gencon <- "Low"
-d_means[d_means$modelindex %in% c(3, 4, 9, 10, 15, 16),]$gencon <- "Medium"
-d_means[d_means$modelindex %in% c(5, 6, 11, 12, 17, 18),]$gencon <- "High"
+d_means[d_means$modelindex %in% c(1, 2, 7, 8, 13, 14),]$constraint <- "Low"
+d_means[d_means$modelindex %in% c(3, 4, 9, 10, 15, 16),]$constraint <- "Medium"
+d_means[d_means$modelindex %in% c(5, 6, 11, 12, 17, 18),]$constraint <- "High"
 
 
-d_means$gencon <- as.factor(d_means$gencon)
+d_means$constraint <- as.factor(d_means$constraint)
 
 
 d_means$recomRate <- 0.0
@@ -81,4 +81,6 @@ levels(d_muts$sigma) <- c("\u03c3 = 1", "\u03c3 = 10")
 
 
 source("/mnt/z/Documents/GitHub/Genetic-Architecture-in-SLiM/Paper/src/R/includes/plot_function.R")
+
+
 
