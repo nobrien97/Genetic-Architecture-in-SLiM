@@ -1,0 +1,21 @@
+#!/bin/bash
+
+#PBS -l ncpus=48
+#PBS -l mem=190
+#PBS -l jobfs=200GB
+#PBS -q normal
+#PBS -P ht96
+#PBS -l walltime=72:00:00
+#PBS -l storage=scratch/ht96
+
+
+module load R/4.0.0
+
+SECONDS=0
+
+R --file=$HOME/SLiM/Tests/May2021_GadiSLiM_Speedtest/R/slimtest.R
+
+
+DURATION=$SECONDS
+
+echo "$(($DURATION / 3600)) hours, $((($DURATION / 60) % 60)) minutes, and $(($DURATION % 60)) seconds elapsed."

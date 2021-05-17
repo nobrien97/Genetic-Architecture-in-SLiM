@@ -3,9 +3,9 @@
 #PBS -p $PROJECT
 #PBS -N slim_gadiTest
 #PBS -l walltime=220:00:00
-#PBS -l ncpus=15360
-#PBS -l mem=61440GB
-#PBS -l jobfs=128000GB
+#PBS -l ncpus=20736
+#PBS -l mem=92944GB
+#PBS -l jobfs=172800GB
 #PBS -l storage=scratch/ht96+gdata/ht96
 
 cd $TMPDIR
