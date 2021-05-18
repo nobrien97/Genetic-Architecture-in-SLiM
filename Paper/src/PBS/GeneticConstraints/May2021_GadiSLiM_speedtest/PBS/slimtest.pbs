@@ -1,11 +1,11 @@
 #!/bin/bash
 
 #PBS -l ncpus=48
-#PBS -l mem=190
+#PBS -l mem=190GB
 #PBS -l jobfs=200GB
 #PBS -q normal
 #PBS -P ht96
-#PBS -l walltime=72:00:00
+#PBS -l walltime=12:00:00
 #PBS -l storage=scratch/ht96
 
 
