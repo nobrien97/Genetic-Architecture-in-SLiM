@@ -25,11 +25,11 @@ initialize() {
 	// Values from literature are cited
 	// The realistic range of w^2 is 3-50, so 18 to 5000 for 2w^2, or 0.05556 to 0.0002 for 1/2w^2
 	setCfgParam("mu", 8.045e-6); // Mutation rate averaged across five species from Table 1 Aston et al. 2017 
-	setCfgParam("Ne", 20000 ); // Population size
+	setCfgParam("Ne", 1000 ); // Population size
 	setCfgParam("del_mean", -1); // Mean used for the gamma distribution that deleterious mutations are pulled from
 	setCfgParam("del_shape", 10); // Shape parameter for gamma distribution used for deleterious mutations
-	setCfgParam("rwide", 1.241e-4); // Whole genome recombination rate
-	setCfgParam("nloci", 100); // Number of QTL positions along the chromosome - where QTL mutations can appear, sampled from sample()
+	setCfgParam("rwide", 1e-4); // Whole genome recombination rate
+	setCfgParam("nloci", 30); // Number of QTL positions along the chromosome - where QTL mutations can appear, sampled from sample()
 	setCfgParam("genomelength", 100); // Loci across the genome - some are deleterious, others QTL, others neutral
 	setCfgParam("locimu", 0.0); // Mean used for QTL mutation effect distribution pulls
 	setCfgParam("locisigma", 10.0); // Variance used for QTL effect pulls - the additive effect size distribution
@@ -41,14 +41,14 @@ initialize() {
 	setCfgParam("width", 0.005); // Width of the fitness curve: smaller = wider curve, lower selection pressure: need to be careful with values, they need to be relative to the mean phenotype after burn-in, and the initial distance from the optimum. This should be precalculated as 1/2w^2, as in Lande 1976
 	
 	// TODO: Set this to a large value, adjust width also to have a longer adaptation period: measure the distribution of effects for adaptation!!!!	
-	setCfgParam("opt", 30); // How far away optimum phenotype should be from mean phenotype post-burnin: Kingsolver et al. 2001 suggests .01 to 10 phenotypic units
+	setCfgParam("optShift", 30); // How far away optimum phenotype should be from mean phenotype post-burnin: Kingsolver et al. 2001 suggests .01 to 10 phenotypic units
 	
 	setCfgParam("printH", F); // Print values of heterozygosity over time during burn-in: used to decide how long burn-in needs to be
 	setCfgParam("burnTime", 1000); // Number of generations of neutral burn-in before the test period
 	setCfgParam("stabTime", 1000); // Number of generations of stabilising selection around the burn-in phenotype before the optimum shifts
 	setCfgParam("testTime", 1000); // Number of generations of test time: where selection is applied (or additional generations of drift, if selType = "d")
 	setCfgParam("samplerate", c(100, 1000)); // Sample rate in generations for phenotypic output (first value) and allelic output (second value)
-	setCfgParam("adaptiveSampling", F); // Enable adaptive sampling rates to sample more often when phenotypes are changing rapidly. 
+	setCfgParam("adaptiveSampling", T); // Enable adaptive sampling rates to sample more often when phenotypes are changing rapidly. 
 	setCfgParam("sampleLimits", c(0.1*samplerate, 5*samplerate)); // Set maximum and minimum sample rates to adjust between 
 	
 	setCfgParam("outPositions", 'out_stabsel_pos.csv'); // Output filename/path for locus positions
@@ -134,6 +134,7 @@ function (float) lerp(fi xmin, fi xmax, fi ymin, fi ymax, fi x) {
 }
 
 
+
 // create a population of 500 individuals
 // Drosophila - deleterious mutation rate: Peter Keightley Eyre-Walker: with Ne estimate and genome size
 // Good estimate of how many deleterious mutations occur per site and gen, and distribution of effects
@@ -191,7 +192,7 @@ function (float) lerp(fi xmin, fi xmax, fi ymin, fi ymax, fi x) {
 			slimgui.openDocument(pngPath);
 	}
 	
-	// Activate script blocks for burn-in, stabilising selection around locla optima, and test time post-environmental shift
+	// Activate script blocks for burn-in, stabilising selection around local optima, and test time post-environmental shift
 	
 	sim.rescheduleScriptBlock(s1, start = 1, end = burnTime);
 	sim.rescheduleScriptBlock(s2, start = burnTime, end = (burnTime + stabTime + testTime));
@@ -249,13 +250,13 @@ s1 2 late() {
 	
 	// Set the optimum as a fixed distance from post-burn-in population phenotype mean, and do our write to the standard phenomean output, rather than burn-in
 	if (sim.generation == burnTime) {
-		sim.setValue("optimum", (opt + phenomean));
-		catn("Optimum is: " + (opt+phenomean) + "\nStarting stabilising selection regime");
-		OptFile = paste(asString(seed), modelindex, opt, sep = ",");
+		sim.setValue("optimum", (optShift + phenomean));
+		catn("Optimum is: " + (optShift + phenomean) + "\nStarting stabilising selection regime");
+		OptFile = paste(asString(seed), modelindex, (optShift + phenomean), sep = ",");
 		writeFile(outOpt, OptFile);
 		
 		w = mean(inds.fitnessScaling);
-		dist = abs(phenomean - (opt + phenomean)); // Absolute values so that means aren't biased towards 0 by drift 
+		dist = abs(phenomean - (optShift + phenomean)); // Absolute values so that means aren't biased towards 0 by drift 
 		Mfile = paste(sim.generation, asString(seed), modelindex, meanH, VA, phenomean, dist, w, sep=",");
 		writeFile(outName, Mfile, append = T);
 		
@@ -320,7 +321,7 @@ s2 3 late() {
 	// same for substitutions
 	subs = sortBy(c(sim.substitutions[sim.substitutions.mutationType != m1]), "originGeneration");
 	
-	dist = abs(mean(p1.individuals.getValue("phenotype")) - opt);
+	dist = abs(mean(p1.individuals.getValue("phenotype")) - sim.getValue("optimum"));
 	
 	// Set up an empty output to store all our mutations' information for this generation
 	mutsLines = NULL;
@@ -408,7 +409,7 @@ s3 3 late() {
 		if (adaptiveSampling == T) {
 			burnDelta = sim.getValue("burnDelta");
 			sim.setValue("burnDelta", mean(burnDelta)); // Average the change in phenotype for burn in period so we can differentiate from that
-			sim.setValue("bigDelta", mean(burnDelta)); // Set an initial x1 value for lerp to characterise adaptation
+			sim.setValue("bigDelta", abs(mean(burnDelta))); // Set an initial x1 value for lerp to characterise adaptation
 		}
 		if (debug == T) {
 			catn("Initial stabilising selection took " + (clock() - sim.getValue("burnClock")) + " seconds");
@@ -426,8 +427,9 @@ s4 4 late() {
 	
 	// Calculate phenotypes + fitness, write output
 	inds = sim.subpopulations.individuals;
+	optimum = sim.getValue("optimum");
 	calcPhenotype(inds, sim.substitutions);
-	calcFitness(inds, sim.getValue("optimum"));
+	calcFitness(inds, optimum);
 	
 	// End simulation if we're at the end of the test time
 	if (sim.generation == (burnTime + stabTime + testTime)) {
@@ -452,7 +454,7 @@ s4 4 late() {
 	phenotypes = inds.getValue("phenotype");
 	phenomean = mean(phenotypes);
 	w = mean(inds.fitnessScaling);
-	dist = mean(abs(phenotypes - opt)); // Absolute values so that means aren't biased towards 0 by drift 
+	dist = mean(abs(phenotypes - optimum)); // Absolute values so that means aren't biased towards 0 by drift 
 	deltaPheno = dist - sim.getValue("lastDist");
 	sim.setValue("lastDist", dist);
 	deltaw = w - sim.getValue("lastw");
@@ -464,14 +466,18 @@ s4 4 late() {
 	if (adaptiveSampling == T) {
 		// Compare rate of change to burn-in ROC and adjust sampling rate according to magnitude of the difference
 		bigDelta = sim.getValue("bigDelta");
-		if (deltaPheno > bigDelta) {
-			bigDelta = deltaPheno;
+		if (abs(deltaPheno) > bigDelta) {
+			bigDelta = abs(deltaPheno);
 			sim.setValue("bigDelta", bigDelta);
 		}
 		sim.setValue("sRate", asInteger(round(lerp(bigDelta, sim.getValue("burnDelta"), sampleLimits[c(0,2)], sampleLimits[c(1,3)], deltaPheno))));
 		sim.setValue("curTime", sim.generation);
-		catn("curTime = " + sim.getValue("curTime"));
-		catn("sRate = " + sim.getValue("sRate"));
+		if (debug == T) {		
+			catn("bigDelta = " + bigDelta + "    burnDelta = " + sim.getValue("burnDelta"));
+			catn("deltaPheno = " + deltaPheno);
+			catn("curTime = " + sim.getValue("curTime"));
+			catn("sRate = " + sim.getValue("sRate"));
+		}
 	}
 	
 	
