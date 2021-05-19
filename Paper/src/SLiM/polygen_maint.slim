@@ -44,9 +44,9 @@ initialize() {
 	setCfgParam("optShift", 30); // How far away optimum phenotype should be from mean phenotype post-burnin: Kingsolver et al. 2001 suggests .01 to 10 phenotypic units
 	
 	setCfgParam("printH", F); // Print values of heterozygosity over time during burn-in: used to decide how long burn-in needs to be
-	setCfgParam("burnTime", 1000); // Number of generations of neutral burn-in before the test period
-	setCfgParam("stabTime", 1000); // Number of generations of stabilising selection around the burn-in phenotype before the optimum shifts
-	setCfgParam("testTime", 1000); // Number of generations of test time: where selection is applied (or additional generations of drift, if selType = "d")
+	setCfgParam("burnTime", 5000); // Number of generations of neutral burn-in before the test period
+	setCfgParam("stabTime", 5000); // Number of generations of stabilising selection around the burn-in phenotype before the optimum shifts
+	setCfgParam("testTime", 10000); // Number of generations of test time: where selection is applied (or additional generations of drift, if selType = "d")
 	setCfgParam("samplerate", c(100, 1000)); // Sample rate in generations for phenotypic output (first value) and allelic output (second value)
 	setCfgParam("adaptiveSampling", T); // Enable adaptive sampling rates to sample more often when phenotypes are changing rapidly. 
 	setCfgParam("sampleLimits", c(0.1*samplerate, 5*samplerate)); // Set maximum and minimum sample rates to adjust between 
@@ -407,9 +407,7 @@ s3 3 late() {
 	if (sim.generation == (burnTime + stabTime)) {
 		catn("Shifting optimum...");
 		if (adaptiveSampling == T) {
-			burnDelta = sim.getValue("burnDelta");
-			sim.setValue("burnDelta", mean(burnDelta)); // Average the change in phenotype for burn in period so we can differentiate from that
-			sim.setValue("bigDelta", abs(mean(burnDelta))); // Set an initial x1 value for lerp to characterise adaptation
+			sim.setValue("burnDelta", mean(sim.getValue("burnDelta"))); // Average the change in phenotype for burn in period so we can differentiate from that
 		}
 		if (debug == T) {
 			catn("Initial stabilising selection took " + (clock() - sim.getValue("burnClock")) + " seconds");
@@ -465,18 +463,16 @@ s4 4 late() {
 	
 	if (adaptiveSampling == T) {
 		// Compare rate of change to burn-in ROC and adjust sampling rate according to magnitude of the difference
-		bigDelta = sim.getValue("bigDelta");
-		if (abs(deltaPheno) > bigDelta) {
-			bigDelta = abs(deltaPheno);
-			sim.setValue("bigDelta", bigDelta);
-		}
-		sim.setValue("sRate", asInteger(round(lerp(bigDelta, sim.getValue("burnDelta"), sampleLimits[c(0,2)], sampleLimits[c(1,3)], deltaPheno))));
+//		burnDelta = sim.getValue("burnDelta");
+//		lerpMax = (burnDelta > 1e-4) ? burnDelta*100 else 0.1; // If burnDelta is 0, we can't use burnDelta*10 as a max or we will always be at the minimum
+		sim.setValue("sRate", asInteger(round(lerp(deltaPheno, optimum, sampleLimits[c(0,1)], sampleLimits[c(2,3)], abs(dist)))));
 		sim.setValue("curTime", sim.generation);
 		if (debug == T) {		
-			catn("bigDelta = " + bigDelta + "    burnDelta = " + sim.getValue("burnDelta"));
+//			catn("burnDelta = " + burnDelta);
 			catn("deltaPheno = " + deltaPheno);
 			catn("curTime = " + sim.getValue("curTime"));
 			catn("sRate = " + sim.getValue("sRate"));
+			catn("dist = " + dist);
 		}
 	}
 	
