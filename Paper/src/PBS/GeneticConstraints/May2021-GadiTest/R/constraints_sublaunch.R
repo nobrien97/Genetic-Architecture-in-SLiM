@@ -18,7 +18,7 @@ row_seed <- as.numeric(args[1])
 row_combo <- as.numeric(args[2])
  
 # Environment variables
-USER <- Sys.getenv('USER')
+HOME <- Sys.getenv('HOME')
 
 
 # Parallelisation libraries 
@@ -28,13 +28,13 @@ library(doParallel)
 library(future)
 
 # Seeds generated with seedgenerator, from 
-seeds <- read.csv(paste0("/home/",USER,"/SLiM/Scripts/Tests/May2021-GadiTest/R/seeds_gaditest.csv"), header = T)
-combos <- read.csv(paste0("/home/",USER,"/SLiM/Scripts/Tests/May2021-GadiTest/R/lhc_samples"), header = T)
+seeds <- read.csv(paste0(HOME,"/Tools/SeedGenerator/seeds_gaditest.csv"), header = T)
+combos <- read.csv(paste0(HOME,"/SLiM/Tests/May2021-GadiTest/R/lhc_samples.csv"), header = T)
 
 i <- row_seed
 j <- row_combo
 
-slim_out <- system(sprintf("/home/$USER/SLiM/slim -s %s -d Ne=%i -d rwide=%f -d nloci=%i -d locisigma=%f -d con_props=%s -d width=%f -d opt=%f -d modelindex=%i /home/$USER/SLiM/Scripts/Tests/May2021-GadiTest/slim/polygen_maint.slim", 
+slim_out <- system(sprintf("$HOME/SLiM/slim -s %s -d Ne=%i -d rwide=%f -d nloci=%i -d locisigma=%f -d con_props=%s -d width=%f -d opt=%f -d modelindex=%i $HOME/SLiM/Tests/May2021-GadiTest/slim/polygen_maint.slim", 
                            as.character(i), 
                            as.integer(round(combos[j,]$Ne)), 
                            combos[j,]$rwide, 
