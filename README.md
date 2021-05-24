@@ -5,13 +5,15 @@ can influence polygenic adaptation to a new fitness optimum under a quantitative
 
 Each gene has a specified level of constraint, which determines the ratios of mutation types that can occur at 
 each site. This approximates the classic figures from neutral theory we have all seen:
+
 ![](https://www.blackwellpublishing.com/ridley/images/neutral_theory.jpg)
 ###### Courtesy of Blackwell Publishing<sup>1</sup>
+
 Where each gene has an individual one of these figures, and they can be of differing shape depending on constraint.
 For example, highly constrained genes (such as those encoding histones) will extremely rarely mutate favourably,
 so their mutations are mostly deleterious (and greatly so), with fewer neutral mutations, and almost no beneficial
 mutations.
-Trait fitness is calculated based on additive phenotype effects from trait mutations based on Lande's (1976) Gaussian
+Trait fitness is calculated based on additive phenotype effects from trait mutations based on Lande's (1976)<sup>2</sup> Gaussian
 fitness model. These phenotype effects are sampled from a normal distribution, $N(0, \sigma)$, where $\sigma$ is a 
 parameter varied across treatments.
 
@@ -33,3 +35,4 @@ To explore this parameter space, I use Latin hypercube sampling, courtesy of the
 
 # References
 <sup>1</sup> Ridley, 2003, Evolution, Blackwell Publishing, https://www.blackwellpublishing.com/ridley/images/neutral_theory.jpg
+<sup>2</sup> Lande, 1976, Natural Selection and Random Genetic Drift in Phenotypic Evolution, Evolution 30:314-334
