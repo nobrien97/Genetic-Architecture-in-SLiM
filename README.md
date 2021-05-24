@@ -1,27 +1,35 @@
-# Genetic Architecture in SLiM
-Tracking evolution in forward-modelling software SLiM 3.4: https://messerlab.org/slim/
+# The effects of genetic constraint and linked selection on polygenic adaptation
 
-This repository will contain Eidos and R code tracking my progress through my honours project. I aim to use SLiM to model a variety of genetic architectures and their effect on polygenic adaptation/random evolution (altering number of loci affecting a trait, their size effects, linkage, amount of deleterious mutation, extent of pleiotropy). 
+This branch uses SLiM 3.6 (https://messerlab.org/slim/) to model how the mutational constraint on genes
+can influence polygenic adaptation to a new fitness optimum under a quantitative additive model for a single trait.
 
-Several branches exist: My original aims are below, but were changed throughout my project. 
-- The master branch represents the early models built to test these hypotheses, but were too slow to run and too difficult to sample with the number of parameters.
-- Genome-restructure, fitness-function, and stabsel-opt are testing branches related to aspects of the master models
-- Simplification represents a toned down version of the models (fewer parameters) and the initial analyses - using G matrices and eigentensors
-- LS_D_R represents a shift in focus for analysis: mainly R code based on mean variances and covariances rather than G matrices, and a focus on additive effect size (LS), mutation rate (D), and recombination (R)
+Each gene has a specified level of constraint, which determines the ratios of mutation types that can occur at 
+each site. This approximates the classic figures from neutral theory we have all seen:
+!()[https://www.blackwellpublishing.com/ridley/images/neutral_theory.jpg]
+###### Courtesy of Blackwell Publishing[^fn1]
+Where each gene has an individual one of these figures, and they can be of differing shape depending on constraint.
+For example, highly constrained genes (such as those encoding histones) will extremely rarely mutate favourably,
+so their mutations are mostly deleterious (and greatly so), with fewer neutral mutations, and almost no beneficial
+mutations.
+Trait fitness is calculated based on additive phenotype effects from trait mutations based on Lande's (1976) Gaussian
+fitness model. These phenotype effects are sampled from a normal distribution, $N(0, \sigma)$, where $\sigma$ is a 
+parameter varied across treatments.
 
-Code in the branch LS_D_R represents my final thesis, answering which architectures and mutation/selection regimes constrain adaptation, and which models promote adaptedness vs adaptability.
+Populations are challenged to adapt to a new phenotypic optimum from a burnt-in starting position. A variety of genetic
+parameters are adjusted including
+- Population size
+- Proportion of the genome under high, medium, and low constraint
+- Genome-wide recombination rate
+- The number of QTLs contributing to the trait
+- The strength of selection
+- The size of the phenotypic shift (initial distance to the optimum)
+- Variance in additive phenotype effects
+
+To explore this parameter space, I use Latin hypercube sampling, courtesy of the R packages ```DoE.wrapper``` and
+```LHS```. I then run each parameter combination 48 times with seeds generated from my own Mersenne Twister based
+64-bit seed generator, ```seedgenerator```, which can be found in ```./src/Tools/SeedGenerator/```.
 
 
 
-
-#######################################################################################
-AIM 1: The sampling distribution of complex neutral genetic architectures.
-Using simulations of neutral populations at varying levels of genetic diversity, I will quantify differences in genetic variation and covariation as a result of their genetic architecture. I will then be able to evaluate the random sampling distribution of G for the parameter space detailed in the research approach below. This will also help me test my simulations against known theoretical results in population and evolutionary quantitative genetics.  
-
-AIM 2: The effect of recombination on the sampling distribution of neutral complex genetic architectures.
-Using forward simulation of populations and their genomes, I will determine differences in genetic variation and covariation between populations as a result of differing recombination rates. I will then be able to evaluate the effects of linkage on the sampling distribution of G for the parameter space detailed in the research approach below. 
-
-AIM 3: The effect of recombination on the sampling distribution of complex genetic architectures after adaptation
-I will introduce beneficial and deleterious mutations to simulations developed under the two null models produced in AIMs 1 and 2 to measure how genetic architecture and recombination rate affect genetic variation and covariation under selection.  I will measure how they affect adaptation walks, and maintenance of variation in natural populations. 
-
-By realising these aims, I will clarify how the genetic architecture of complex traits affects evolution under both genetic drift and selection. Through investigating variation in genetic architectures, we can also learn what type of genetic architectures and levels of recombination rates might put populations at risk of extinction, and which architectures might facilitate persistence over evolutionary time. I will further discuss the significance of this research below, followed by a description of my expectations and methodology.
+# References
+[^fn1] Ridley, 2003, Evolution, Blackwell Publishing, https://www.blackwellpublishing.com/ridley/images/neutral_theory.jpg
