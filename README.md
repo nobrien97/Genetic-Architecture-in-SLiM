@@ -35,4 +35,5 @@ To explore this parameter space, I use Latin hypercube sampling, courtesy of the
 
 # References
 <sup>1</sup> Ridley, 2003, Evolution, Blackwell Publishing, https://www.blackwellpublishing.com/ridley/images/neutral_theory.jpg
+
 <sup>2</sup> Lande, 1976, Natural Selection and Random Genetic Drift in Phenotypic Evolution, Evolution 30:314-334
