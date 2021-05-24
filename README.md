@@ -14,7 +14,7 @@ For example, highly constrained genes (such as those encoding histones) will ext
 so their mutations are mostly deleterious (and greatly so), with fewer neutral mutations, and almost no beneficial
 mutations.
 Trait fitness is calculated based on additive phenotype effects from trait mutations based on Lande's (1976)<sup>2</sup> Gaussian
-fitness model. These phenotype effects are sampled from a normal distribution, $N(0, \sigma)$, where $\sigma$ is a 
+fitness model. These phenotype effects are sampled from a normal distribution, N(0, &sigma;), where &sigma; is a 
 parameter varied across treatments.
 
 Populations are challenged to adapt to a new phenotypic optimum from a burnt-in starting position. A variety of genetic
