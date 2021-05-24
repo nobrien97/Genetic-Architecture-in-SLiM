@@ -5,8 +5,8 @@ can influence polygenic adaptation to a new fitness optimum under a quantitative
 
 Each gene has a specified level of constraint, which determines the ratios of mutation types that can occur at 
 each site. This approximates the classic figures from neutral theory we have all seen:
-!()[https://www.blackwellpublishing.com/ridley/images/neutral_theory.jpg]
-###### Courtesy of Blackwell Publishing[^fn1]
+![](https://www.blackwellpublishing.com/ridley/images/neutral_theory.jpg)
+###### Courtesy of Blackwell Publishing<sup>1</sup>
 Where each gene has an individual one of these figures, and they can be of differing shape depending on constraint.
 For example, highly constrained genes (such as those encoding histones) will extremely rarely mutate favourably,
 so their mutations are mostly deleterious (and greatly so), with fewer neutral mutations, and almost no beneficial
@@ -32,4 +32,4 @@ To explore this parameter space, I use Latin hypercube sampling, courtesy of the
 
 
 # References
-[^fn1] Ridley, 2003, Evolution, Blackwell Publishing, https://www.blackwellpublishing.com/ridley/images/neutral_theory.jpg
+<sup>1</sup> Ridley, 2003, Evolution, Blackwell Publishing, https://www.blackwellpublishing.com/ridley/images/neutral_theory.jpg
