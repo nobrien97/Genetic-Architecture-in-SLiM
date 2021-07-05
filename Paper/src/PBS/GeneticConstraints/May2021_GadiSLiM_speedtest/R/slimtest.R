@@ -28,7 +28,7 @@ registerDoParallel(cl)
 foreach(i=seeds$Seed) %dopar% {
 	# Use string manipulation functions to configure the command line args, feeding from a data frame of seeds
 	# then run SLiM with system(),
-    	slim_out <- system(sprintf("$HOME/SLiM/slim -s %s $HOME/SLiM/Tests/GadiSLiM_speedtest/slim/polygen_maint.slim", as.character(i), intern=T))
+	slim_out <- system(sprintf("$HOME/SLiM/slim -s %s $HOME/SLiM/Tests/May2021_GadiSLiM_Speedtest/slim/polygen_maint.slim", as.character(i), intern=T))
   }
 stopCluster(cl)
 

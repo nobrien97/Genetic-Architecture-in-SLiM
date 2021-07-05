@@ -5,13 +5,17 @@
 #PBS -l jobfs=200GB
 #PBS -q normal
 #PBS -P ht96
-#PBS -l walltime=12:00:00
+#PBS -l walltime=07:30:00
 #PBS -l storage=scratch/ht96
 
 
 module load R/4.0.0
 
 SECONDS=0
+
+cd $PBS_JOBFS
+
+export OMP_NUM_THREADS=$PBS_NCPUS
 
 R --file=$HOME/SLiM/Tests/May2021_GadiSLiM_Speedtest/R/slimtest.R
 
