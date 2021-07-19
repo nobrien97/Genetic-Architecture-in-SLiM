@@ -31,5 +31,32 @@ K_levels <- c('"c(1.0, 0.0, 0.0)"', '"c(0.0, 1.0, 0.0)"', '"c(0.0, 0.0, 1.0)"')
 lhc_samples <-  lhc_samples[rep(seq_len(nrow(lhc_samples)), 3), ]
 lhc_samples$K <- rep(K_levels, each = nrow(lhc_samples)/3)
 
-write.csv(lhc_samples, "./R/lhc_samples.csv", row.names = F)
+write.csv(lhc_samples, "./lhc_gaditest.csv", header = T)
+
+
+
+# TODO: Have more of a look into this - I don't think it's necessary for purely reading files
+# Might be worth combining model outputs at the end though instead of writing to one file
+# Split data frame into separate files for each row - 
+# to avoid filesystem problems from reading the same file on multiple threads
+if (!dir.exists("./combos"))
+    dir.create("./combos")
+
+for (row in seq.int(1, nrow(lhc_samples))) {
+    write.csv(lhc_samples[row,], paste0("./combos/lhc_sample", row, ".csv"), row.names = F)
+}
+
+# Do the same for seeds:
+
+seeds <- read.csv("./May2021-GadiTest/R/seeds_gaditest.csv")
+
+if (!dir.exists("./seeds"))
+    dir.create("./seeds")
+
+for (row in seq.int(1, nrow(seeds))) {
+    write.table(seeds[row,], paste0("./seeds/seed", row, ".csv"), row.names = F, col.names = F, sep = ",")
+}
+
+
+
 

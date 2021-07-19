@@ -174,9 +174,9 @@ function (float) lerp(fi xmin, fi xmax, fi ymin, fi ymax, fi x) {
 	
 	posfile = paste(modelindex, asString(seed), nloci, pos_QTL, sep = ","); // Output information on where the QTLs are, and the recombination structure of the genome
 	
-	writeFile(outPositions, posfile, append = T);
+	writeFile(paste0("./", outPositions, asString(seed), modelindex), posfile, append = T);
 	
-	writeFile(outDict, dictfile, append = T);
+	writeFile(paste0("./", outDict, asString(seed), modelindex), dictfile, append = T);
 	
 	if (debug == T) {
 		catn("Genic constraints written!\nLow constraint: " + size(conVal[conVal == 0]) +
@@ -198,6 +198,7 @@ function (float) lerp(fi xmin, fi xmax, fi ymin, fi ymax, fi x) {
 	sim.rescheduleScriptBlock(s2, start = burnTime, end = (burnTime + stabTime + testTime));
 	sim.rescheduleScriptBlock(s3, start = (burnTime + 1), end = (burnTime + stabTime));
 	sim.rescheduleScriptBlock(s4, start = (burnTime + stabTime + 1), end = (burnTime + stabTime + testTime));
+	sim.rescheduleScriptBlock(s5, start = burnTime + stabTime + testTime, end = burnTime + stabTime + testTime + 1);
 	
 	
 	// Set delta difference value
@@ -253,19 +254,19 @@ s1 2 late() {
 		sim.setValue("optimum", (optShift + phenomean));
 		catn("Optimum is: " + (optShift + phenomean) + "\nStarting stabilising selection regime");
 		OptFile = paste(asString(seed), modelindex, (optShift + phenomean), sep = ",");
-		writeFile(outOpt, OptFile);
+		writeFile(paste0("./", outOpt, asString(seed), modelindex), OptFile);
 		
 		w = mean(inds.fitnessScaling);
 		dist = abs(phenomean - (optShift + phenomean)); // Absolute values so that means aren't biased towards 0 by drift 
 		Mfile = paste(sim.generation, asString(seed), modelindex, meanH, VA, phenomean, dist, w, sep=",");
-		writeFile(outName, Mfile, append = T);
+		writeFile(paste0("./", outName, asString(seed), modelindex), Mfile, append = T);
 		
 		sim.setValue("burninPheno", phenomean); // Set a temporary optimum
 	
 	}
 	else {
 		Bfile = paste(sim.generation, asString(seed), modelindex, meanH, VA, phenomean, sep=",");
-		writeFile(outBurn, Bfile, append = T);
+		writeFile(paste0("./", outBurn, asString(seed), modelindex), Bfile, append = T);
 	}
 	
 	// Plotting heterozygosity: check operating system so we use the right R functions to draw the graph
@@ -373,7 +374,7 @@ s2 3 late() {
 	// Write the mutations file
 	// Fail safe in case there are no mutations at some point and the for loop doesn't run
 	if (exists('mutsLine') | exists('subLine'))
-		writeFile(outMuts, mutsLines, append = T);
+		writeFile(paste0("./", outMuts, asString(seed), modelindex), mutsLines, append = T);
 
 
 }
@@ -401,7 +402,7 @@ s3 3 late() {
 	sim.setValue("lastDist", dist);
 	sim.setValue("burnDelta", c(sim.getValue("burnDelta"), delta));
 	Mfile = paste(sim.generation, asString(seed), modelindex, meanH, VA, phenomean, dist, w, delta, sep=",");
-	writeFile(outName, Mfile, append = T);
+	writeFile(paste0("./", outName, asString(seed), modelindex), Mfile, append = T);
 	
 	
 	if (sim.generation == (burnTime + stabTime)) {
@@ -458,7 +459,7 @@ s4 4 late() {
 	deltaw = w - sim.getValue("lastw");
 	sim.setValue("lastw", w);
 	Mfile = paste(sim.generation, asString(seed), modelindex, meanH, VA, phenomean, dist, w, deltaPheno, deltaw, sep=",");
-	writeFile(outName, Mfile, append = T);
+	writeFile(paste0("./", outName, asString(seed), modelindex), Mfile, append = T);
 	
 	
 	if (adaptiveSampling == T) {
@@ -476,7 +477,14 @@ s4 4 late() {
 		}
 	}
 	
+}
+
 	
+// Thread Safety for writing files: we write to temp files with a unique name and then at the end of the simulation put it into a folder
+// When everything's done we combine them and transfer to scratch storage
+
+s5 4 early() {
+	system(paste0("mv -p ./* $JOBFS_DIR/"));
 
 
 }
