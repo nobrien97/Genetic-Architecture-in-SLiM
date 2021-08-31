@@ -19,16 +19,16 @@ initialize() {
 		setCfgParam("seed", getSeed());
 		catn("Actual seed: " + asInteger(seed));
 	}
-	setCfgParam("debug", T); // Verbose debug outputs straight to stdout
+	setCfgParam("debug", F); // Verbose debug outputs straight to stdout
 	
 	// Declare/define parameters if they haven't been by the command line arguments
 	// Values from literature are cited
 	// The realistic range of w^2 is 3-50, so 18 to 5000 for 2w^2, or 0.05556 to 0.0002 for 1/2w^2
 	setCfgParam("mu", 8.045e-6); // Mutation rate averaged across five species from Table 1 Aston et al. 2017 
-	setCfgParam("Ne", 20000 ); // Population size
+	setCfgParam("Ne", 1000 ); // Population size
 	setCfgParam("del_mean", -1); // Mean used for the gamma distribution that deleterious mutations are pulled from
 	setCfgParam("del_shape", 10); // Shape parameter for gamma distribution used for deleterious mutations
-	setCfgParam("rwide", 1e-4); // Whole genome recombination rate
+	setCfgParam("rwide", 0.5);//1.241e-4); // Whole genome recombination rate
 	setCfgParam("nloci", 30); // Number of QTL positions along the chromosome - where QTL mutations can appear, sampled from sample()
 	setCfgParam("genomelength", 100); // Loci across the genome - some are deleterious, others QTL, others neutral
 	setCfgParam("locimu", 0.0); // Mean used for QTL mutation effect distribution pulls
@@ -36,39 +36,29 @@ initialize() {
 	setCfgParam("locidist", "n"); // Distribution used for locus distribution. "n" = normal, "g" = gamma
 	setCfgParam("con_props", c(0.33, 0.33, 0.34)); // Proportion of genes that have low/medium/high substitution rate
 	setCfgParam("constraints", matrix(c(1.0, 1.0, 1.0,
-		5.0, 10.0, 1.0,
-		50.0, 100.0, 1.0), ncol = 3, byrow = T)); // Matrix of lambdas: neutral/deleterious/beneficial weights in columns, rows are low/medium/high sub rate
+													5.0, 10.0, 1.0,
+													50.0, 100.0, 1.0), ncol = 3, byrow = T)); // Matrix of lambdas: neutral/deleterious/beneficial weights in columns, rows are low/medium/high sub rate
 	setCfgParam("width", 0.005); // Width of the fitness curve: smaller = wider curve, lower selection pressure: need to be careful with values, they need to be relative to the mean phenotype after burn-in, and the initial distance from the optimum. This should be precalculated as 1/2w^2, as in Lande 1976
 	
-	// TODO: Set this to a large value, adjust width also to have a longer adaptation period: measure the distribution of effects for adaptation!!!!	
-	setCfgParam("optShift", 30); // How far away optimum phenotype should be from mean phenotype post-burnin: Kingsolver et al. 2001 suggests .01 to 10 phenotypic units
+// TODO: Set this to a large value, adjust width also to have a longer adaptation period: measure the distribution of effects for adaptation!!!!	
+	setCfgParam("opt", 30); // How far away optimum phenotype should be from mean phenotype post-burnin: Kingsolver et al. 2001 suggests .01 to 10 phenotypic units
 	
-	setCfgParam("printH", T); // Print values of heterozygosity over time during burn-in: used to decide how long burn-in needs to be
-	setCfgParam("burnTime", 75000); // Number of generations of neutral burn-in before the test period
-	setCfgParam("stabTime", 5000); // Number of generations of stabilising selection around the burn-in phenotype before the optimum shifts
-	setCfgParam("testTime", 10000); // Number of generations of test time: where selection is applied (or additional generations of drift, if selType = "d")
+	setCfgParam("printH", F); // Print values of heterozygosity over time during burn-in: used to decide how long burn-in needs to be
+	setCfgParam("burnTime", 50000); // Number of generations of neutral burn-in before the test period
+	setCfgParam("stabTime", 10000); // Number of generations of stabilising selection around the burn-in phenotype before the optimum shifts
+	setCfgParam("testTime", 50000); // Number of generations of test time: where selection is applied (or additional generations of drift, if selType = "d")
 	setCfgParam("samplerate", c(100, 1000)); // Sample rate in generations for phenotypic output (first value) and allelic output (second value)
-	setCfgParam("adaptiveSampling", F); // Enable adaptive sampling rates to sample more often when phenotypes are changing rapidly. 
+	setCfgParam("adaptiveSampling", T); // Enable adaptive sampling rates to sample more often when phenotypes are changing rapidly. 
 	setCfgParam("sampleLimits", c(0.1*samplerate, 5*samplerate)); // Set maximum and minimum sample rates to adjust between 
-	
+
 	setCfgParam("outPositions", 'out_stabsel_pos.csv'); // Output filename/path for locus positions
 	setCfgParam("outBurn", 'out_stabsel_burnin.csv'); // Output burn-in heterozygosities
 	setCfgParam("outName", 'out_stabsel_means.csv'); // Output filename/path for the trait means/variance
 	setCfgParam("outOpt", 'out_stabsel_opt.csv'); // Output filename/path for the trait optimum values for each run
 	setCfgParam("outMuts", 'out_stabsel_muts.csv'); //Output filename/path for the mutation information
 	setCfgParam("outDict", 'out_stabsel_dict.csv'); // Output filename/path for dictionary of genetic constraints
+	
 	setCfgParam("modelindex", 1); // Identifier for the combination of predictors used in latin hypercube: this is the row number in the lscombos.csv file
-	setCfgParam("identifier", paste(asString(seed), modelindex, sep = "_")); // Unique identifier for the run - seed_modelindex
-	
-	// Set up the filesystem for saving data - thread safety, write to separate files for each run
-	//	We write to /$PBS_JOBFS/seed_modelindex and copy those files after the full job is complete to a combined file
-	
-	createDirectory(paste0("./", identifier));	
-	setwd(paste0("./", identifier)); // Set the working directory to a folder called seed_modelindex in $PBS_JOBFS	
-	
-	
-	if (debug == T)
-		defineConstant("beginTime", clock());
 	
 	initializeMutationRate(mu);
 	
@@ -99,7 +89,7 @@ initialize() {
 
 function (void) setCfgParam(s$ name, ifls value) {
 	// Automate defining constants for SLiMgui and slim command line
-	
+
 	if (!exists(name)) {
 		defineConstant(name, value);
 	}
@@ -108,7 +98,7 @@ function (void) setCfgParam(s$ name, ifls value) {
 
 function (void) calcPhenotype(o<Individual> inds, o<Substitution> fixed) {
 	// Calculate phenotypes for individuals based on their QTL effects - both segregating and substitutions
-	
+
 	sizem3 = size(fixed[fixed.mutationType == m3]);
 	fixedfx = sizem3 ? sum(fixed[fixed.mutationType == m3].selectionCoeff) else 0.0;
 	
@@ -124,24 +114,13 @@ function (void) calcPhenotype(o<Individual> inds, o<Substitution> fixed) {
 
 function (void) calcFitness(o<Individual> inds, fi$ optimum) {
 	// Calculate fitness from phenotype. Make sure this is only called after CalcPhenotype()!
-	phenotypes = inds.getValue("phenotype");
+	phenotypes = inds.getValue("phenotype"); 
 	dists = (phenotypes - optimum)^2;
-	inds.fitnessScaling = 0.01 + exp(-(dists * width)); // Gaussian fitness function comes from Lande 1976: width is 1/2w^2
-}
-
-function (float) lerp(fi xmin, fi xmax, fi ymin, fi ymax, fi x) {
-	// Linear interpolation between two points
-	 y = ymin + (x - xmin)*((ymax - ymin)/(xmax - xmin));
-	 if (any(y > ymax))
-	 	return ymax;
-	 if (any(y < ymin))
-	 	return ymin;
-	 else
-	 	return y;
+	inds.fitnessScaling = 0.01 + exp(-(dists * width)); // Fitness function comes from Lande 1976: width is 1/2w^2
 }
 
 
-
+// create a population of 500 individuals
 // Drosophila - deleterious mutation rate: Peter Keightley Eyre-Walker: with Ne estimate and genome size
 // Good estimate of how many deleterious mutations occur per site and gen, and distribution of effects
 1 {
@@ -155,11 +134,11 @@ function (float) lerp(fi xmin, fi xmax, fi ymin, fi ymax, fi x) {
 	
 	sim.setValue("pos_QTL", pos_QTL); //store these positions in a sim value
 	
-	// Each gene needs to be put into a constraint bin: lambda low, med, high (given by the rows of Cfg param constraint
-	// First, we shuffle the QTLs, then assign a proportion of them to each type according to Cfg param con_props
-	// Assign to each type with a difference row of the matrix constraint
-	
-	// Store as sim value 0, 1, or 2, where these correspond to low/medium/high - grab these in mutation callback per mutation (seems slow?)
+// Each gene needs to be put into a constraint bin: lambda low, med, high (given by the rows of Cfg param constraint
+// First, we shuffle the QTLs, then assign a proportion of them to each type according to Cfg param con_props
+// Assign to each type with a difference row of the matrix constraint
+
+// Store as sim value 0, 1, or 2, where these correspond to low/medium/high - grab these in mutation callback per mutation (seems slow?)
 	
 	con_genes = sample(lengthvec, genomelength); // Shuffle the QTL positions
 	sim.setValue("con_genes", con_genes); // store these constraint positions in a sim value for the mutation callback to reference
@@ -169,7 +148,7 @@ function (float) lerp(fi xmin, fi xmax, fi ymin, fi ymax, fi x) {
 	conEnds[size(conEnds)-1] = conEnds[size(conEnds)-1] + (genomelength - sum(conEnds)); // Make sure the last one is put to the very end so that all QTLs have a constraint value: !note! could be a source of error in proportions not being 100% precise
 	
 	conVal = repEach(c(0, 1, 2), conEnds);
-	
+
 	con_dict = matrix(c(con_genes, conVal), ncol = genomelength, byrow = T);
 	// for each QTL, store a 0, 1, or 2, with numbers chosen based on constraint proportion parameter
 	
@@ -184,27 +163,26 @@ function (float) lerp(fi xmin, fi xmax, fi ymin, fi ymax, fi x) {
 	
 	writeFile(outDict, dictfile, append = T);
 	
-	if (debug == T) {
-		catn("Genic constraints written!\nLow constraint: " + size(conVal[conVal == 0]) +
-			"\nMedium constraint: " + size(conVal[conVal == 1]) + "\nHigh constraint: " + size(conVal[conVal == 2]));
-	}
+if (debug == T) {
+	catn("Genic constraints written!\nLow constraint: " + size(conVal[conVal == 0]) + 
+	"\nMedium constraint: " + size(conVal[conVal == 1]) + "\nHigh constraint: " + size(conVal[conVal == 2]));
+}	
 	
 	
-	// Define constants for plotting heterozygosity (diagnostics)
+		// Define constants for plotting heterozygosity (diagnostics)
 	if (printH == T) {
 		sim.setValue("h2_history", NULL);
 		defineConstant("pngPath", writeTempFile("plot_", ".png", ""));
 		if (exists("slimgui"))
 			slimgui.openDocument(pngPath);
-	}
-	
-	// Activate script blocks for burn-in, stabilising selection around local optima, and test time post-environmental shift
+		}	
+		
+			// Activate script blocks for burn-in, stabilising selection around locla optima, and test time post-environmental shift
 	
 	sim.rescheduleScriptBlock(s1, start = 1, end = burnTime);
 	sim.rescheduleScriptBlock(s2, start = burnTime, end = (burnTime + stabTime + testTime));
 	sim.rescheduleScriptBlock(s3, start = (burnTime + 1), end = (burnTime + stabTime));
 	sim.rescheduleScriptBlock(s4, start = (burnTime + stabTime + 1), end = (burnTime + stabTime + testTime));
-	sim.rescheduleScriptBlock(s5, start = burnTime + stabTime + testTime, end = burnTime + stabTime + testTime + 1);
 	
 	
 	// Set delta difference value
@@ -215,7 +193,6 @@ function (float) lerp(fi xmin, fi xmax, fi ymin, fi ymax, fi x) {
 	if (adaptiveSampling == T) {
 		sim.setValue("sRate", samplerate);
 		sim.setValue("burnDelta", NULL);
-		sim.setValue("curTime", 0);
 	}
 }
 
@@ -227,8 +204,8 @@ fitness(m3) {
 
 // When a mutation appears, need to check if it occurs at a QTL and set the mutation type according to constraint
 mutation(m1) {
-	
-	con_dict = sim.getValue("con_dict");
+
+	con_dict = sim.getValue("con_dict");	
 	dict_pos = match(mut.position, con_dict[0,]); // Get the position in the dictionary matrix of the mutation's location
 	gene_constraint = constraints[c(con_dict[1, dict_pos]),]; // Get the correct constraints for the gene
 	
@@ -239,8 +216,8 @@ mutation(m1) {
 		choice = sample(sim.mutationTypes[0:1], 1, weights = gene_constraint[0:1]);
 	}
 	mut.setMutationType(choice);
-	mut.setSelectionCoeff(mut.mutationType.drawSelectionCoefficient());
-	
+	mut.setSelectionCoeff(mut.mutationType.drawSelectionCoefficient());	
+
 	return T;
 }
 
@@ -250,59 +227,51 @@ s1 2 late() {
 		return;
 	inds = sim.subpopulations.individuals;
 	meanH = paste(calcHeterozygosity(inds.genomes), sep=",");
-	VA = paste(calcVA(inds, sim.mutationTypes[2]));
+	VA = paste(calcVA(inds, sim.mutationTypes[2]));	
 	calcPhenotype(inds, sim.substitutions);
 	phenomean = mean(inds.getValue("phenotype"));
-	
+
 	
 	// Set the optimum as a fixed distance from post-burn-in population phenotype mean, and do our write to the standard phenomean output, rather than burn-in
 	if (sim.generation == burnTime) {
-		sim.setValue("optimum", (optShift + phenomean));
-		catn("Optimum is: " + (optShift + phenomean) + "\nStarting stabilising selection regime");
-		OptFile = paste(asString(seed), modelindex, (optShift + phenomean), sep = ",");
+		catn("Optimum is: " + opt + "\nStarting stabilising selection regime");
+		OptFile = paste(asString(seed), modelindex, opt, sep = ",");
 		writeFile(outOpt, OptFile);
-		
+				
 		w = mean(inds.fitnessScaling);
-		dist = abs(phenomean - (optShift + phenomean)); // Absolute values so that means aren't biased towards 0 by drift 
+		dist = abs(phenomean - opt); // Absolute values so that means aren't biased towards 0 by drift 
 		Mfile = paste(sim.generation, asString(seed), modelindex, meanH, VA, phenomean, dist, w, sep=",");
 		writeFile(outName, Mfile, append = T);
 		
 		sim.setValue("burninPheno", phenomean); // Set a temporary optimum
 	
-	}
+	}	
 	else {
 		Bfile = paste(sim.generation, asString(seed), modelindex, meanH, VA, phenomean, sep=",");
-		writeFile(outBurn, Bfile, append = T);
+		writeFile(outBurn, Bfile, append = T);	
 	}
 	
-	// Plotting heterozygosity: check operating system so we use the right R functions to draw the graph
+		// Plotting heterozygosity: check operating system so we use the right R functions to draw the graph
 	if (printH == T)  {
 		sim.setValue("h2_history", c(sim.getValue("h2_history"), meanH));
-		if (sim.generation % 1000 == 0)
-			catn("Heterozygosity = " + meanH);
+		catn("Heterozygosity = " + meanH);
 		y = sim.getValue("h2_history");
 		bounds = c(min(asFloat(y)) - (0.1*min(asFloat(y))), max(asFloat(y)) + (0.1*max(asFloat(y))));
-		
-		rstr = paste('{',
-			'x <- (1:' + size(y) + ') * ' + samplerate[0],
-			'y <- c(' + paste(y, sep = ", ") + ')',
-			'png(width = 4, height = 4, units = "in", res = 72, file = "' + pngPath + '")',
-			'plot(x=x, y=y, xlim = c(0, ' + burnTime + '), ylim = c(' + paste(bounds, sep = ", ") + '), type = "l",',
-			'xlab = "Generation", ylab = "Heterozygosity")',
-			'box()',
-			'dev.off()',
-			'}', sep = "\n");
-		scriptPath = writeTempFile("plot_", ".R", rstr);
-		system("/usr/bin/Rscript", args = scriptPath);
-		deleteFile(scriptPath);
-	
-	}
-	
-	if (debug == T & sim.generation == burnTime)  {
-		catn("Burn-in completed in " + (clock() - beginTime) + " seconds");
-		sim.setValue("burnClock", clock());
-	}
 
+		rstr = paste('{',
+					'x <- (1:' + size(y) + ') * ' + samplerate[0],
+					'y <- c(' + paste(y, sep = ", ") + ')',
+					'png(width = 4, height = 4, units = "in", res = 72, file = "' + pngPath + '")',
+					'plot(x=x, y=y, xlim = c(0, ' + burnTime + '), ylim = c(' + paste(bounds, sep = ", ") + '), type = "l",',
+						'xlab = "Generation", ylab = "Heterozygosity")',
+					'box()',
+					'dev.off()',
+					'}', sep = "\n");
+			scriptPath = writeTempFile("plot_", ".R", rstr);
+			system("/usr/bin/Rscript", args = scriptPath);	
+			deleteFile(scriptPath);
+
+		}
 
 }
 
@@ -313,14 +282,14 @@ s1 2 late() {
 // Also includes counts for Size Frequency Spectrum
 
 s2 3 late() {
-	
+
 	// Every 25000 generations: we can do it more often probably, but testing required	
 	if (adaptiveSampling == F) {
 		if (sim.generation % samplerate[1] != 0)
-			return;
+		return;
 	} else {
 		if (sim.generation % sim.getValue("sRate")[1] != 0)
-			return;
+		return;
 	}
 	
 	// Store vectors of unique mutations, sorted by the generation in which they originated
@@ -328,18 +297,18 @@ s2 3 late() {
 	
 	// same for substitutions
 	subs = sortBy(c(sim.substitutions[sim.substitutions.mutationType != m1]), "originGeneration");
-	
-	dist = abs(mean(p1.individuals.getValue("phenotype")) - sim.getValue("optimum"));
+		
+	dist = abs(mean(p1.individuals.getValue("phenotype")) - opt);
 	
 	// Set up an empty output to store all our mutations' information for this generation
 	mutsLines = NULL;
-	
+		
 	// Put information on these unique mutations into a separate mutations file	
 	
 	// Check if there are any substitutions, if not we need to fix the output lines	by not including the \n character at the end of the last mutation line. 
 	// This is because writeFile() automatically adds a \n character, so we'd end up with an extra empty line if we do write that way
 	
-	condict = sim.getValue("con_dict");
+	condict = sim.getValue("con_dict");	
 	genom = sim.subpopulations.genomes;
 	
 	for (mut in muts) {
@@ -358,7 +327,7 @@ s2 3 late() {
 		mutsLine = paste(sim.generation, asString(seed), modelindex, mutType, mut.id, mut.position, mutCon, mut.originGeneration, mutValue, mutChi, mutFreq, mutCount, "NA", sep = ",");
 		mutsLine = paste0(mutsLine, "\n");
 		mutsLines = paste0(mutsLines, mutsLine);
-	
+
 	}
 	
 	
@@ -370,14 +339,14 @@ s2 3 late() {
 		subChi = sub.selectionCoeff * sqrt(1/(2*dist));
 		dictPos = match(sub.position, condict[0,]);
 		subCon = condict[1, dictPos];
-		
+
 		subLine = paste(sim.generation, asString(seed), modelindex, subType, sub.id, sub.position, subCon, sub.originGeneration, subValue, subChi, subFreq, subCount, sub.fixationGeneration, sep = ",");
 		subLine = paste0(subLine, "\n");
 		
 		mutsLines = paste0(mutsLines, subLine); // Add substitutions to mutation output
 	
 	}
-	
+		
 	// Write the mutations file
 	// Fail safe in case there are no mutations at some point and the for loop doesn't run
 	if (exists('mutsLine') | exists('subLine'))
@@ -389,37 +358,35 @@ s2 3 late() {
 // Stabilising selection period around local optimum prior to optimum shift
 
 s3 3 late() {
-	
+
 	// Calculate phenotypes + fitness, write output
 	inds = sim.subpopulations.individuals;
 	calcPhenotype(inds, sim.substitutions);
 	calcFitness(inds, sim.getValue("burninPheno"));
 	
-	if (sim.generation % samplerate[0] != 0) // Write output every x generations, given by the first value in samplerate
+	if (sim.generation % samplerate[0] != 0) { // Write output every x generations, given by the first value in samplerate
 		return;
-	
-	// Construct string output for data to write to file
-	meanH = paste(calcHeterozygosity(p1.genomes), sep=",");
-	VA = paste(calcVA(p1.individuals, sim.mutationTypes[2]));
-	phenotypes = inds.getValue("phenotype");
-	phenomean = mean(phenotypes);
-	w = mean(inds.fitnessScaling);
-	dist = mean(abs(phenotypes - sim.getValue("burninPheno"))); // Absolute values so that means aren't biased towards 0 by drift 
-	delta = dist - sim.getValue("lastDist");
-	sim.setValue("lastDist", dist);
-	sim.setValue("burnDelta", c(sim.getValue("burnDelta"), delta));
-	Mfile = paste(sim.generation, asString(seed), modelindex, meanH, VA, phenomean, dist, w, delta, sep=",");
-	writeFile(outName, Mfile, append = T);
-	
-	
+		}
+			
+		meanH = paste(calcHeterozygosity(p1.genomes), sep=",");
+		VA = paste(calcVA(p1.individuals, sim.mutationTypes[2]));
+		phenotypes = inds.getValue("phenotype");
+		phenomean = mean(phenotypes);
+		w = mean(inds.fitnessScaling);
+		dist = mean(abs(phenotypes - opt)); // Absolute values so that means aren't biased towards 0 by drift 
+		delta = dist - sim.getValue("lastDist");
+		sim.setValue("lastDist", dist);
+		Mfile = paste(sim.generation, asString(seed), modelindex, meanH, VA, phenomean, dist, w, delta, sep=",");
+		writeFile(outName, Mfile, append = T);
+		
+		if (adaptiveSampling == T)
+			sim.setValue("burnDelta", c(burnDelta, dist));
+
+		
 	if (sim.generation == (burnTime + stabTime)) {
 		catn("Shifting optimum...");
 		if (adaptiveSampling == T) {
-			sim.setValue("burnDelta", mean(sim.getValue("burnDelta"))); // Average the change in phenotype for burn in period so we can differentiate from that
-		}
-		if (debug == T) {
-			catn("Initial stabilising selection took " + (clock() - sim.getValue("burnClock")) + " seconds");
-			sim.setValue("burnClock", clock());
+			sim.setValue("burnDelta", mean(burnDelta)); // Average the change in phenotype for burn in period so we can differentiate from that
 		}
 	}
 }
@@ -430,68 +397,57 @@ s3 3 late() {
 // Selection period
 
 s4 4 late() {
-	
+		
 	// Calculate phenotypes + fitness, write output
 	inds = sim.subpopulations.individuals;
-	optimum = sim.getValue("optimum");
 	calcPhenotype(inds, sim.substitutions);
-	calcFitness(inds, optimum);
+	calcFitness(inds, opt);
 	
-	
+
 	if (adaptiveSampling == F) {
 		if (sim.generation % samplerate[0] != 0) { // Write output every x generations, given by the first value in samplerate
 			return;
-		}
+			}
 	} else {
-		if ((sim.generation - sim.getValue("curTime")) % sim.getValue("sRate")[0] != 0)
-			return;
-	}
-	meanH = paste(calcHeterozygosity(p1.genomes), sep=",");
-	VA = paste(calcVA(p1.individuals, sim.mutationTypes[2]));
-	phenotypes = inds.getValue("phenotype");
-	phenomean = mean(phenotypes);
-	w = mean(inds.fitnessScaling);
-	dist = mean(abs(phenotypes - optimum)); // Absolute values so that means aren't biased towards 0 by drift 
-	deltaPheno = dist - sim.getValue("lastDist");
-	sim.setValue("lastDist", dist);
-	deltaw = w - sim.getValue("lastw");
-	sim.setValue("lastw", w);
-	Mfile = paste(sim.generation, asString(seed), modelindex, meanH, VA, phenomean, dist, w, deltaPheno, deltaw, sep=",");
-	writeFile(paste0("./", outName, asString(seed), modelindex, ".csv"), Mfile, append = T);
-
-
-// End simulation if we're at the end of the test time
-	if (sim.generation == (burnTime + stabTime + testTime)) {
-		if (debug == T) {
-			catn("Adaptation test took " + (clock() - sim.getValue("burnClock")) + " seconds");
-			catn("Total test time: " + (clock() - beginTime) + " seconds");
-		}
-		sim.simulationFinished();
-	}	
-	
-	if (adaptiveSampling == T) {
+		if (sim.generation % sim.getValue("sRate")[0] == 0) {	
+		meanH = paste(calcHeterozygosity(p1.genomes), sep=",");
+		VA = paste(calcVA(p1.individuals, sim.mutationTypes[2]));
+		phenotypes = inds.getValue("phenotype");
+		phenomean = mean(phenotypes);
+		w = mean(inds.fitnessScaling);
+		dist = mean(abs(phenotypes - opt)); // Absolute values so that means aren't biased towards 0 by drift 
+		deltaPheno = dist - sim.getValue("lastDist");
+		sim.setValue("lastDist", dist);
+		deltaw = w - sim.getValue("lastw");
+		sim.setValue("lastw", w);
+		Mfile = paste(sim.generation, asString(seed), modelindex, meanH, VA, phenomean, dist, w, deltaPheno, deltaw, sep=",");
+		writeFile(outName, Mfile, append = T);
+		
 		// Compare rate of change to burn-in ROC and adjust sampling rate according to magnitude of the difference
-//		burnDelta = sim.getValue("burnDelta");
-//		lerpMax = (burnDelta > 1e-4) ? burnDelta*100 else 0.1; // If burnDelta is 0, we can't use burnDelta*10 as a max or we will always be at the minimum
-		sim.setValue("sRate", asInteger(round(lerp(deltaPheno, optimum, sampleLimits[c(0,1)], sampleLimits[c(2,3)], abs(dist)))));
-		sim.setValue("curTime", sim.generation);
-		if (debug == T) {		
-//			catn("burnDelta = " + burnDelta);
-			catn("deltaPheno = " + deltaPheno);
-			catn("curTime = " + sim.getValue("curTime"));
-			catn("sRate = " + sim.getValue("sRate"));
-			catn("dist = " + dist);
+		// TODO: Make this more dynamic rather than fixed sample rates - use ratio of deltas to adjust the sample rate
+		burnDelta = sim.getValue("burnDelta");
+
+		if (burnDelta == 0)
+			burnDelta = 0.0000001; // In case burnDelta equals exactly 0.0 (unlikely), set it to a very small number so we can still divide
+		ratio_delta = abs(deltaPheno/burnDelta);
+
+		if (ratio_delta > 10) { // If phenotypes are changing really quickly sample more often
+				sim.setValue("sRate", sampleLimits[0:1]);
+			}	
+			else if (ratio_delta < 10) {
+				sim.setValue("sRate", sampleLimits[2:3]);
+			}		
 		}
 	}
 	
-}
+	
+	// End simulation
+	if (sim.generation == (burnTime + stabTime + testTime))
+		sim.simulationFinished();
 
 	
-// Thread Safety for writing files: we write to temp files with a unique name and then at the end of the simulation put it into a folder
-// When everything's done we combine them and transfer to scratch storage
-
-s5 4 early() {
-	system(paste0("mv -r ./* ", FINALPATH));
-
-
 }
+
+
+
+
