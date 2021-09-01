@@ -7,8 +7,6 @@
 */
 
 
-
-
 // set up a simple neutral simulation
 initialize() {
 	if (!exists("slimgui")) {
@@ -25,11 +23,11 @@ initialize() {
 	// Values from literature are cited
 	// The realistic range of w^2 is 3-50, so 18 to 5000 for 2w^2, or 0.05556 to 0.0002 for 1/2w^2
 	setCfgParam("mu", 8.045e-6); // Mutation rate averaged across five species from Table 1 Aston et al. 2017 
-	setCfgParam("Ne", 20000 ); // Population size
+	setCfgParam("Ne", 10000 ); // Population size
 	setCfgParam("del_mean", -1); // Mean used for the gamma distribution that deleterious mutations are pulled from
 	setCfgParam("del_shape", 10); // Shape parameter for gamma distribution used for deleterious mutations
 	setCfgParam("rwide", 1e-4); // Whole genome recombination rate
-	setCfgParam("nloci", 30); // Number of QTL positions along the chromosome - where QTL mutations can appear, sampled from sample()
+	setCfgParam("nloci", 100); // Number of QTL positions along the chromosome - where QTL mutations can appear, sampled from sample()
 	setCfgParam("genomelength", 100); // Loci across the genome - some are deleterious, others QTL, others neutral
 	setCfgParam("locimu", 0.0); // Mean used for QTL mutation effect distribution pulls
 	setCfgParam("locisigma", 1.0); // Variance used for QTL effect pulls - the additive effect size distribution
@@ -43,29 +41,28 @@ initialize() {
 	// TODO: Set this to a large value, adjust width also to have a longer adaptation period: measure the distribution of effects for adaptation!!!!	
 	setCfgParam("optShift", 30); // How far away optimum phenotype should be from mean phenotype post-burnin: Kingsolver et al. 2001 suggests .01 to 10 phenotypic units
 	
-	setCfgParam("printH", T); // Print values of heterozygosity over time during burn-in: used to decide how long burn-in needs to be
-	setCfgParam("burnTime", 75000); // Number of generations of neutral burn-in before the test period
+	setCfgParam("printH", F); // Print values of heterozygosity over time during burn-in: used to decide how long burn-in needs to be
+	setCfgParam("burnTime", 1000); // Number of generations of neutral burn-in before the test period
 	setCfgParam("stabTime", 5000); // Number of generations of stabilising selection around the burn-in phenotype before the optimum shifts
-	setCfgParam("testTime", 10000); // Number of generations of test time: where selection is applied (or additional generations of drift, if selType = "d")
-	setCfgParam("samplerate", c(100, 1000)); // Sample rate in generations for phenotypic output (first value) and allelic output (second value)
+	setCfgParam("testTime", 5000); // Number of generations of test time: where selection is applied (or additional generations of drift, if selType = "d")
+	setCfgParam("samplerate", c(1000, 1000)); // Sample rate in generations for phenotypic output (first value) and allelic output (second value)
 	setCfgParam("adaptiveSampling", F); // Enable adaptive sampling rates to sample more often when phenotypes are changing rapidly. 
 	setCfgParam("sampleLimits", c(0.1*samplerate, 5*samplerate)); // Set maximum and minimum sample rates to adjust between 
 	
-	setCfgParam("outPositions", 'out_stabsel_pos.csv'); // Output filename/path for locus positions
-	setCfgParam("outBurn", 'out_stabsel_burnin.csv'); // Output burn-in heterozygosities
-	setCfgParam("outName", 'out_stabsel_means.csv'); // Output filename/path for the trait means/variance
-	setCfgParam("outOpt", 'out_stabsel_opt.csv'); // Output filename/path for the trait optimum values for each run
-	setCfgParam("outMuts", 'out_stabsel_muts.csv'); //Output filename/path for the mutation information
-	setCfgParam("outDict", 'out_stabsel_dict.csv'); // Output filename/path for dictionary of genetic constraints
-	setCfgParam("modelindex", 1); // Identifier for the combination of predictors used in latin hypercube: this is the row number in the lscombos.csv file
+	setCfgParam("modelindex", 1); // Identifier for the combination of predictors used in latin hypercube: this is the row number 
+											// in the lscombos.csv file
 	setCfgParam("identifier", paste(asString(seed), modelindex, sep = "_")); // Unique identifier for the run - seed_modelindex
-	
-	// Set up the filesystem for saving data - thread safety, write to separate files for each run
-	//	We write to /$PBS_JOBFS/seed_modelindex and copy those files after the full job is complete to a combined file
-	
-	createDirectory(paste0("./", identifier));	
-	setwd(paste0("./", identifier)); // Set the working directory to a folder called seed_modelindex in $PBS_JOBFS	
-	
+		
+	// Set up the filesystem for saving data - thread safety, write to separate files for each run with unique names
+	//	We write to /$PBS_JOBFS and copy all files of the same type after the full job is complete to a combined file
+	// IMPORTANT: in the PBS script remember to cd $PBS_JOBFS
+
+	setCfgParam("outPositions", paste0('out_stabsel_pos', identifier, '.csv')); // Output filename/path for locus positions
+	setCfgParam("outBurn", paste0('out_stabsel_burnin', identifier, '.csv')); // Output burn-in heterozygosities
+	setCfgParam("outName", paste0('out_stabsel_means', identifier, '.csv')); // Output filename/path for the trait means/variance
+	setCfgParam("outOpt", paste0('out_stabsel_opt', identifier, '.csv')); // Output filename/path for the trait optimum values for each run
+	setCfgParam("outMuts", paste0('out_stabsel_muts', identifier, '.csv')); //Output filename/path for the mutation information
+	setCfgParam("outDict", paste0('out_stabsel_dict', identifier, '.csv')); // Output filename/path for dictionary of genetic constraints
 	
 	if (debug == T)
 		defineConstant("beginTime", clock());
@@ -204,7 +201,6 @@ function (float) lerp(fi xmin, fi xmax, fi ymin, fi ymax, fi x) {
 	sim.rescheduleScriptBlock(s2, start = burnTime, end = (burnTime + stabTime + testTime));
 	sim.rescheduleScriptBlock(s3, start = (burnTime + 1), end = (burnTime + stabTime));
 	sim.rescheduleScriptBlock(s4, start = (burnTime + stabTime + 1), end = (burnTime + stabTime + testTime));
-	sim.rescheduleScriptBlock(s5, start = burnTime + stabTime + testTime, end = burnTime + stabTime + testTime + 1);
 	
 	
 	// Set delta difference value
@@ -457,7 +453,7 @@ s4 4 late() {
 	deltaw = w - sim.getValue("lastw");
 	sim.setValue("lastw", w);
 	Mfile = paste(sim.generation, asString(seed), modelindex, meanH, VA, phenomean, dist, w, deltaPheno, deltaw, sep=",");
-	writeFile(paste0("./", outName, asString(seed), modelindex, ".csv"), Mfile, append = T);
+	writeFile(outName, Mfile, append = T);
 
 
 // End simulation if we're at the end of the test time
@@ -483,15 +479,4 @@ s4 4 late() {
 			catn("dist = " + dist);
 		}
 	}
-	
-}
-
-	
-// Thread Safety for writing files: we write to temp files with a unique name and then at the end of the simulation put it into a folder
-// When everything's done we combine them and transfer to scratch storage
-
-s5 4 early() {
-	system(paste0("mv -r ./* ", FINALPATH));
-
-
 }
