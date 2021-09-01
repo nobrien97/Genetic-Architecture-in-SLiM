@@ -16,6 +16,9 @@ if ( length(args) < 2 ) {
 row_combo <- as.numeric(args[1])
 row_seed <- as.numeric(args[2])
 
+# Env variables
+HOME <- Sys.getenv("HOME")
+
 # Parallelisation libraries 
 
 library(foreach)
@@ -23,8 +26,8 @@ library(doParallel)
 library(future)
 
 # Seeds generated with seedgenerator 
-seeds <- read.csv("$HOME/SLiM/Tests/Sept2021_GadiRun/R/seeds_gaditest.csv", header = T)
-combos <- read.csv("$HOME/SLiM/Tests/Sept2021_GadiRun/R/lhc_gaditest.csv", header = T)
+seeds <- read.csv(paste0(HOME, "/SLiM/Tests/Sept2021_GadiRun/R/seeds_gaditest.csv"), header = T)
+combos <- read.csv(paste0(HOME, "/SLiM/Tests/Sept2021_GadiRun/R/lhc_gaditest.csv"), header = T)
 
 i <- row_seed
 j <- row_combo
