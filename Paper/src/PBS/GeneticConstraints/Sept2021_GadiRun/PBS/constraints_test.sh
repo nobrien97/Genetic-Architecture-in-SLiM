@@ -22,5 +22,14 @@ CMDS_PATH=$HOME/SLiM/Tests/Sept2021_GadiRun/PBS/cmds.txt
 
 mpirun -np $((PBS_NCPUS/ncores_per_task)) --map-by ppr:$((ncores_per_numanode/ncores_per_task)):NUMA:PE=${ncores_per_task} nci-parallel --input-file $CMDS_PATH --timeout 86400
 
-# Copy the output files to project data, and combine them into a single file
+# Combine output into a single file
+cat ./out_stabsel_pos* >> /scratch/ht96/nb9894/slim_SeptGadiTest/out_stabsel_pos.csv
+cat ./out_stabsel_burnin* >> /scratch/ht96/nb9894/slim_SeptGadiTest/out_stabsel_burnin.csv
+cat ./out_stabsel_means* >> /scratch/ht96/nb9894/slim_SeptGadiTest/out_stabsel_means.csv
+cat ./out_stabsel_opt* >> /scratch/ht96/nb9894/slim_SeptGadiTest/out_stabsel_opt.csv
+cat ./out_stabsel_muts* >> /scratch/ht96/nb9894/slim_SeptGadiTest/out_stabsel_muts.csv
+cat ./out_stabsel_dict* >> /scratch/ht96/nb9894/slim_SeptGadiTest/out_stabsel_dict.csv
+
+# Delete loose files with seed and model indices
+find -regex ".*[0-9]*_*[0-9].csv+" -delete
 

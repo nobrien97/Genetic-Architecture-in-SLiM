@@ -17,7 +17,7 @@ initialize() {
 		setCfgParam("seed", getSeed());
 		catn("Actual seed: " + asInteger(seed));
 	}
-	setCfgParam("debug", F); // Verbose debug outputs straight to stdout
+	setCfgParam("debug", T); // Verbose debug outputs straight to stdout
 	
 	// Declare/define parameters if they haven't been by the command line arguments
 	// Values from literature are cited
@@ -27,7 +27,7 @@ initialize() {
 	setCfgParam("del_mean", -1); // Mean used for the gamma distribution that deleterious mutations are pulled from
 	setCfgParam("del_shape", 10); // Shape parameter for gamma distribution used for deleterious mutations
 	setCfgParam("rwide", 1e-4); // Whole genome recombination rate
-	setCfgParam("nloci", 30); // Number of QTL positions along the chromosome - where QTL mutations can appear, sampled from sample()
+	setCfgParam("nloci", 100); // Number of QTL positions along the chromosome - where QTL mutations can appear, sampled from sample()
 	setCfgParam("genomelength", 100); // Loci across the genome - some are deleterious, others QTL, others neutral
 	setCfgParam("locimu", 0.0); // Mean used for QTL mutation effect distribution pulls
 	setCfgParam("locisigma", 1.0); // Variance used for QTL effect pulls - the additive effect size distribution
@@ -43,9 +43,10 @@ initialize() {
 	
 	setCfgParam("printH", F); // Print values of heterozygosity over time during burn-in: used to decide how long burn-in needs to be
 	setCfgParam("burnTime", 50000); // Number of generations of neutral burn-in before the test period
-	setCfgParam("stabTime", 10000); // Number of generations of stabilising selection around the burn-in phenotype before the optimum shifts
-	setCfgParam("testTime", 10000); // Number of generations of test time: where selection is applied (or additional generations of drift, if selType = "d")
-	setCfgParam("samplerate", c(50, 500)); // Sample rate in generations for phenotypic output (first value) and allelic output (second value)
+	setCfgParam("stabTime", 500); // Number of generations of stabilising selection around the burn-in phenotype before the optimum shifts
+	setCfgParam("testTime", 500); // Number of generations of test time: where selection is applied (or additional generations of drift, if selType = "d")
+	setCfgParam("samplerate", c(1000, 1000)); // Sample rate in generations for phenotypic output (first value) and allelic output (second value)
+	setCfgParam("burnSampling", 1000); // Set a sample rate for burn-in - we don't need as high resolution data here.
 	setCfgParam("adaptiveSampling", F); // Enable adaptive sampling rates to sample more often when phenotypes are changing rapidly. 
 	setCfgParam("sampleLimits", c(0.1*samplerate, 5*samplerate)); // Set maximum and minimum sample rates to adjust between 
 	
@@ -63,7 +64,8 @@ initialize() {
 	setCfgParam("outOpt", paste0('out_stabsel_opt', identifier, '.csv')); // Output filename/path for the trait optimum values for each run
 	setCfgParam("outMuts", paste0('out_stabsel_muts', identifier, '.csv')); //Output filename/path for the mutation information
 	setCfgParam("outDict", paste0('out_stabsel_dict', identifier, '.csv')); // Output filename/path for dictionary of genetic constraints
-	
+	setCfgParam("moveDir", "/scratch/ht96/nb9894/slim_SeptGadiTest/"); // Directory to move output to at end of simulation
+
 	if (debug == T)
 		defineConstant("beginTime", clock());
 	
@@ -196,7 +198,10 @@ function (float) lerp(fi xmin, fi xmax, fi ymin, fi ymax, fi x) {
 	}
 	
 	// Activate script blocks for burn-in, stabilising selection around local optima, and test time post-environmental shift
-	
+	// s1: burn-in
+	// s2: mutational output activated until end of simulation
+	// s3: stabilising around burn-in mean
+	// s4: shift optimum, track adaptation (testing phase), end the simulation and move output files 
 	sim.rescheduleScriptBlock(s1, start = 1, end = burnTime);
 	sim.rescheduleScriptBlock(s2, start = burnTime, end = (burnTime + stabTime + testTime));
 	sim.rescheduleScriptBlock(s3, start = (burnTime + 1), end = (burnTime + stabTime));
@@ -242,13 +247,14 @@ mutation(m1) {
 
 // Burn-in period
 s1 2 late() {
-	if (sim.generation % samplerate[0] != 0) // Grab a sample every 500 generations
+	if (sim.generation % burnSampling != 0) // Grab a sample every so many generations
 		return;
 	inds = sim.subpopulations.individuals;
 	meanH = paste(calcHeterozygosity(inds.genomes), sep=",");
 	VA = paste(calcVA(inds, sim.mutationTypes[2]));
 	calcPhenotype(inds, sim.substitutions);
-	phenomean = mean(inds.getValue("phenotype"));
+	// If the phenotype isn't null, set the phenomean to the mean, otherwise 0
+	phenomean = !isNULL(inds.getValue("phenotype")) ? mean(inds.getValue("phenotype")) else 0.0;
 	
 	
 	// Set the optimum as a fixed distance from post-burn-in population phenotype mean, and do our write to the standard phenomean output, rather than burn-in
@@ -462,6 +468,15 @@ s4 4 late() {
 			catn("Adaptation test took " + (clock() - sim.getValue("burnClock")) + " seconds");
 			catn("Total test time: " + (clock() - beginTime) + " seconds");
 		}
+		// Move output to scratch storage
+
+		system(paste0("mv ./", outPositions, " ", moveDir));
+		system(paste0("mv ./", outBurn, " ", moveDir));
+		system(paste0("mv ./", outName, " ", moveDir));
+		system(paste0("mv ./", outOpt, " ", moveDir));
+		system(paste0("mv ./", outMuts, " ", moveDir));
+		system(paste0("mv ./", outDict, " ", moveDir));
+		
 		sim.simulationFinished();
 	}	
 	
