@@ -4,6 +4,7 @@
 
 #  Parallel script modified from SLiM-Extras example R script, info at
 #  the SLiM-Extras repository at https://github.com/MesserLab/SLiM-Extras.
+#  Thanks to David Green at the UQ RCC
 
 # Parse parameters: seed and latin square row number
  
@@ -19,12 +20,6 @@ row_seed <- as.numeric(args[2])
 # Env variables
 HOME <- Sys.getenv("HOME")
 
-# Parallelisation libraries 
-
-library(foreach)
-library(doParallel)
-library(future)
-
 # Seeds generated with seedgenerator 
 seeds <- read.csv(paste0(HOME, "/SLiM/Tests/Sept2021_GadiRun/R/seeds_gaditest.csv"), header = T)
 combos <- read.csv(paste0(HOME, "/SLiM/Tests/Sept2021_GadiRun/R/lhc_gaditest.csv"), header = T)
@@ -34,7 +29,7 @@ j <- row_combo
 
 # Sublaunch SLiM with the appropriate values
 slim_out <- system(sprintf("$HOME/SLiM/slim -s %s -d Ne=%i -d rwide=%f -d nloci=%i -d locisigma=%f -d con_props=%s -d width=%f -d optShift=%f -d modelindex=%i $HOME/SLiM/Tests/Sept2021_GadiRun/slim/polygen_maint.slim", 
-                           as.character(i), 
+                           as.character(seeds$Seed[i]), 
                            as.integer(round(combos[j,]$Ne)), 
                            combos[j,]$rwide, 
                            as.integer(round(combos[j,]$nloci)), 
