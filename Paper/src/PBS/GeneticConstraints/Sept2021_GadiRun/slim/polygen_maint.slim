@@ -17,7 +17,7 @@ initialize() {
 		setCfgParam("seed", getSeed());
 		catn("Actual seed: " + asInteger(seed));
 	}
-	setCfgParam("debug", T); // Verbose debug outputs straight to stdout
+	setCfgParam("debug", F); // Verbose debug outputs straight to stdout
 	
 	// Declare/define parameters if they haven't been by the command line arguments
 	// Values from literature are cited
@@ -43,10 +43,10 @@ initialize() {
 	
 	setCfgParam("printH", F); // Print values of heterozygosity over time during burn-in: used to decide how long burn-in needs to be
 	setCfgParam("burnTime", 50000); // Number of generations of neutral burn-in before the test period
-	setCfgParam("stabTime", 500); // Number of generations of stabilising selection around the burn-in phenotype before the optimum shifts
-	setCfgParam("testTime", 500); // Number of generations of test time: where selection is applied (or additional generations of drift, if selType = "d")
-	setCfgParam("samplerate", c(1000, 1000)); // Sample rate in generations for phenotypic output (first value) and allelic output (second value)
-	setCfgParam("burnSampling", 1000); // Set a sample rate for burn-in - we don't need as high resolution data here.
+	setCfgParam("stabTime", 10000); // Number of generations of stabilising selection around the burn-in phenotype before the optimum shifts
+	setCfgParam("testTime", 10000); // Number of generations of test time: where selection is applied (or additional generations of drift, if selType = "d")
+	setCfgParam("samplerate", c(50, 500)); // Sample rate in generations for phenotypic output (first value) and allelic output (second value)
+	setCfgParam("burnSampling", 500); // Set a sample rate for burn-in - we don't need as high resolution data here.
 	setCfgParam("adaptiveSampling", F); // Enable adaptive sampling rates to sample more often when phenotypes are changing rapidly. 
 	setCfgParam("sampleLimits", c(0.1*samplerate, 5*samplerate)); // Set maximum and minimum sample rates to adjust between 
 	
