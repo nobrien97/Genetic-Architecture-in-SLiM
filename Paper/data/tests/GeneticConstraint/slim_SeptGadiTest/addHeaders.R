@@ -24,14 +24,13 @@ df_means[df_means$K == "\"c(0.0, 0.0, 1.0)\"", "K"] <- "High"
 # Burn-in data
 
 df_burnin <- read.csv("out_stabsel_burnin.csv", header = F)
-names(df_burnin) <- c("gen", "seed", "modelindex", "meanH", "VA", "phenomean", "dist", "mean_w", "deltaPheno")
+names(df_burnin) <- c("gen", "seed", "modelindex", "meanH", "VA", "phenomean")
 
-df_burnin <- na.omit(df_burnin)
 
 # Add predictor variable columns
 df_burnin[names(combos)[2:8]] <- NA
 
-# Can this be vectorised? 
+# Can this be vectorised? If not RCPP
 # Add the right LHC samples to the dataframe
 for (index in unique(df_burnin$modelindex)) {
   df_burnin[df_burnin$modelindex == index, names(combos)[2:8]] <- combos[index, 2:8]
@@ -77,6 +76,7 @@ df_muts[df_muts$K == "\"c(0.0, 0.0, 1.0)\"", "K"] <- "High"
 
 
 # Write files
+write.csv(df_burnin, "df_burnin.csv", row.names = FALSE)
 write.csv(df_means, "df_means.csv", row.names = FALSE)
 write.csv(df_muts, "df_muts.csv", row.names = FALSE)
 write.csv(df_combined, "df_combined.csv", row.names = FALSE)
