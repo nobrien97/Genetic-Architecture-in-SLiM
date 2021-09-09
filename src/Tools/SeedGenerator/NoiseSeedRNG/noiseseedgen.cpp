@@ -4,7 +4,6 @@
 #include <string>
 #include <vector>
 #include <getopt.h>
-#include <type_traits>
 
 using std::endl;
 using std::cout;
