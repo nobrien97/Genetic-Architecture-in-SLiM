@@ -14,7 +14,8 @@ using std::cout;
 
 
 // Function to write the csv file using ofstream
-void write_csv(std::string filename, std::vector<int32_t> values, std::string header) {
+template<typename T>
+void write_csv(std::string filename, std::vector<T> values, std::string header) {
     std::ofstream outfile(filename);
 
     // Check if a header is supplied and if the first character is = to write the header properly
@@ -73,6 +74,7 @@ int main(int argc, char* argv[]) {
         { "destination",    no_argument,        0,  'd' },
         { "nsamples",       required_argument,  0,  'n' },
         { "help",           no_argument,        0,  'h' },
+        { "long",           no_argument,        0,  'l' },
         { "verbose",        no_argument,        0,  'v' },
         { "top",            optional_argument,  0,  't' },
         {0,0,0,0}
@@ -85,11 +87,12 @@ int main(int argc, char* argv[]) {
     std::string headername = "Seed";
     int optionindex = 0;
     int options; 
+    bool bit64 = false;
 
     // Get commandline options and set variables to their associated entries
     while (options != -1) {
 
-        options = getopt_long(argc, argv, "n:d:hvt::", longopts, &optionindex);
+        options = getopt_long(argc, argv, "n:d:hlvt::", longopts, &optionindex);
 
         switch (options) {
             case 'n':
@@ -103,6 +106,10 @@ int main(int argc, char* argv[]) {
             case 'h':
                 doHelp(argv[0]);
                 return 0;
+
+            case 'l':
+                bit64 = true;
+                continue;
 
             case 'v':
                 debug = true;
@@ -132,16 +139,29 @@ int main(int argc, char* argv[]) {
 
     // Initialise MT generator and the distribution to pull from
     std::mt19937 generator(mersseed());
-    std::uniform_int_distribution<int32_t> distribution(1, INT32_MAX - 1);
 
     // Initialise vector for generated numbers
-    std::vector<int32_t> seeds;
+    std::vector<uint64_t> seeds;
 
-    // Generate seeds and fill vector
-    for (int i = 0; i < n_samples; ++i) {
-        int32_t gen = distribution(generator);
-        seeds.emplace_back(gen);
+    if (bit64)
+    {
+        std::uniform_int_distribution<uint64_t> distribution(1, UINT64_MAX - 1);
+        for (int i = 0; i < n_samples; ++i)
+        {
+            uint64_t gen = distribution(generator);
+            seeds.emplace_back(gen);
+        }
     }
+    else
+    {
+        std::uniform_int_distribution<uint32_t> distribution(1, UINT32_MAX - 1);
+        for (int i = 0; i < n_samples; ++i)
+        {
+            uint32_t gen = distribution(generator);
+            seeds.emplace_back(gen);
+        }
+    }
+    // Generate seeds and fill vector
 
     write_csv(filename, seeds, headername);
 
