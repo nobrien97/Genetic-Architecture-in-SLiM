@@ -53,6 +53,8 @@ void doHelp(char* appname) {
     "\n"
     "-v             Turn on verbose mode.\n"    
     "\n"
+    "-l             Generate 64-bit numbers instead of 32-bit.\n"            
+    "\n"
     "-t NAME        Choose a header name. Defaults to 'Seed'. Enter nothing to have no header.\n"
     "               Example: -t=Number OR -tNumber\n"
     "\n"
