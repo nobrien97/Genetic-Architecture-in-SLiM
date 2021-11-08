@@ -1,0 +1,157 @@
+/* Polygenic quantitative simulation for the maintenance of variation
+ (C) Nick O'Brien and OB Lab
+ Here we consider a single trait evolving through time via drift and stabilising selection, until reaching 
+ mutation-selection-drift balance. Genetic parameters/variables include mutation rate, population size, the nature of
+ deleterious mutations (distribution of effects), recombination rate, number of QTLs, QTL distribution of effects,
+ selection strength, and relative sizes of mutation rate hotspots/coldspots along the genome.
+*/
+
+
+// set up a simple neutral simulation
+initialize() {
+	initializeTreeSeq();
+	if (!exists("slimgui")) {
+		setCfgParam("seed", getSeed());
+	}
+	else {
+		setSeed(asInteger(round(runif(1, 1, 2^62 - 1))));
+		setCfgParam("seed", getSeed());
+		catn("Actual seed: " + asInteger(seed));
+	}
+	setCfgParam("debug", T); // Verbose debug outputs straight to stdout
+	
+	// Declare/define parameters if they haven't been by the command line arguments
+	// Values from literature are cited
+	// The realistic range of w^2 is 3-50, so 18 to 5000 for 2w^2, or 0.05556 to 0.0002 for 1/2w^2
+	setCfgParam("mu", 0.0); // Mutation rate averaged across five species from Table 1 Aston et al. 2017 
+	setCfgParam("Ne", 1000 ); // Population size
+	setCfgParam("del_mean", -1); // Mean used for the gamma distribution that deleterious mutations are pulled from
+	setCfgParam("del_shape", 10); // Shape parameter for gamma distribution used for deleterious mutations
+	setCfgParam("rwide", 1e-4); // Whole genome recombination rate
+	setCfgParam("nloci", 100); // Number of QTL positions along the chromosome - where QTL mutations can appear, sampled from sample()
+	setCfgParam("genomelength", 100); // Loci across the genome - some are deleterious, others QTL, others neutral
+	setCfgParam("locimu", 0.0); // Mean used for QTL mutation effect distribution pulls
+	setCfgParam("locisigma", 1.0); // Variance used for QTL effect pulls - the additive effect size distribution
+	setCfgParam("locidist", "n"); // Distribution used for locus distribution. "n" = normal, "g" = gamma
+	setCfgParam("con_props", c(0.33, 0.33, 0.34)); // Proportion of genes that have low/medium/high substitution rate
+	setCfgParam("constraints", matrix(c(1.0, 1.0, 1.0,
+		5.0, 10.0, 1.0,
+		50.0, 100.0, 1.0), ncol = 3, byrow = T)); // Matrix of lambdas: neutral/deleterious/beneficial weights in columns, rows are low/medium/high sub rate
+	setCfgParam("width", 0.005); // Width of the fitness curve: smaller = wider curve, lower selection pressure: need to be careful with values, they need to be relative to the mean phenotype after burn-in, and the initial distance from the optimum. This should be precalculated as 1/2w^2, as in Lande 1976
+	
+	// TODO: Set this to a large value, adjust width also to have a longer adaptation period: measure the distribution of effects for adaptation!!!!	
+	setCfgParam("optShift", 30); // How far away optimum phenotype should be from mean phenotype post-burnin: Kingsolver et al. 2001 suggests .01 to 10 phenotypic units
+	
+	setCfgParam("printH", F); // Print values of heterozygosity over time during burn-in: used to decide how long burn-in needs to be
+	setCfgParam("burnTime", 50000); // Number of generations of neutral burn-in before the test period
+	setCfgParam("stabTime", 500); // Number of generations of stabilising selection around the burn-in phenotype before the optimum shifts
+	setCfgParam("testTime", 500); // Number of generations of test time: where selection is applied (or additional generations of drift, if selType = "d")
+	setCfgParam("samplerate", c(1000, 1000)); // Sample rate in generations for phenotypic output (first value) and allelic output (second value)
+	setCfgParam("burnSampling", 1000); // Set a sample rate for burn-in - we don't need as high resolution data here.
+	setCfgParam("adaptiveSampling", F); // Enable adaptive sampling rates to sample more often when phenotypes are changing rapidly. 
+	setCfgParam("sampleLimits", c(0.1*samplerate, 5*samplerate)); // Set maximum and minimum sample rates to adjust between 
+	
+	setCfgParam("modelindex", 1); // Identifier for the combination of predictors used in latin hypercube: this is the row number 
+											// in the lscombos.csv file
+	setCfgParam("identifier", paste(asString(seed), modelindex, sep = "_")); // Unique identifier for the run - seed_modelindex
+		
+		
+	// Output
+	setCfgParam("outPositions", paste0('out_stabsel_pos', identifier, '.csv')); // Output filename/path for locus positions
+	setCfgParam("outOpt", paste0('out_stabsel_opt', identifier, '.csv')); // Output filename/path for the trait optimum values for each run
+	setCfgParam("outDict", paste0('out_stabsel_dict', identifier, '.csv')); // Output filename/path for dictionary of genetic constraints
+
+
+
+
+	if (debug == T)
+		defineConstant("beginTime", clock());
+	
+	initializeMutationRate(mu);
+	
+	
+	
+	initializeMutationType("m1", 0.5, "f", 0.0); // Neutral, non-trait-affecting mutations: also a place-holder for all mutation types before we set them
+	
+	//m2 mutation type: deleterious/background selection
+	initializeMutationType("m2", 0.5, "g", del_mean, del_shape);  // del_mean and del_shape are defined in the batch run script, or the cfg parameters
+	m2.color = "red";
+	
+	//m3 mutation type: QTL mutation
+	initializeMutationType("m3", 0.5, locidist, locimu, locisigma);
+	// m3.convertToSubstitution = F;
+	m3.color = "green";
+	
+	
+	// g1 genomic element type: uses m1 for all mutations
+	initializeGenomicElementType("g1", m1, 1.0);
+	
+	// uniform chromosome of length 100 kb with uniform recombination
+	initializeGenomicElement(g1, 0, genomelength-1);
+	initializeRecombinationRate(rwide);
+}
+
+
+// Function definitions
+
+function (void) setCfgParam(s$ name, ifls value) {
+	// Automate defining constants for SLiMgui and slim command line
+	
+	if (!exists(name)) {
+		defineConstant(name, value);
+	}
+}
+
+
+// Drosophila - deleterious mutation rate: Peter Keightley Eyre-Walker: with Ne estimate and genome size
+// Good estimate of how many deleterious mutations occur per site and gen, and distribution of effects
+1 {
+	sim.addSubpop("p1", Ne);
+	
+	
+	// Define locations of QTLs, deleterious loci, and neutral loci
+	lengthvec = 0:(genomelength - 1);
+	pos_QTL = sample(lengthvec, nloci); // Set the positions of our QTLs, from position 1 to the length of the chromosome;
+	
+	
+	sim.setValue("pos_QTL", pos_QTL); //store these positions in a sim value
+	
+	// Each gene needs to be put into a constraint bin: lambda low, med, high (given by the rows of Cfg param constraint
+	// First, we shuffle the QTLs, then assign a proportion of them to each type according to Cfg param con_props
+	// Assign to each type with a difference row of the matrix constraint
+	
+	// Store as sim value 0, 1, or 2, where these correspond to low/medium/high - grab these in mutation callback per mutation (seems slow?)
+	
+	con_genes = sample(lengthvec, genomelength); // Shuffle the QTL positions
+	sim.setValue("con_genes", con_genes); // store these constraint positions in a sim value for the mutation callback to reference
+	conEnds = asInteger(round(con_props * genomelength)); // Get the end positions for each proportion
+	// Define the genes that fall into conserved, neutral, evolving categories (lambda low med high)
+	
+	conEnds[size(conEnds)-1] = conEnds[size(conEnds)-1] + (genomelength - sum(conEnds)); // Make sure the last one is put to the very end so that all QTLs have a constraint value: !note! could be a source of error in proportions not being 100% precise
+	
+	conVal = repEach(c(0, 1, 2), conEnds);
+	
+	con_dict = matrix(c(con_genes, conVal), ncol = genomelength, byrow = T);
+	// for each QTL, store a 0, 1, or 2, with numbers chosen based on constraint proportion parameter
+	
+	sim.setValue("con_dict", con_dict);
+	
+	// Save the dictionary? Could store it as a separate file, or not? Need to think about the best way to do that
+	dictfile = paste(modelindex, asString(seed), c(con_dict[0,]), "%", c(con_dict[1,]), sep = ","); // % is so we easily know where to split it
+	
+	posfile = paste(modelindex, asString(seed), nloci, pos_QTL, sep = ","); // Output information on where the QTLs are, and the recombination structure of the genome
+	
+	writeFile(outPositions, posfile, append = T);
+	
+	writeFile(outDict, dictfile, append = T);
+	
+	if (debug == T) {
+		catn("Genic constraints written!\nLow constraint: " + size(conVal[conVal == 0]) +
+			"\nMedium constraint: " + size(conVal[conVal == 1]) + "\nHigh constraint: " + size(conVal[conVal == 2]));
+	}
+
+	sim.treeSeqOutput(paste0("./slimtree_", identifier, ".trees"));
+	sim.simulationFinished();
+}
+
+
