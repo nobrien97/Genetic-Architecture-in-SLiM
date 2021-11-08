@@ -1,6 +1,13 @@
 
-# Generate some random numbers
 def randNoise32(position, seed):
+    #Uses bit manipulation to generate 32-bit pseudo-random numbers.
+
+    #Parameters:
+    #       position (int): Where in the noise function should be sampled?
+    #       seed (int): Input seed for bit mashing.
+
+    #Returns:
+    #       mangled (int32): 32-bit bit-mangled value.
     PRIME1 = 0x75BD0FB
     PRIME2 = 0x75BD12D
     mangled = position
@@ -16,6 +23,15 @@ def randNoise32(position, seed):
 
 
 def randNoise64(position, seed):
+    #Uses bit manipulation to generate 64-bit pseudo-random numbers.
+
+    #Parameters:
+    #       position (int): Where in the noise function should be sampled?
+    #       seed (int): Input seed for bit mashing.
+
+    #Returns:
+    #       mangled (int64): 64-bit bit-mangled value.
+
     PRIME1 = 0x75BD0FB
     PRIME2 = 0x75BD12D
     mangled = position
