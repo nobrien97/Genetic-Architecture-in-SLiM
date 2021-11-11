@@ -6,6 +6,7 @@
 #  the SLiM-Extras repository at https://github.com/MesserLab/SLiM-Extras.
 #  Thanks to David Green at the UQ RCC
 
+
 # Parse parameters: seed and latin square row number
  
 args <- commandArgs(trailingOnly = TRUE)
@@ -30,20 +31,21 @@ j <- row_combo
 
 # Check if we are a control or tree model
 if ( combos$tree[j] ) {
-  # Sublaunch Python to generate the tree sequence
-  system(sprintf("python ~/tests/CoalBurnTests/R/burnin.py %i %s",
-                  j,
-                  as.character(seeds$Seed[i]), intern = T))
+  # Sublaunch Python to generate the tree sequence (conda sucks)
+  system(sprintf("$HOME/.conda/envs/msslim/bin/python3.9 burnin.py %i %s", 
+                j, 
+                as.character(seeds$Seed[i]), 
+                intern = T))
 
   # Run SLiM
-  slim_out <- system(sprintf("$HOME/SLiM/slim -s %s -d Ne=%i -d rwide=%f -d modelindex=%i $HOME/tests/CoalBurnTests/slim/polygen_maint_coalload.slim", 
+  slim_out <- system(sprintf("$HOME/slim/slim -s %s -d Ne=%i -d rwide=%f -d modelindex=%i $HOME/tests/CoalBurnTests/slim/polygen_maint_coalload.slim", 
                               as.character(seeds$Seed[i]), 
                               as.integer(ceiling(combos[j,]$Ne)), 
                               combos[j,]$rwide, 
                               j, intern=T))
 } else {
 # Sublaunch SLiM with the appropriate values
-slim_out <- system(sprintf("$HOME/SLiM/slim -s %s -d Ne=%i -d rwide=%f -d modelindex=%i $HOME/tests/CoalBurnTests/slim/polygen_maint.slim", 
+slim_out <- system(sprintf("$HOME/slim/slim -s %s -d Ne=%i -d rwide=%f -d modelindex=%i $HOME/tests/CoalBurnTests/slim/polygen_maint.slim", 
                            as.character(seeds$Seed[i]), 
                            as.integer(round(combos[j,]$Ne)), 
                            combos[j,]$rwide, 

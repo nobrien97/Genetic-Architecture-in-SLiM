@@ -58,11 +58,11 @@ cd ${TMPDIR}
 # See the -f test below about skipping the ones we have already done.
 RUNNAME="CoalBurnTests_singleshot" 
 
-OUTFILE="${PBS_O_WORKDIR}/Outputs/TEST_${NIMROD_VAR_LS}_${NIMROD_VAR_SEED}.txt" 
+OUTFILE="${PBS_O_WORKDIR}/Outputs/TEST_${NIMROD_VAR_SEED}_${NIMROD_VAR_LS}.txt" 
 echo "${OUTFILE}" 
 
 if [ -f ${OUTFILE} ]; then
-  echo "Output file ${OUTFILE} already exists. Skipping this index value ${NIMROD_VAR_LS} ${NIMROD_VAR_SEED}" 
+  echo "Output file ${OUTFILE} already exists. Skipping this index value ${NIMROD_VAR_SEED} ${NIMROD_VAR_LS}" 
   exit 0
 fi
 
@@ -75,5 +75,5 @@ module load anaconda/2020.02
 
 conda activate msslim
 
-Rscript $RSCRIPTNAME ${NIMROD_VAR_SEED} ${NIMROD_VAR_LS}
+Rscript $RSCRIPTNAME ${NIMROD_VAR_LS} ${NIMROD_VAR_SEED} 
 
