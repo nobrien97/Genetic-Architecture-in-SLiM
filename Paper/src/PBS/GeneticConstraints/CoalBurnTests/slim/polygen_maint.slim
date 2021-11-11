@@ -23,17 +23,17 @@ initialize() {
 	// Values from literature are cited
 	// The realistic range of w^2 is 3-50, so 18 to 5000 for 2w^2, or 0.05556 to 0.0002 for 1/2w^2
 	setCfgParam("mu", 8.045e-6); // Mutation rate averaged across five species from Table 1 Aston et al. 2017 
-	setCfgParam("Ne", 2484 ); // Population size
+	setCfgParam("Ne", 1000 ); // Population size
 	setCfgParam("del_mean", -1); // Mean used for the gamma distribution that deleterious mutations are pulled from
 	setCfgParam("del_shape", 10); // Shape parameter for gamma distribution used for deleterious mutations
-	setCfgParam("rwide", 0.5); // Whole genome recombination rate
-	setCfgParam("nloci", 2); // Number of QTL positions along the chromosome - where QTL mutations can appear, sampled from sample()
+	setCfgParam("rwide", 1e-4); // Whole genome recombination rate
+	setCfgParam("nloci", 100); // Number of QTL positions along the chromosome - where QTL mutations can appear, sampled from sample()
 	setCfgParam("genomelength", 100); // Loci across the genome - some are deleterious, others QTL, others neutral
 	setCfgParam("locimu", 0.0); // Mean used for QTL mutation effect distribution pulls
 	setCfgParam("locisigma", 1.0); // Variance used for QTL effect pulls - the additive effect size distribution
 	setCfgParam("locidist", "n"); // Distribution used for locus distribution. "n" = normal, "g" = gamma
 	setCfgParam("con_props", c(1.0, 0.0, 0.0)); // Proportion of genes that have low/medium/high substitution rate
-	setCfgParam("constraints", matrix(c(1.0, 0.0, 1.0,
+	setCfgParam("constraints", matrix(c(1.0, 1.0, 1.0,
 		5.0, 10.0, 1.0,
 		50.0, 100.0, 1.0), ncol = 3, byrow = T)); // Matrix of lambdas: neutral/deleterious/beneficial weights in columns, rows are low/medium/high sub rate
 	setCfgParam("width", 0.005); // Width of the fitness curve: smaller = wider curve, lower selection pressure: need to be careful with values, they need to be relative to the mean phenotype after burn-in, and the initial distance from the optimum. This should be precalculated as 1/2w^2, as in Lande 1976
@@ -41,12 +41,12 @@ initialize() {
 	// TODO: Set this to a large value, adjust width also to have a longer adaptation period: measure the distribution of effects for adaptation!!!!	
 	setCfgParam("optShift", 30); // How far away optimum phenotype should be from mean phenotype post-burnin: Kingsolver et al. 2001 suggests .01 to 10 phenotypic units
 	
-	setCfgParam("printH", T); // Print values of heterozygosity over time during burn-in: used to decide how long burn-in needs to be
-	setCfgParam("burnTime", 50000); // Number of generations of neutral burn-in before the test period
-	setCfgParam("stabTime", 500); // Number of generations of stabilising selection around the burn-in phenotype before the optimum shifts
-	setCfgParam("testTime", 500); // Number of generations of test time: where selection is applied (or additional generations of drift, if selType = "d")
-	setCfgParam("samplerate", c(1000, 1000)); // Sample rate in generations for phenotypic output (first value) and allelic output (second value)
-	setCfgParam("burnSampling", 1000); // Set a sample rate for burn-in - we don't need as high resolution data here.
+	setCfgParam("printH", F); // Print values of heterozygosity over time during burn-in: used to decide how long burn-in needs to be
+	setCfgParam("burnTime", 52500); // Number of generations of neutral burn-in before the test period
+	setCfgParam("stabTime", 1000); // Number of generations of stabilising selection around the burn-in phenotype before the optimum shifts
+	setCfgParam("testTime", 5000); // Number of generations of test time: where selection is applied (or additional generations of drift, if selType = "d")
+	setCfgParam("samplerate", c(100, 1000)); // Sample rate in generations for phenotypic output (first value) and allelic output (second value)
+	setCfgParam("burnSampling", 100); // Set a sample rate for burn-in - we don't need as high resolution data here.
 	setCfgParam("adaptiveSampling", F); // Enable adaptive sampling rates to sample more often when phenotypes are changing rapidly. 
 	setCfgParam("sampleLimits", c(0.1*samplerate, 5*samplerate)); // Set maximum and minimum sample rates to adjust between 
 	
@@ -64,7 +64,7 @@ initialize() {
 	setCfgParam("outOpt", paste0('out_stabsel_opt', identifier, '.csv')); // Output filename/path for the trait optimum values for each run
 	setCfgParam("outMuts", paste0('out_stabsel_muts', identifier, '.csv')); //Output filename/path for the mutation information
 	setCfgParam("outDict", paste0('out_stabsel_dict', identifier, '.csv')); // Output filename/path for dictionary of genetic constraints
-	setCfgParam("moveDir", "/scratch/ht96/nb9894/slim_SeptGadiTest/"); // Directory to move output to at end of simulation
+	setCfgParam("moveDir", "/scratch/user/uqnobri4/CoalBurnTests"); // Directory to move output to at end of simulation
 
 	if (debug == T)
 		defineConstant("beginTime", clock());
