@@ -39,7 +39,7 @@ def randNoise32(position, seed):
 
 
 # Read in parameters
-combos = read_csv("./lhc_gaditest.csv")
+combos = read_csv("$HOME/tests/CoalBurnTests/R/lhc_coalburntest.csv")
 Ne = ceil(combos.Ne.get(int(argv[1]) - 1))
 rwide = combos.rwide.get(int(argv[1]) - 1)
 
