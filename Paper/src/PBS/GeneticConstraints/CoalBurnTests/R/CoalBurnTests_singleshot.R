@@ -8,15 +8,17 @@
 
 
 # Parse parameters: seed and latin square row number
- 
+
+
 args <- commandArgs(trailingOnly = TRUE)
 if ( length(args) < 2 ) {
   cat("Need 2 command line parameters: LS_COMBO SEED\n")
   q()
 }
 
-row_combo <- as.numeric(args[1])
-row_seed <- as.numeric(args[2])
+# combo and seed
+i <- as.numeric(args[1])
+j <- as.numeric(args[2])
 
 # Env variables
 HOME <- Sys.getenv("HOME")
@@ -25,14 +27,11 @@ HOME <- Sys.getenv("HOME")
 seeds <- read.csv(paste0(HOME, "/tests/CoalBurnTests/R/seeds_coalburntest.csv"), header = T)
 combos <- read.csv(paste0(HOME, "/tests/CoalBurnTests/R/lhc_coalburntest.csv"), header = T)
 
-i <- row_seed
-j <- row_combo
-
 
 # Check if we are a control or tree model
 if ( combos$tree[j] ) {
   # Sublaunch Python to generate the tree sequence (conda sucks)
-  system(sprintf("$HOME/.conda/envs/msslim/bin/python3.9 burnin.py %i %s", 
+  system(sprintf("$HOME/.conda/envs/msslim/bin/python3.9 $HOME/tests/CoalBurnTests/R/burnin.py %i %s", 
                 j, 
                 as.character(seeds$Seed[i]), 
                 intern = T))

@@ -71,9 +71,6 @@ RSCRIPTNAME="${PBS_O_WORKDIR}/R/${RUNNAME}.R"
 
 module purge
 module load R/4.0.0
-module load anaconda/2020.02
-
-conda activate msslim
 
 Rscript $RSCRIPTNAME ${NIMROD_VAR_LS} ${NIMROD_VAR_SEED} 
 

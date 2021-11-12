@@ -505,6 +505,7 @@ s4 4 late() {
 		system(paste0("mv ./", outOpt, " ", moveDir));
 		system(paste0("mv ./", outMuts, " ", moveDir));
 		system(paste0("mv ./", outDict, " ", moveDir));
+		system(paste0("rm treeburnin_", seed, "_", modelindex, ".trees"));
 		
 		sim.simulationFinished();
 	}	
