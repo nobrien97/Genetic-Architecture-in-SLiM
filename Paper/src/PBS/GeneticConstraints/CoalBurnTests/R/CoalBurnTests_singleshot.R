@@ -16,7 +16,7 @@ if ( length(args) < 2 ) {
   q()
 }
 
-# combo and seed
+# combo and seed argument from command line
 i <- as.numeric(args[1])
 j <- as.numeric(args[2])
 
@@ -29,26 +29,26 @@ combos <- read.csv(paste0(HOME, "/tests/CoalBurnTests/R/lhc_coalburntest.csv"), 
 
 
 # Check if we are a control or tree model
-if ( combos$tree[j] ) {
+if ( combos$tree[i] ) {
   # Sublaunch Python to generate the tree sequence (conda sucks)
   system(sprintf("$HOME/.conda/envs/msslim/bin/python3.9 $HOME/tests/CoalBurnTests/R/burnin.py %i %s", 
-                j, 
-                as.character(seeds$Seed[i]), 
+                i, 
+                as.character(seeds$Seed[j]), 
                 intern = T))
 
   # Run SLiM
   slim_out <- system(sprintf("$HOME/slim/slim -s %s -d Ne=%i -d rwide=%f -d modelindex=%i $HOME/tests/CoalBurnTests/slim/polygen_maint_coalload.slim", 
-                              as.character(seeds$Seed[i]), 
-                              as.integer(ceiling(combos[j,]$Ne)), 
-                              combos[j,]$rwide, 
-                              j, intern=T))
+                              as.character(seeds$Seed[j]), 
+                              as.integer(ceiling(combos[i,]$Ne)), 
+                              combos[i,]$rwide, 
+                              i, intern=T))
 } else {
 # Sublaunch SLiM with the appropriate values
 slim_out <- system(sprintf("$HOME/slim/slim -s %s -d Ne=%i -d rwide=%f -d modelindex=%i $HOME/tests/CoalBurnTests/slim/polygen_maint.slim", 
-                           as.character(seeds$Seed[i]), 
-                           as.integer(round(combos[j,]$Ne)), 
-                           combos[j,]$rwide, 
-                           j, intern=T))
+                           as.character(seeds$Seed[j]), 
+                           as.integer(round(combos[i,]$Ne)), 
+                           combos[i,]$rwide, 
+                           i, intern=T))
 
 }
 
