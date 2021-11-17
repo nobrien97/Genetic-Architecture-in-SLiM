@@ -64,6 +64,7 @@ initialize() {
 	setCfgParam("outOpt", paste0('out_stabsel_opt', identifier, '.csv')); // Output filename/path for the trait optimum values for each run
 	setCfgParam("outMuts", paste0('out_stabsel_muts', identifier, '.csv')); //Output filename/path for the mutation information
 	setCfgParam("outDict", paste0('out_stabsel_dict', identifier, '.csv')); // Output filename/path for dictionary of genetic constraints
+	setCfgParam("outLD", paste0('out_stabsel_ld', identifier, '.csv')); // Output filename/path for LD matrix (only generate one!)
 	setCfgParam("moveDir", "/scratch/user/uqnobri4/CoalBurnTests"); // Directory to move output to at end of simulation
 
 	if (debug == T)
@@ -153,6 +154,7 @@ function (float$) sharedMutFreq(o<Subpopulation>$ pop, o<Mutation>$ mut1, o<Muta
 
 
 function (float) pairwiseR2(o<Subpopulation>$ pop) {
+// TODO: Speed up this function - vectorise some loops, or implement it in C++
 	// Calculate pairwise r^2 in a population for every mutation in the genome
 	// Stored in a correlation matrix
 	// First, sample each locus and get mutation id of the minor allele there
@@ -178,16 +180,21 @@ function (float) pairwiseR2(o<Subpopulation>$ pop) {
 	}
 	
 	// Then, calculate correlations between n sampled mutations
-	corTable = matrix(float(size(mutFreqs) * size(mutFreqs)), nrow = size(mutFreqs));	
+	// Initialise to 100 so we can check if values have been filled
+	corTable = matrix(rep(100.0, (size(mutFreqs) * size(mutFreqs))), nrow = size(mutFreqs));
 	
-	for (i in 1:(genomelength - 1)) {
-		for (j in 1:(genomelength - 1)) {
+	for (i in 0:(genomelength - 1)) {
+		for (j in 0:(genomelength - 1)) {
+		// Check if the reciprocal has already been done - if so, we can skip this iteration
+			if (corTable[j, i] < 100) {
+				corTable[i, j] = corTable[j, i];
+				next;
+			}	
 		// Check if any mutations have frequency 0 - if they do, set the r^2 to 0 and move on
 			if (any(mutFreqs[c(i, j)] == 0.0)) {
 				corTable[i, j] = 0.0;
 				next;
 			}		
-		
 		
 		// Check that we have mutations at both sites - if not, shared freq is 0
 			if (any(mutMAFs[c(i, j)] == -1)) {
@@ -201,8 +208,6 @@ function (float) pairwiseR2(o<Subpopulation>$ pop) {
 	}
 	
 	return corTable;
-	
-
 }
 
 
@@ -535,6 +540,10 @@ s4 4 late() {
 			catn("Adaptation test took " + (clock() - sim.getValue("burnClock")) + " seconds");
 			catn("Total test time: " + (clock() - beginTime) + " seconds");
 		}
+		
+		LDMat = pairwiseR2(p1);
+		l = sapply(seqLen(nrow(LDMat)), "paste(LDMat[applyValue,], '\t');")
+		writeFile(outLD, l);
 		// Move output to scratch storage
 
 		system(paste0("mv ./", outPositions, " ", moveDir));
@@ -543,6 +552,8 @@ s4 4 late() {
 		system(paste0("mv ./", outOpt, " ", moveDir));
 		system(paste0("mv ./", outMuts, " ", moveDir));
 		system(paste0("mv ./", outDict, " ", moveDir));
+		system(paste0("mv ./", outLD, " ", moveDir));
+
 		
 		sim.simulationFinished();
 	}	
