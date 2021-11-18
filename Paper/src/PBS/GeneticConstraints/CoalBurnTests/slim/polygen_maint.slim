@@ -159,6 +159,7 @@ function (float) pairwiseR2(o<Subpopulation>$ pop) {
 	// Stored in a correlation matrix
 	// First, sample each locus and get mutation id of the minor allele there
 	genom = pop.genomes;
+	singletonFreq = 1/genom.size();
 	mutFreqs = float(genomelength);
 	mutMAFs = integer(genomelength);
 	for (i in 0:(genomelength - 1)) {
@@ -168,8 +169,8 @@ function (float) pairwiseR2(o<Subpopulation>$ pop) {
 		for (j in seqAlong(muts)) {
 			muts[j].setValue("freq", mutFreqAll[j]);
 		}		
-	
-		mutFreqs[i] = size(mutFreqAll) ? min(mutFreqAll[mutFreqAll > 0.0]) else 0.0; // get the MAF for that site
+		// get the MAF for that site ignoring singletons (Stolyarova et al. 2021)
+		mutFreqs[i] = size(mutFreqAll) ? min(mutFreqAll[mutFreqAll > singletonFreq]) else 0.0; 
 			
 		// get the mutation id with the MAF
 		// How likely is it that at the same position we have the same mutation frequency for two alleles?
@@ -542,7 +543,7 @@ s4 4 late() {
 		}
 		
 		LDMat = pairwiseR2(p1);
-		l = sapply(seqLen(nrow(LDMat)), "paste(LDMat[applyValue,], '\t');")
+		l = sapply(seqLen(nrow(LDMat)), "paste(LDMat[applyValue,], '\t');");
 		writeFile(outLD, l);
 		// Move output to scratch storage
 
