@@ -64,6 +64,7 @@ initialize() {
 	setCfgParam("outOpt", paste0('out_stabsel_opt', identifier, '.csv')); // Output filename/path for the trait optimum values for each run
 	setCfgParam("outMuts", paste0('out_stabsel_muts', identifier, '.csv')); //Output filename/path for the mutation information
 	setCfgParam("outDict", paste0('out_stabsel_dict', identifier, '.csv')); // Output filename/path for dictionary of genetic constraints
+	setCfgParam("outLD", paste0('out_stabsel_ld', identifier, '.tsv')); // Output filename/path for LD matrix (only generate one!)
 	setCfgParam("moveDir", "/scratch/ht96/nb9894/slim_SeptGadiTest/"); // Directory to move output to at end of simulation
 
 	if (debug == T)
@@ -142,6 +143,71 @@ function (float) lerp(fi xmin, fi xmax, fi ymin, fi ymax, fi x) {
 	 	return ymin;
 	 else
 	 	return y;
+}
+
+
+function (float$) sharedMutFreq(o<Subpopulation>$ pop, o<Mutation>$ mut1, o<Mutation>$ mut2) {
+	// Find the frequency of AB: number of genomes with alleles i and j and loci n and m
+	validGenomes = pop.genomes[pop.genomes.containsMutations(mut1) & pop.genomes.containsMutations(mut2)];
+	return validGenomes.size()/pop.genomes.size();
+}
+
+
+function (float) pairwiseR2(o<Subpopulation>$ pop) {
+// TODO: Speed up this function - vectorise some loops, or implement it in C++
+	// Calculate pairwise r^2 in a population for every mutation in the genome
+	// Stored in a correlation matrix
+	// First, sample each locus and get mutation id of the minor allele there
+	genom = pop.genomes;
+	singletonFreq = 1/genom.size();
+	mutFreqs = float(genomelength);
+	mutMAFs = integer(genomelength);
+	for (i in 0:(genomelength - 1)) {
+		muts = sim.mutations[sim.mutations.position == i]; // get all mutations at this site
+		mutFreqAll = genom.mutationFrequenciesInGenomes(muts); // get the frequencies of those mutations
+		// Store their frequencies
+		for (j in seqAlong(muts)) {
+			muts[j].setValue("freq", mutFreqAll[j]);
+		}		
+		// get the MAF for that site ignoring singletons (Stolyarova et al. 2021)
+		mutFreqs[i] = any(mutFreqAll > singletonFreq) ? min(mutFreqAll[mutFreqAll > singletonFreq]) else 0.0; 
+			
+		// get the mutation id with the MAF
+		// How likely is it that at the same position we have the same mutation frequency for two alleles?
+		// If they have identical frequencies, I guess we just choose one randomly? Use sample for now
+		// but putting this sample in an if statement is probably faster
+		mutMAFs[i] = any(mutFreqAll > singletonFreq) ? sample(muts[muts.getValue("freq") == mutFreqs[i]].id, 1) else -1;	
+	}
+	
+	// Then, calculate correlations between n sampled mutations
+	// Initialise to 100 so we can check if values have been filled
+	corTable = matrix(rep(100.0, (size(mutFreqs) * size(mutFreqs))), nrow = size(mutFreqs));
+	
+	for (i in 0:(genomelength - 1)) {
+		for (j in 0:(genomelength - 1)) {
+		// Check if the reciprocal has already been done - if so, we can skip this iteration
+			if (corTable[j, i] < 100) {
+				corTable[i, j] = corTable[j, i];
+				next;
+			}	
+		// Check if any mutations have frequency 0 - if they do, set the r^2 to 0 and move on
+			if (any(mutFreqs[c(i, j)] == 0.0)) {
+				corTable[i, j] = 0.0;
+				next;
+			}		
+		
+		// Check that we have mutations at both sites - if not, shared freq is 0
+			if (any(mutMAFs[c(i, j)] == -1)) {
+				ABFreq = 0.0;
+			} else {
+				ABFreq = sharedMutFreq(p1, sim.mutations[sim.mutations.id == mutMAFs[i]], sim.mutations[sim.mutations.id == mutMAFs[j]]);
+				}
+			corTable[i, j] = (( ABFreq - (mutFreqs[i] * mutFreqs[j]))^2) / ((mutFreqs[i] * (1 - mutFreqs[i]) * mutFreqs[j] * (1 - mutFreqs[j])));	
+		}
+	
+	}
+	
+	return corTable;
 }
 
 
@@ -474,6 +540,10 @@ s4 4 late() {
 			catn("Adaptation test took " + (clock() - sim.getValue("burnClock")) + " seconds");
 			catn("Total test time: " + (clock() - beginTime) + " seconds");
 		}
+
+		LDMat = pairwiseR2(p1);
+		l = sapply(seqLen(nrow(LDMat)), "paste(LDMat[applyValue,], sep = '\t');");
+		writeFile(outLD, l);
 		// Move output to scratch storage
 
 		system(paste0("mv ./", outPositions, " ", moveDir));
