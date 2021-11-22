@@ -99,8 +99,8 @@ end = time()
 
 taken = (end - start)
 
-with open("/scratch/user/uqnobri4/CoalBurnTest2/time_{s}_{m}".format(s=argv[2], m=argv[1]), 'w') as f:
-    f.write(str(taken))
+with open("/scratch/ht96/nb9894/CoalBurnTest2/tree_time_{s}_{m}.csv".format(s=argv[2], m=argv[1]), 'w') as f:
+    f.write("{s}, {m}, {t}".format(s=argv[2], m=argv[1], t=str(taken)))
     f.write("\n")
 
 quit()

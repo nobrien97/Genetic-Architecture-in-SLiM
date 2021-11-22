@@ -66,7 +66,11 @@ initialize() {
 	setCfgParam("outDict", paste0('out_stabsel_dict', identifier, '.csv')); // Output filename/path for dictionary of genetic constraints
 	setCfgParam("outLD", c(paste0('out_stabsel_ld_burnin', identifier, '.tsv'),
 						   paste0('out_stabsel_ld_final', identifier, '.tsv'))); // Output filename/path for LD matrix (only generate one!)
-	setCfgParam("moveDir", "/scratch/user/uqnobri4/CoalBurnTest2"); // Directory to move output to at end of simulation
+	setCfgParam("moveDir", "/scratch/ht96/nb9894/CoalBurnTest2/"); // Directory to move output to at end of simulation
+
+	// Time tests
+	defineConstant("beginTime", clock());
+	setCfgParam("outTime", paste0('out_stabsel_time', identifier, '.csv'));
 
 	if (debug == T)
 		defineConstant("beginTime", clock());
@@ -329,7 +333,10 @@ s1 2 late() {
 	calcPhenotype(inds, sim.substitutions);
 	// If the phenotype isn't null, set the phenomean to the mean, otherwise 0
 	phenomean = !isNULL(inds.getValue("phenotype")) ? mean(inds.getValue("phenotype")) else 0.0;
-	
+
+	curTime = clock() - beginTime;
+	tFile = paste(sim.generation, asString(seed), modelindex, curTime, sep = ",");
+	writeFile(outTime, tFile, append = T);
 	
 	// Set the optimum as a fixed distance from post-burn-in population phenotype mean, and do our write to the standard phenomean output, rather than burn-in
 	if (sim.generation == burnTime) {
@@ -565,6 +572,7 @@ s4 4 late() {
 		system(paste0("mv ./", outDict, " ", moveDir));
 		system(paste0("mv ./", outLD[0], " ", moveDir));
 		system(paste0("mv ./", outLD[1], " ", moveDir));
+		system(paste0("mv ./", outTime, " ", moveDir));
 
 
 		

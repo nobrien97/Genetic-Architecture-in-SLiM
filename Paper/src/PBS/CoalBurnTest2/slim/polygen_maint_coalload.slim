@@ -70,8 +70,12 @@ initialize() {
 	setCfgParam("outDict", paste0('out_stabsel_dict', identifier, '.csv')); // Output filename/path for dictionary of genetic constraints
 	setCfgParam("outLD", c(paste0('out_stabsel_ld_burnin', identifier, '.tsv'),
 						   paste0('out_stabsel_ld_final', identifier, '.tsv'))); // Output filename/path for LD matrix (only generate one!)
-	setCfgParam("moveDir", "/scratch/user/uqnobri4/CoalBurnTest2"); // Directory to move output to at end of simulation
+	setCfgParam("moveDir", "/scratch/ht96/nb9894/CoalBurnTest2/"); // Directory to move output to at end of simulation
 	
+	// Time tests
+	defineConstant("beginTime", clock());
+	setCfgParam("outTime", paste0('out_stabsel_time', identifier, '.csv'));
+
 	if (debug == T)
 		defineConstant("beginTime", clock());
 
@@ -349,7 +353,12 @@ s1 2 late() {
 	calcPhenotype(inds, sim.substitutions);
 	// If the phenotype isn't null, set the phenomean to the mean, otherwise 0
 	phenomean = !isNULL(inds.getValue("phenotype")) ? mean(inds.getValue("phenotype")) else 0.0;
-	
+
+
+	curTime = clock() - beginTime;
+	tFile = paste(sim.generation, asString(seed), modelindex, curTime, sep = ",");
+	writeFile(outTime, tFile, append = T);
+
 	
 	// Set the optimum as a fixed distance from post-burn-in population phenotype mean, and do our write to the standard phenomean output, rather than burn-in
 	if (sim.generation == burnTime) {
@@ -366,7 +375,7 @@ s1 2 late() {
 		sim.setValue("burninPheno", phenomean); // Set a temporary optimum
 	
 		// Write LD for burn-in
-		LDMat = pairwiseR2(p1);
+		LDMat = pairwiseR2(p0); // For coalescent burn-in: the population is named p0 not p1
 		l = sapply(seqLen(nrow(LDMat)), "paste(LDMat[applyValue,], sep = '\t');");
 		writeFile(outLD[0], l);
 
@@ -569,7 +578,7 @@ s4 4 late() {
 			catn("Total test time: " + (clock() - beginTime) + " seconds");
 		}
 		// Write LD output
-		LDMat = pairwiseR2(p1);
+		LDMat = pairwiseR2(p0);
 		l = sapply(seqLen(nrow(LDMat)), "paste(LDMat[applyValue,], sep = '\t');");
 		writeFile(outLD[1], l);
 		// Move output to scratch storage
@@ -582,6 +591,7 @@ s4 4 late() {
 		system(paste0("mv ./", outDict, " ", moveDir));
 		system(paste0("mv ./", outLD[0], " ", moveDir));
 		system(paste0("mv ./", outLD[1], " ", moveDir));
+		system(paste0("mv ./", outTime, " ", moveDir));
 		system(paste0("rm treeburnin_", seed, "_", modelindex, ".trees"));
 		
 		sim.simulationFinished();

@@ -3,6 +3,9 @@
 # genetic constraint = ((1, 0, 0), (0, 1, 0), (0, 0, 1)] - all low, all medium, all highly constrained
 # rwide = 0.0, 0.2, 0.5
 setwd("/mnt/z/Documents/GitHub/Genetic-Architecture-in-SLiM/Paper/data/tests/CoalBurnTests")
+# For test 2:
+setwd("/mnt/z/Documents/GitHub/Genetic-Architecture-in-SLiM/Paper/data/tests/CoalBurnTest2")
+
 
 
 d_burnmeans <- read.csv("out_stabsel_burnin.csv", header = F)

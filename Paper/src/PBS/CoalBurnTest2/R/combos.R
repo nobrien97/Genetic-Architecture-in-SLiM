@@ -41,3 +41,15 @@ lhc_samples$tree <- rep(tree_levels, each = nrow(lhc_samples) / 2)
 write.csv(lhc_samples, "./lhc_coalburntest.csv")
 
 
+# Generate cmds.txt
+lhc_samples <- read.csv("./lhc_coalburntest.csv")
+singleRunBashName <- "./CoalBurnTest2_testSR.sh"
+modelIndices <- seq_len(nrow(lhc_samples))
+seeds <- 1:10
+
+dfCMDs <- data.frame(name = singleRunBashName,
+                     modelindex = rep(modelIndices, times = length(seeds)),
+                     seed = rep(seeds, each = length(modelIndices))
+                     )
+
+write.table(dfCMDs, "./cmds.txt", sep = " ", row.names = FALSE, col.names = FALSE, quote = FALSE)
