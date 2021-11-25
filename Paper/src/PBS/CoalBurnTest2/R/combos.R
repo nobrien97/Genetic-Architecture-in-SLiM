@@ -44,7 +44,7 @@ write.csv(lhc_samples, "./lhc_coalburntest.csv")
 # Generate cmds.txt
 lhc_samples <- read.csv("./lhc_coalburntest.csv")
 singleRunBashName <- "./CoalBurnTest2_testSR.sh"
-modelIndices <- seq_len(nrow(lhc_samples))
+modelIndices <- seq_len(32)#nrow(lhc_samples))
 seeds <- 1:10
 
 dfCMDs <- data.frame(name = singleRunBashName,
@@ -52,4 +52,4 @@ dfCMDs <- data.frame(name = singleRunBashName,
                      seed = rep(seeds, each = length(modelIndices))
                      )
 
-write.table(dfCMDs, "./cmds.txt", sep = " ", row.names = FALSE, col.names = FALSE, quote = FALSE)
+write.table(dfCMDs, "./cmds2.txt", sep = " ", row.names = FALSE, col.names = FALSE, quote = FALSE)

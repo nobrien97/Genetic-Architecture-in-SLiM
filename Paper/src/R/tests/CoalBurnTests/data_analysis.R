@@ -4,11 +4,11 @@
 # rwide = 0.0, 0.2, 0.5
 setwd("/mnt/z/Documents/GitHub/Genetic-Architecture-in-SLiM/Paper/data/tests/CoalBurnTests")
 # For test 2:
-setwd("/mnt/z/Documents/GitHub/Genetic-Architecture-in-SLiM/Paper/data/tests/CoalBurnTest2")
+setwd("/mnt/c/GitHub/Genetic-Architecture-in-SLiM/Paper/data/tests/CoalBurnTest2")
 
 
 
-d_burnmeans <- read.csv("out_stabsel_burnin.csv", header = F)
+d_burnmeans <- read.csv("out_stabsel_burnin2.csv", header = F)
 
 names(d_burnmeans) <- c("gen", "seed", "modelindex", "meanH", "VA", "phenomean")
 
@@ -25,7 +25,7 @@ for (index in unique(d_burnmeans$modelindex)) {
 }
 
 
-d_means <- read.csv("out_stabsel_means.csv", header = F)
+d_means <- read.csv("out_stabsel_means2.csv", header = F)
 
 names(d_means) <- c("gen", "seed", "modelindex", "meanH", "VA", "phenomean", "dist", "mean_w", "deltaPheno")
 
@@ -41,28 +41,32 @@ for (index in unique(d_means$modelindex)) {
   d_means[d_means$modelindex == index, names(combos)[2:4]] <- combos[index, 2:4]
 }
 
+# timing data frame
+d_time <- read.csv("out_stabsel_time2.csv", header = F)
+names(d_time) <- c("gen", "seed", "modelindex", "time")
+d_time[names(combos)[2:4]] <- NA
+for (index in unique(d_time$modelindex)) {
+  d_time[d_time$modelindex == index, names(combos)[2:4]] <- combos[index, 2:4]
+}
 
 
-d_means$sigma <- 1
-
-d_means$constraint <- "Low"
-
-d_means$constraint <- as.factor(d_means$constraint)
 
 
-
-
-d_muts <- read.csv("out_stabsel_muts.csv", header = F) # Ignore extra empty column (fixed in next version of script)
+d_muts <- read.csv("out_stabsel_muts2.csv", header = F) # Ignore extra empty column (fixed in next version of script)
 
 names(d_muts) <- c("gen", "seed", "modelindex", "mutType", "mutID", "position", "constraint", "originGen", "value", "chi", "Freq", "fixGen")
 
 
-# Combine the two dataframes with dplyr
+# Combine the three dataframes (means, muts, time) with dplyr
 library(tidyverse)
 df_combined <- inner_join(d_muts, d_means, by = c("gen", "modelindex", "seed"))
+df_combined <- inner_join(df_combined, d_time, by = c("gen", "modelindex", ))
+
 
 write.csv(df_combined, "df_combined.csv", row.names = FALSE)
 write.csv(d_burnmeans, "df_burnin.csv", row.names = FALSE)
+write.csv(d_time, "df_time.csv", row.names = FALSE)
+
 
 
 d_muts$constraint <- as.factor(d_muts$constraint)
@@ -79,3 +83,14 @@ levels(d_muts$sigma) <- c("\u03c3 = 1", "\u03c3 = 10")
 
 
 write.table(d_means, "d_phenomeans.csv", sep = ",", row.names = F)
+
+
+# Tree time
+d_treegentime <- read.csv("tree_time.csv", header = F)
+names(d_treegentime) <- c("seed", "modelindex", "time")
+for (index in unique(d_treegentime$modelindex)) {
+  d_treegentime[d_treegentime$modelindex == index, names(combos)[2:4]] <- combos[index, 2:4]
+}
+
+
+write.table(d_treegentime, "d_treetime.csv", sep = ",", row.names = F)

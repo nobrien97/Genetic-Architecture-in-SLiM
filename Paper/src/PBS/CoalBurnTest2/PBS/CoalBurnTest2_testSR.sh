@@ -17,7 +17,7 @@ Rscript ${RSCRIPTNAME} ${MODELINDEX} ${SEED}
 
 
 DURATION=$SECONDS
-echo "Run modelindex = $MODELINDEX, seedindex = $SEED, finished successfully!\n"
+echo "Run modelindex = $MODELINDEX, seedindex = $SEED, finished!"
 echo "$(($DURATION / 3600)) hours, $((($DURATION / 60) % 60)) minutes, and $(($DURATION % 60)) seconds elapsed."
 
 

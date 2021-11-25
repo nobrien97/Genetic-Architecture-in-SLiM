@@ -17,7 +17,7 @@ initialize() {
 		setCfgParam("seed", getSeed());
 		catn("Actual seed: " + asInteger(seed));
 	}
-	setCfgParam("debug", F); // Verbose debug outputs straight to stdout
+	setCfgParam("debug", T); // Verbose debug outputs straight to stdout
 	
 	// Declare/define parameters if they haven't been by the command line arguments
 	// Values from literature are cited
@@ -69,7 +69,7 @@ initialize() {
 	setCfgParam("moveDir", "/scratch/ht96/nb9894/CoalBurnTest2/"); // Directory to move output to at end of simulation
 
 	// Time tests
-	defineConstant("beginTime", clock());
+//	defineConstant("beginTime", clock());
 	setCfgParam("outTime", paste0('out_stabsel_time', identifier, '.csv'));
 
 	if (debug == T)
@@ -206,6 +206,7 @@ function (float) pairwiseR2(o<Subpopulation>$ pop) {
 			if (any(mutMAFs[c(i, j)] == -1)) {
 				ABFreq = 0.0;
 			} else {
+			// Stolyarova et al. 2021
 				ABFreq = sharedMutFreq(p1, sim.mutations[sim.mutations.id == mutMAFs[i]], sim.mutations[sim.mutations.id == mutMAFs[j]]);
 				}
 			corTable[i, j] = (( ABFreq - (mutFreqs[i] * mutFreqs[j]))^2) / ((mutFreqs[i] * (1 - mutFreqs[i]) * mutFreqs[j] * (1 - mutFreqs[j])));	
