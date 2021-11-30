@@ -1,0 +1,40 @@
+// set up a simple neutral simulation
+initialize() {
+	setCfgParam("Xstart", 1); 
+	setCfgParam("Xstop", 6); 
+	setCfgParam("Aalpha", 0.00001); 
+	setCfgParam("Abeta", 5); 
+	setCfgParam("Balpha", 0.00001);
+	setCfgParam("Bbeta", 3);
+	setCfgParam("Hilln", 100);
+	setCfgParam("Bthreshold", 2);
+	setCfgParam("modelindex", 1);
+
+	initializeMutationRate(1e-7);
+	
+	// m1 mutation type: neutral
+	initializeMutationType("m1", 0.5, "f", 0.0);
+	
+	// g1 genomic element type: uses m1 for all mutations
+	initializeGenomicElementType("g1", m1, 1.0);
+	
+	// uniform chromosome of length 100 kb with uniform recombination
+	initializeGenomicElement(g1, 0, 99999);
+	initializeRecombinationRate(1e-8);
+}
+
+function (void) setCfgParam(s$ name, ifls value) {
+	// Automate defining constants for SLiMgui and slim command line
+	
+	if (!exists(name)) {
+		defineConstant(name, value);
+	}
+}
+
+
+1 {
+	out = NARIntegrate(Aalpha, Abeta, Balpha, Bbeta, Hilln, Bthreshold, Xstart, Xstop);
+	writeFile("out_AUC_slim.tsv", paste(modelindex, out, sep = "\t"), append = T);
+	sim.simulationFinished();
+}
+
