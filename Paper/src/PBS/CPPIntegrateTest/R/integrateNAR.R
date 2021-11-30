@@ -3,6 +3,7 @@
 
 setwd("/mnt/c/GitHub/Genetic-Architecture-in-SLiM/Paper/src/PBS/CPPIntegrateTest/")
 # Load in combos 
+lhc_samples <- read.csv("R/lhc_cppAUC.csv")
 for (midx in 1:nrow(lhc_samples)) {
   
   combos <- lhc_samples[midx,]
@@ -72,9 +73,9 @@ for (index in unique(out_R$modelindex)) {
   out_R[out_R$modelindex == index, names(lhc_samples)] <- lhc_samples[index, ]
 }
 
+df_combined <- rbind(out_slim, out_R)
 df_combined$modelindex[df_combined$modelindex > 512] <- 1:512
 
-df_combined <- rbind(out_slim, out_R)
 
 # Scale data
 
@@ -91,6 +92,11 @@ for (idx in unique(df_combined$modelindex)) {
   df_combined[idx,]$scaleddistA <- c(dist(df_combined$AScaled[df_combined$modelindex == idx]))
   df_combined[idx,]$scaleddistB <- c(dist(df_combined$BScaled[df_combined$modelindex == idx]))
 }
+
+# Calculate maximum distances
+
+max(df_combined$distA[!is.na(df_combined$distA)])
+max(df_combined$distB[!is.na(df_combined$distB)])
 
 write.table(df_combined, file = "out_AUC.tsv", sep = "\t", row.names = F)
   
